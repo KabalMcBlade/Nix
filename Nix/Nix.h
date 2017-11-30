@@ -4,4 +4,5 @@
 #include "Architecture.h"
 #include "Types.h"
 
+#include "VectorHelper.h"
 #include "Vector.h"

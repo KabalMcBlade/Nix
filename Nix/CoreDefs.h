@@ -46,8 +46,8 @@
 // TYPEDEFS
 //////////////////////////////////////////////////////////////////////////
 
-typedef	bool			nixBool;
-typedef	float			nixFloat;
+typedef bool            nixBool;
+typedef float           nixFloat;
 typedef double          nixDouble;
 
 typedef uint_fast8_t    nixU8;
@@ -67,12 +67,12 @@ typedef std::size_t     nixSize;
 
 #ifdef _DEBUG
 #define nixAssert( condition, message ) \
-	if( !(condition) ) { \
-		std::cerr << "Assert: " << (#condition) << std::endl; \
-		std::cerr << "Message: " << message << std::endl; \
-		std::cerr << "File: " << __FILE__ << std::endl; \
+    if( !(condition) ) { \
+        std::cerr << "Assert: " << (#condition) << std::endl; \
+        std::cerr << "Message: " << message << std::endl; \
+        std::cerr << "File: " << __FILE__ << std::endl; \
         std::cerr << "Line: " << __LINE__ << std::endl << std::endl; \
-	}
+    }
 #define nixAssertDialog( condition ) assert(condition)
 #else
 #define nixAssert( condition, message )
@@ -81,12 +81,12 @@ typedef std::size_t     nixSize;
 
 #define nixAssertReturnVoid( condition, message ) \
     nixAssert( condition, message )\
-	if( !(condition) ) { \
+    if( !(condition) ) { \
         return;\
-	}
+    }
 
 #define nixAssertReturnValue( condition, message, return_value ) \
     nixAssert( condition, message )\
-	if( !(condition) ) { \
+    if( !(condition) ) { \
         return return_value;\
-	}
+    }

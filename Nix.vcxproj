@@ -158,6 +158,7 @@
     <ClInclude Include="Nix\Nix.h" />
     <ClInclude Include="Nix\Types.h" />
     <ClInclude Include="Nix\Vector.h" />
+    <ClInclude Include="Nix\VectorHelper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
