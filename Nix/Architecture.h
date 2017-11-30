@@ -33,7 +33,16 @@
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-#if defined(__AVX2__)
+// Skylake definition from architecture cpu
+//#define __AVX512BW__ 1
+//#define __AVX512CD__ 1
+//#define __AVX512DQ__ 1
+//#define __AVX512F__ 1
+//#define __AVX512VL__ 1
+
+#if defined(__AVX512BW__) || defined(__AVX512CD__) || defined(__AVX512DQ__) || defined(__AVX512F__) || defined(__AVX512VL__)
+#   define NIX_ARCH NIX_ARCH_AVX512
+#elif defined(__AVX2__)
 #   define NIX_ARCH NIX_ARCH_AVX2
 #elif defined(__AVX__)
 #   define NIX_ARCH NIX_ARCH_AVX
@@ -52,7 +61,13 @@
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-#if NIX_ARCH & NIX_ARCH_AVX2_BIT
+
+#if NIX_ARCH & NIX_ARCH_AVX512
+#   if defined(NIX_VERBOSE_ARCH)
+#      pragma message("Supported architecture: AVX 512 - Skylake-X core subset instruction")
+#   endif
+#   include <immintrin.h>
+#elif NIX_ARCH & NIX_ARCH_AVX2_BIT
 #   if defined(NIX_VERBOSE_ARCH)
 #      pragma message("Supported architecture: AVX 2")
 #   endif

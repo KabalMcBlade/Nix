@@ -89,7 +89,7 @@ public:
 
     static NIX_INLINE __nixFloat4 Dot(const __nixFloat4& _a, const __nixFloat4& _b)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX2_BIT
+#   if NIX_ARCH & NIX_ARCH_SSE41
         return _mm_dp_ps(_a, _b, 0xff); // 1111 1111 -> all values are computed and the result is saved to the whole register
 #	elif NIX_ARCH & NIX_ARCH_SSE3_BIT
         const __nixFloat4 mul = _mm_mul_ps(_a, _b);
@@ -106,7 +106,7 @@ public:
 
     static NIX_INLINE __nixFloat4 Dot3(const __nixFloat4& _a, const __nixFloat4& _b)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX2_BIT
+#   if NIX_ARCH & NIX_ARCH_SSE41
         return _mm_dp_ps(_a, _b, 0x7f); // 0111 1111 -> the w value of arrays are not computed. The result is saved to the whole register
 #	elif NIX_ARCH & NIX_ARCH_SSE3_BIT
         const __nixFloat4 mul = _mm_mul_ps(_a, _b);
@@ -123,7 +123,7 @@ public:
 
     static NIX_INLINE __nixFloat4 Dot33(const __nixFloat4& _a, const __nixFloat4& _b)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX2_BIT
+#   if NIX_ARCH & NIX_ARCH_SSE41
         return _mm_dp_ps(_a, _b, 0x77); // 0111 0111 -> the w value of arrays are not computed. The result is saved only in the lower 3 bit (result.w=0)
 #	elif NIX_ARCH & NIX_ARCH_SSE3_BIT
 
