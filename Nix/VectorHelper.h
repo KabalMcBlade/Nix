@@ -97,9 +97,9 @@ public:
         const __nixFloat4 res = _mm_hadd_ps(add, add);
         return res;
 #   else
-        const __nixFloat4 const mul = _mm_mul_ps(_a, _b);
-        const __nixFloat4 const add = _mm_add_ps(mul, _mm_shuffle_ps(mul, mul, _MM_SHUFFLE(2, 3, 0, 1)));
-        const __nixFloat4 const res = _mm_add_ps(add, _mm_shuffle_ps(add, add, _MM_SHUFFLE(0, 1, 2, 3)));
+        const __nixFloat4 mul = _mm_mul_ps(_a, _b);
+        const __nixFloat4 add = _mm_add_ps(mul, _mm_shuffle_ps(mul, mul, _MM_SHUFFLE(2, 3, 0, 1)));
+        const __nixFloat4 res = _mm_add_ps(add, _mm_shuffle_ps(add, add, _MM_SHUFFLE(0, 1, 2, 3)));
         return res;
 #   endif
     }
