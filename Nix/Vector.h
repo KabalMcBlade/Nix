@@ -9,7 +9,7 @@
 NIX_NAMESPACE_BEGIN
 
 
-NIX_MEMORY_ALIGNMENT(NIX_MEMORY_ALIGNMENT_SIZE) class Vector
+NIX_SIMD_ALIGN class Vector
 {
 public:
     //////////////////////////////////////////////////////////////////////////

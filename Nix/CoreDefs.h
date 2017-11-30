@@ -41,6 +41,8 @@
 #define NIX_IS_ALIGNED(ptr, alignment)    ((uint_fast64_t)ptr & (alignment - 1)) == 0
 
 
+#define NIX_SIMD_ALIGN     NIX_MEMORY_ALIGNMENT(NIX_MEMORY_ALIGNMENT_SIZE)
+
 
 //////////////////////////////////////////////////////////////////////////
 // TYPEDEFS
