@@ -40,17 +40,89 @@ This solution has set /arch:AVX2 just to set the Test.cpp included
 
 #include "Nix/Nix.h"
 
+NIX_OPTIMIZATION_OFF
+
 NIX_USING_NAMESPACE
 
 int main()
 {
-    Vector a(2.0f, 2.0f, 2.0f);
-    Vector b(4.0f, 4.0f, 4.0f);
-    Vector res = a.GetDot(b);
+    Vector a4(1.0f, 2.0f, 3.0f, 4.0f);
+    Vector b4(6.0f, 7.0f, 8.0f, 9.0f);
+    Vector res4 = a4.GetDot(b4);
 
-    a.PrintOnConsole3();
-    b.PrintOnConsole3();
-    res.PrintOnConsole3();
+    printf("Dot Result (4 elements and dot of 4 elements)\n");
+    printf("\nPrint3\n");
+
+    a4.Print3();
+    b4.Print3();
+    res4.Print3();
+
+    printf("\nPrint4\n");
+
+    a4.Print();
+    b4.Print();
+    res4.Print();
+
+    printf("\n================================\n");
+    
+    Vector a3(1.0f, 2.0f, 3.0f);
+    Vector b3(7.0f, 8.0f, 9.0f);
+    Vector res3 = a3.GetDot(b3);
+
+    printf("\nDot Result (3 elements and dot of 4 elements)\n");
+    printf("\nPrint3\n");
+
+    a3.Print3();
+    b3.Print3();
+    res3.Print3();
+
+    printf("\nPrint4\n");
+
+    a3.Print();
+    b3.Print();
+    res3.Print();
+    
+    printf("\n================================\n");
+    
+    Vector a3f(1.0f, 2.0f, 3.0f);
+    Vector b3f(7.0f, 8.0f, 9.0f);
+    Vector res3f = a3f.GetDot3(b3f);
+
+    printf("\nDot Result (3 elements and dot of 3 elements)\n");
+    printf("\nPrint3\n");
+
+    a3f.Print3();
+    b3f.Print3();
+    res3f.Print3();
+
+    printf("\nPrint4\n");
+
+    a3f.Print();
+    b3f.Print();
+    res3f.Print();
+
+    printf("\n================================\n");
+
+    // here the result expected is right (44) even if we're looking for 50, 
+    // just because we forgotten that in this case the second vector resulting in 6,7,8 and NOT as the before 7,8,9
+    Vector a4f(1.0f, 2.0f, 3.0f, 4.0f);
+    Vector b4f(6.0f, 7.0f, 8.0f, 9.0f);
+    Vector res4f = a4f.GetDot3(b4f);
+
+    printf("\nDot Result (4 elements and dot of 3 elements)\n");
+    printf("\nPrint3\n");
+
+    a4f.Print3();
+    b4f.Print3();
+    res4f.Print3();
+
+    printf("\nPrint4\n");
+
+    a4f.Print();
+    b4f.Print();
+    res4f.Print();
+
+    getchar();
 
     return 0;
 }

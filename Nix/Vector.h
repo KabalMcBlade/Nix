@@ -5,10 +5,6 @@
 #include "Types.h"
 #include "VectorHelper.h"
 
-#ifdef _DEBUG
-#include <Windows.h>    // just for debug
-#endif
-
 NIX_NAMESPACE_BEGIN
 
 
@@ -18,8 +14,8 @@ public:
     //////////////////////////////////////////////////////////////////////////
     // Constructors
     NIX_INLINE Vector() : m_vec(VectorHelper::GetZero()) {}
-    NIX_INLINE Vector(nixFloat _x, nixFloat _y, nixFloat _z) : m_vec(VectorHelper::Set(0.0f, _z, _y, _x)) {}
-    NIX_INLINE Vector(nixFloat _x, nixFloat _y, nixFloat _z, nixFloat _w) : m_vec(VectorHelper::Set(_w, _z, _y, _x)) {}
+    NIX_INLINE Vector(nixFloat _x, nixFloat _y, nixFloat _z) : m_vec(VectorHelper::Set(_x, _y, _z, 0.0f)) {}
+    NIX_INLINE Vector(nixFloat _x, nixFloat _y, nixFloat _z, nixFloat _w) : m_vec(VectorHelper::Set(_x, _y, _z, _w)) {}
     NIX_INLINE Vector(nixFloat _v) : m_vec(VectorHelper::Splat(_v)) {}
     NIX_INLINE Vector(const Vector& _copy) : m_vec(_copy.m_vec) {}
     NIX_INLINE Vector(Vector&& _copy) noexcept : m_vec(std::move(_copy.m_vec)) {}
@@ -30,22 +26,16 @@ public:
     // Print function for debug purpose only
 
 #ifdef _DEBUG
-    NIX_INLINE void PrintOnConsole() const
+    NIX_INLINE void Print() const
     {
         nixFloat *val = (nixFloat*)&m_vec;
-        char buffer[256];
-        memset(buffer, 0, 256);
-        sprintf_s(buffer, "vec[%.4f, %.4f, %.4f, %.4f]\n", val[3], val[2], val[1], val[0]);
-        OutputDebugStringA(buffer);
+        printf("vec[%.4f, %.4f, %.4f, %.4f]\n", val[0], val[1], val[2], val[3]);
     }
 
-    NIX_INLINE void PrintOnConsole3() const
+    NIX_INLINE void Print3() const
     {
         nixFloat *val = (nixFloat*)&m_vec;
-        char buffer[256];
-        memset(buffer, 0, 256);
-        sprintf_s(buffer, "vec[%.4f, %.4f, %.4f]\n", val[3], val[2], val[1]);
-        OutputDebugStringA(buffer);
+        printf("vec[%.4f, %.4f, %.4f]\n", val[0], val[1], val[2]);
     }
 #endif
 
@@ -135,6 +125,11 @@ public:
         return VectorHelper::Dot(m_vec, _other.m_vec);
     }
    
+    NIX_INLINE Vector GetDot3(const Vector& _other)
+    {
+        return VectorHelper::Dot3(m_vec, _other.m_vec);
+    }
+
     //////////////////////////////////////////////////////////////////////////
     // Inner Functions (do change local content)
     NIX_INLINE void Abs()
@@ -161,6 +156,11 @@ public:
     NIX_INLINE void Dot(const Vector& _other)
     {
         m_vec = VectorHelper::Dot(m_vec, _other.m_vec);
+    }
+
+    NIX_INLINE void Dot3(const Vector& _other)
+    {
+        m_vec = VectorHelper::Dot3(m_vec, _other.m_vec);
     }
 
 private:

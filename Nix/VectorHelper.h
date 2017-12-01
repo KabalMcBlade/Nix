@@ -32,6 +32,29 @@ public:
     static NIX_INLINE __nixFloat4 Abs(const __nixFloat4& _v) { return _mm_andnot_ps(_mm_castsi128_ps(_mm_set1_epi32(0x80000000)), _v); }
     static NIX_INLINE __nixFloat4 Neg(const __nixFloat4& _v) { return _mm_xor_ps(_v, _mm_castsi128_ps(_mm_set1_epi32(0x80000000))); }
 
+    /*
+    _MM_SHUFFLE how it works
+    m1 = a,b,c,d
+    m2 = e,f,g,h
+    m3 = shuffle(1,0,3,2)  ==   m1(1,0) -> m3[3,2];  
+                                m2(3,2) -> m3[1,0]
+    m3 = g,h,a,b
+    
+    So, as example: 
+    Swizzle<0, 3, 2, 1> -> FROM value[1, 2, 3, 4] TO value[1, 4, 3, 2]
+    */
+    template <nixU8 _0, nixU8 _1, nixU8 _2, nixU8 _3>
+    static NIX_INLINE __nixFloat4 Swizzle(const __nixFloat4& _v)
+    {
+        nixAssertDialog((_0 < 4) && (_1 < 4) && (_2 < 4) && (_3 < 4));
+
+#if defined(NIX_ARCH_AVX)
+        return _mm_permute_ps(_v, _MM_SHUFFLE(_3, _2, _1, _0));
+#else
+        return _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(_3, _2, _1, _0));
+#endif
+    }
+
     static NIX_INLINE __nixFloat4 Round(const __nixFloat4& _v)
     {
 #   if defined(NIX_ARCH_SSE41)
@@ -109,31 +132,27 @@ public:
 #   if defined(NIX_ARCH_SSE41)
         return _mm_dp_ps(_a, _b, 0x7f); // 0111 1111 -> the w value of arrays are not computed. The result is saved to the whole register
 #	elif defined(NIX_ARCH_SSE3)
-        const __nixFloat4 mul = _mm_mul_ps(_a, _b);
-        const __nixFloat4 res = _mm_hadd_ps(mul, mul);
-        return res;
+        const __nixFloat4 _aW0 = _mm_mul_ps(_a, m_kZeroingW);
+        const __nixFloat4 _bW0 = _mm_mul_ps(_b, m_kZeroingW);
+        const __nixFloat4 mul = _mm_mul_ps(_aW0, _bW0);
+        const __nixFloat4 add = _mm_hadd_ps(mul, mul);
+        const __nixFloat4 res = _mm_hadd_ps(add, add);
+        const __nixFloat4 _resW0 = _mm_mul_ps(res, m_kZeroingW);
+        return _resW0;
 #   else
-        static const __nixFloat4 mask = _mm_load_ps((const float*)maskRaw);
-        const __nixFloat4 mul = _mm_mul_ps(_a, _b);
-        const __nixFloat4 and = _mm_and_ps(mul, mask);
-        const __nixFloat4 res = _mm_add_ps(and, _mm_movehl_ps(and, and));
-        return res;
-#   endif
-    }
-
-    static NIX_INLINE __nixFloat4 Dot33(const __nixFloat4& _a, const __nixFloat4& _b)
-    {
-#   if defined(NIX_ARCH_SSE41)
-        return _mm_dp_ps(_a, _b, 0x77); // 0111 0111 -> the w value of arrays are not computed. The result is saved only in the lower 3 bit (result.w=0)
-#	elif defined(NIX_ARCH_SSE3)
-
-#   else
-
+        const __nixFloat4 _aW0 = _mm_mul_ps(_a, m_kZeroingW);
+        const __nixFloat4 _bW0 = _mm_mul_ps(_b, m_kZeroingW);
+        const __nixFloat4 mul = _mm_mul_ps(_aW0, _bW0);
+        const __nixFloat4 add = _mm_add_ps(mul, _mm_shuffle_ps(mul, mul, _MM_SHUFFLE(2, 3, 0, 1)));
+        const __nixFloat4 res = _mm_add_ps(add, _mm_shuffle_ps(add, add, _MM_SHUFFLE(0, 1, 2, 3)));
+        const __nixFloat4 _resW0 = _mm_mul_ps(res, m_kZeroingW);
+        return _resW0;
 #   endif
     }
 
 private:
-    constexpr static NIX_SIMD_ALIGN const nixU32 maskRaw[] = { 0xffffffff, 0xffffffff, 0xffffffff, 0 };
+    constexpr static NIX_SIMD_ALIGN const __nixFloat4 m_kZeroingW = { 1.0f, 1.0f, 1.0f, 0.0f };
+    //constexpr static NIX_SIMD_ALIGN const nixU32 maskRaw[] = { 0xffffffff, 0xffffffff, 0xffffffff, 0 };
 };
 
 

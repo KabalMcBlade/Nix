@@ -5,8 +5,6 @@
 // INCLUDES
 //////////////////////////////////////////////////////////////////////////
 
-#include <stdio.h>      // various stuff
-
 #include <assert.h>     // for assert
 #include <stdint.h>     // for u8, etc...
 #include <math.h>
