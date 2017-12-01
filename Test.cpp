@@ -40,8 +40,18 @@ This solution has set /arch:AVX2 just to set the Test.cpp included
 
 #include "Nix/Nix.h"
 
+NIX_USING_NAMESPACE
+
 int main()
 {
+    Vector a(2.0f, 2.0f, 2.0f);
+    Vector b(4.0f, 4.0f, 4.0f);
+    Vector res = a.GetDot(b);
+
+    a.PrintOnConsole3();
+    b.PrintOnConsole3();
+    res.PrintOnConsole3();
+
     return 0;
 }
 

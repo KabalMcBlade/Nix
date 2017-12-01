@@ -34,7 +34,7 @@ public:
 
     static NIX_INLINE __nixFloat4 Round(const __nixFloat4& _v)
     {
-#   if NIX_ARCH & NIX_ARCH_SSE41_BIT
+#   if defined(NIX_ARCH_SSE41)
         return _mm_round_ps(_v, _MM_FROUND_TO_NEAREST_INT);
 #   else
         const __nixFloat4 sgn = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
@@ -48,7 +48,7 @@ public:
 
     static NIX_INLINE __nixFloat4 Floor(const __nixFloat4& _v)
     {
-#   if NIX_ARCH & NIX_ARCH_SSE41_BIT
+#   if defined(NIX_ARCH_SSE41)
         return _mm_floor_ps(_v);
 #   else
         const __nixFloat4 rnd = VectorHelper::Round(_v);
@@ -61,7 +61,7 @@ public:
 
     static NIX_INLINE __nixFloat4 Ceil(const __nixFloat4& _v)
     {
-#   if NIX_ARCH & NIX_ARCH_SSE41_BIT
+#   if defined(NIX_ARCH_SSE41)
         return _mm_ceil_ps(_v);
 #   else
         const __nixFloat4 rnd = VectorHelper::Round(_v);
@@ -80,7 +80,7 @@ public:
     // Computes and returns _x * _y + _v.
     static NIX_INLINE __nixFloat4 MulAdd(const __nixFloat4& _x, const __nixFloat4& _y, const __nixFloat4& _v)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX2_BIT
+#   if defined(NIX_ARCH_AVX2)
         return _mm_fmadd_ps(_x, _y, _v);
 #   else
         return VectorHelper::Add(VectorHelper::Mul(_x, _y), _v);
@@ -89,9 +89,9 @@ public:
 
     static NIX_INLINE __nixFloat4 Dot(const __nixFloat4& _a, const __nixFloat4& _b)
     {
-#   if NIX_ARCH & NIX_ARCH_SSE41
+#   if defined(NIX_ARCH_SSE41)
         return _mm_dp_ps(_a, _b, 0xff); // 1111 1111 -> all values are computed and the result is saved to the whole register
-#	elif NIX_ARCH & NIX_ARCH_SSE3_BIT
+#	elif defined(NIX_ARCH_SSE3)
         const __nixFloat4 mul = _mm_mul_ps(_a, _b);
         const __nixFloat4 add = _mm_hadd_ps(mul, mul);
         const __nixFloat4 res = _mm_hadd_ps(add, add);
@@ -106,15 +106,15 @@ public:
 
     static NIX_INLINE __nixFloat4 Dot3(const __nixFloat4& _a, const __nixFloat4& _b)
     {
-#   if NIX_ARCH & NIX_ARCH_SSE41
+#   if defined(NIX_ARCH_SSE41)
         return _mm_dp_ps(_a, _b, 0x7f); // 0111 1111 -> the w value of arrays are not computed. The result is saved to the whole register
-#	elif NIX_ARCH & NIX_ARCH_SSE3_BIT
+#	elif defined(NIX_ARCH_SSE3)
         const __nixFloat4 mul = _mm_mul_ps(_a, _b);
         const __nixFloat4 res = _mm_hadd_ps(mul, mul);
         return res;
 #   else
         static const __nixFloat4 mask = _mm_load_ps((const float*)maskRaw);
-        const __nixFloat4 mul = _mm_mul_ps(lhs, rhs);
+        const __nixFloat4 mul = _mm_mul_ps(_a, _b);
         const __nixFloat4 and = _mm_and_ps(mul, mask);
         const __nixFloat4 res = _mm_add_ps(and, _mm_movehl_ps(and, and));
         return res;
@@ -123,9 +123,9 @@ public:
 
     static NIX_INLINE __nixFloat4 Dot33(const __nixFloat4& _a, const __nixFloat4& _b)
     {
-#   if NIX_ARCH & NIX_ARCH_SSE41
+#   if defined(NIX_ARCH_SSE41)
         return _mm_dp_ps(_a, _b, 0x77); // 0111 0111 -> the w value of arrays are not computed. The result is saved only in the lower 3 bit (result.w=0)
-#	elif NIX_ARCH & NIX_ARCH_SSE3_BIT
+#	elif defined(NIX_ARCH_SSE3)
 
 #   else
 
