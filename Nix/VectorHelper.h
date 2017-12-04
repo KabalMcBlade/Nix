@@ -137,16 +137,14 @@ public:
         const __nixFloat4 mul = _mm_mul_ps(_aW0, _bW0);
         const __nixFloat4 add = _mm_hadd_ps(mul, mul);
         const __nixFloat4 res = _mm_hadd_ps(add, add);
-        const __nixFloat4 _resW0 = _mm_mul_ps(res, m_kZeroingW);
-        return _resW0;
+        return res;
 #   else
         const __nixFloat4 _aW0 = _mm_mul_ps(_a, m_kZeroingW);
         const __nixFloat4 _bW0 = _mm_mul_ps(_b, m_kZeroingW);
         const __nixFloat4 mul = _mm_mul_ps(_aW0, _bW0);
         const __nixFloat4 add = _mm_add_ps(mul, _mm_shuffle_ps(mul, mul, _MM_SHUFFLE(2, 3, 0, 1)));
         const __nixFloat4 res = _mm_add_ps(add, _mm_shuffle_ps(add, add, _MM_SHUFFLE(0, 1, 2, 3)));
-        const __nixFloat4 _resW0 = _mm_mul_ps(res, m_kZeroingW);
-        return _resW0;
+        return res;
 #   endif
     }
 
