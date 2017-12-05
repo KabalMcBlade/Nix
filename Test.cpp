@@ -46,9 +46,23 @@ NIX_USING_NAMESPACE
 
 int main()
 {
+    Vector a(1.0f, 2.0f, 3.0f);
+    Vector b(6.0f, 7.0f, 8.0f);
+
+    printf("Cross product\n");
+
+    printf("\nPrint Vectors\n");
+    a.Print();
+    b.Print();
+
+    printf("\nResut\n");
+    Vector res = a.Cross(b);
+    res.Print();
+
+    /*
     Vector a4(1.0f, 2.0f, 3.0f, 4.0f);
     Vector b4(6.0f, 7.0f, 8.0f, 9.0f);
-    Vector res4 = a4.GetDot(b4);
+    Vector res4 = a4.Dot(b4);
 
     printf("Dot Result (4 elements and dot of 4 elements)\n");
     printf("\nPrint3\n");
@@ -67,7 +81,7 @@ int main()
     
     Vector a3(1.0f, 2.0f, 3.0f);
     Vector b3(7.0f, 8.0f, 9.0f);
-    Vector res3 = a3.GetDot(b3);
+    Vector res3 = a3.Dot(b3);
 
     printf("\nDot Result (3 elements and dot of 4 elements)\n");
     printf("\nPrint3\n");
@@ -86,7 +100,7 @@ int main()
     
     Vector a3f(1.0f, 2.0f, 3.0f);
     Vector b3f(7.0f, 8.0f, 9.0f);
-    Vector res3f = a3f.GetDot3(b3f);
+    Vector res3f = a3f.Dot3(b3f);
 
     printf("\nDot Result (3 elements and dot of 3 elements)\n");
     printf("\nPrint3\n");
@@ -107,7 +121,7 @@ int main()
     // just because we forgotten that in this case the second vector resulting in 6,7,8 and NOT as the before 7,8,9
     Vector a4f(1.0f, 2.0f, 3.0f, 4.0f);
     Vector b4f(6.0f, 7.0f, 8.0f, 9.0f);
-    Vector res4f = a4f.GetDot3(b4f);
+    Vector res4f = a4f.Dot3(b4f);
 
     printf("\nDot Result (4 elements and dot of 3 elements)\n");
     printf("\nPrint3\n");
@@ -121,7 +135,7 @@ int main()
     a4f.Print();
     b4f.Print();
     res4f.Print();
-
+    */
     getchar();
 
     return 0;

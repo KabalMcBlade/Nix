@@ -32,28 +32,8 @@ public:
     static NIX_INLINE __nixFloat4 Abs(const __nixFloat4& _v) { return _mm_andnot_ps(_mm_castsi128_ps(_mm_set1_epi32(0x80000000)), _v); }
     static NIX_INLINE __nixFloat4 Neg(const __nixFloat4& _v) { return _mm_xor_ps(_v, _mm_castsi128_ps(_mm_set1_epi32(0x80000000))); }
 
-    /*
-    _MM_SHUFFLE how it works
-    m1 = a,b,c,d
-    m2 = e,f,g,h
-    m3 = shuffle(1,0,3,2)  ==   m1(1,0) -> m3[3,2];  
-                                m2(3,2) -> m3[1,0]
-    m3 = g,h,a,b
-    
-    So, as example: 
-    Swizzle<0, 3, 2, 1> -> FROM value[1, 2, 3, 4] TO value[1, 4, 3, 2]
-    */
-    template <nixU8 _0, nixU8 _1, nixU8 _2, nixU8 _3>
-    static NIX_INLINE __nixFloat4 Swizzle(const __nixFloat4& _v)
-    {
-        nixAssertDialog((_0 < 4) && (_1 < 4) && (_2 < 4) && (_3 < 4));
-
-#if defined(NIX_ARCH_AVX)
-        return _mm_permute_ps(_v, _MM_SHUFFLE(_3, _2, _1, _0));
-#else
-        return _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(_3, _2, _1, _0));
-#endif
-    }
+    static NIX_INLINE __nixFloat4 Sqrt(const __nixFloat4& _v) { return _mm_sqrt_ps(_v); }
+    static NIX_INLINE __nixFloat4 ReciprocalSqrt(const __nixFloat4& _v) { return _mm_rsqrt_ps(_v); }
 
     static NIX_INLINE __nixFloat4 Round(const __nixFloat4& _v)
     {
@@ -115,14 +95,14 @@ public:
 #   if defined(NIX_ARCH_SSE41)
         return _mm_dp_ps(_a, _b, 0xff); // 1111 1111 -> all values are computed and the result is saved to the whole register
 #	elif defined(NIX_ARCH_SSE3)
-        const __nixFloat4 mul = _mm_mul_ps(_a, _b);
+        const __nixFloat4 mul = VectorHelper::Mul(_a, _b);
         const __nixFloat4 add = _mm_hadd_ps(mul, mul);
         const __nixFloat4 res = _mm_hadd_ps(add, add);
         return res;
 #   else
-        const __nixFloat4 mul = _mm_mul_ps(_a, _b);
-        const __nixFloat4 add = _mm_add_ps(mul, _mm_shuffle_ps(mul, mul, _MM_SHUFFLE(2, 3, 0, 1)));
-        const __nixFloat4 res = _mm_add_ps(add, _mm_shuffle_ps(add, add, _MM_SHUFFLE(0, 1, 2, 3)));
+        const __nixFloat4 mul = VectorHelper::Mul(_a, _b);
+        const __nixFloat4 add = VectorHelper::Add(mul, _mm_shuffle_ps(mul, mul, _MM_SHUFFLE(2, 3, 0, 1)));
+        const __nixFloat4 res = VectorHelper::Add(add, _mm_shuffle_ps(add, add, _MM_SHUFFLE(0, 1, 2, 3)));
         return res;
 #   endif
     }
@@ -132,20 +112,78 @@ public:
 #   if defined(NIX_ARCH_SSE41)
         return _mm_dp_ps(_a, _b, 0x7f); // 0111 1111 -> the w value of arrays are not computed. The result is saved to the whole register
 #	elif defined(NIX_ARCH_SSE3)
-        const __nixFloat4 _aW0 = _mm_mul_ps(_a, m_kZeroingW);
-        const __nixFloat4 _bW0 = _mm_mul_ps(_b, m_kZeroingW);
-        const __nixFloat4 mul = _mm_mul_ps(_aW0, _bW0);
+        const __nixFloat4 aW0 = VectorHelper::Mul(_a, m_kZeroingW);
+        const __nixFloat4 bW0 = VectorHelper::Mul(_b, m_kZeroingW);
+        const __nixFloat4 mul = VectorHelper::Mul(aW0, bW0);
         const __nixFloat4 add = _mm_hadd_ps(mul, mul);
         const __nixFloat4 res = _mm_hadd_ps(add, add);
         return res;
 #   else
-        const __nixFloat4 _aW0 = _mm_mul_ps(_a, m_kZeroingW);
-        const __nixFloat4 _bW0 = _mm_mul_ps(_b, m_kZeroingW);
-        const __nixFloat4 mul = _mm_mul_ps(_aW0, _bW0);
-        const __nixFloat4 add = _mm_add_ps(mul, _mm_shuffle_ps(mul, mul, _MM_SHUFFLE(2, 3, 0, 1)));
-        const __nixFloat4 res = _mm_add_ps(add, _mm_shuffle_ps(add, add, _MM_SHUFFLE(0, 1, 2, 3)));
+        const __nixFloat4 aW0 = VectorHelper::Mul(_a, m_kZeroingW);
+        const __nixFloat4 bW0 = VectorHelper::Mul(_b, m_kZeroingW);
+        const __nixFloat4 mul = VectorHelper::Mul(aW0, bW0);
+        const __nixFloat4 add = VectorHelper::Add(mul, _mm_shuffle_ps(mul, mul, _MM_SHUFFLE(2, 3, 0, 1)));
+        const __nixFloat4 res = VectorHelper::Add(add, _mm_shuffle_ps(add, add, _MM_SHUFFLE(0, 1, 2, 3)));
         return res;
 #   endif
+    }
+
+    static NIX_INLINE __nixFloat4 SquareLength(const __nixFloat4& _v)
+    {
+        return Dot(_v, _v);
+    }
+
+    static NIX_INLINE __nixFloat4 Length(const __nixFloat4& _v)
+    {
+        const __nixFloat4 sln = VectorHelper::SquareLength(_v);
+        const __nixFloat4 sqt = VectorHelper:Sqrt(sln);
+        return sqt;
+    }
+
+    static NIX_INLINE __nixFloat4 SquareDistance(const __nixFloat4& _a, const __nixFloat4& _b)
+    {
+        const __nixFloat4 sub = VectorHelper::Sub(_a, _b);
+        const __nixFloat4 sln = VectorHelper::SquareLength(sub);
+        return sln;
+    }
+
+    static NIX_INLINE __nixFloat4 Distance(const __nixFloat4& _a, const __nixFloat4& _b)
+    {
+        const __nixFloat4 sub = VectorHelper::Sub(_a, _b);
+        const __nixFloat4 len = VectorHelper::Length(sub);
+        return len;
+    }
+
+    static NIX_INLINE __nixFloat4 Cross(const __nixFloat4& _a, const __nixFloat4& _b)
+    {
+        const __nixFloat4 swp0 = _mm_shuffle_ps(_a, _a, _MM_SHUFFLE(3, 1, 0, 2));
+        const __nixFloat4 swp1 = _mm_shuffle_ps(_b, _b, _MM_SHUFFLE(3, 1, 0, 2));
+        const __nixFloat4 mul0 = VectorHelper::Mul(_b, swp0);
+        const __nixFloat4 mul1 = VectorHelper::Mul(_a, swp1);
+        const __nixFloat4 sub = VectorHelper::Sub(mul0, mul1);
+        const __nixFloat4 swp3 = _mm_shuffle_ps(sub, sub, _MM_SHUFFLE(3, 1, 0, 2));
+        return swp3;
+    }
+
+    static NIX_INLINE __nixFloat4 Mod(const __nixFloat4& _a, const __nixFloat4& _b)
+    {
+        const __nixFloat4 div = VectorHelper::Div(_a, _b);
+        const __nixFloat4 flr = VectorHelper::Floor(div);
+        const __nixFloat4 mul = VectorHelper::Mul(_b, flr);
+        const __nixFloat4 sub = VectorHelper::Sub(_a, mul);
+        return sub;
+    }
+
+    static NIX_INLINE __nixFloat4 Clamp(const __nixFloat4& v, const __nixFloat4& _min, const __nixFloat4& & _max)
+    {
+        const __nixFloat4 min = VectorHelper::Min(v, _max);
+        const __nixFloat4 max = VectorHelper::Max(min, _min);
+        return max;
+    }
+
+    static NIX_INLINE __nixFloat4 FastSqrt(const __nixFloat4& _v)
+    {
+        return VectorHelper::Mul(VectorHelper::ReciprocalSqrt(_v), _v);
     }
 
 private:

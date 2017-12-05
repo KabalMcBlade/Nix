@@ -98,69 +98,70 @@ public:
     }
 
     //////////////////////////////////////////////////////////////////////////
-    // Outer Functions (return new value and do not change local content)
-    NIX_INLINE Vector GetAbs()
+    NIX_INLINE Vector Abs()
     {
         return VectorHelper::Abs(m_vec);
     }
 
-    NIX_INLINE Vector GetFloor()
+    NIX_INLINE Vector Floor()
     {
         return VectorHelper::Floor(m_vec);
     }
 
-    NIX_INLINE Vector GetCeil()
+    NIX_INLINE Vector Ceil()
     {
         return VectorHelper::Ceil(m_vec);
     }
 
     // Computes and returns (this * _vecToMul) + _vecToAdd.
-    NIX_INLINE Vector GetMulAdd(const Vector& _vecToMul, const Vector& _vecToAdd)
+    NIX_INLINE Vector MulAdd(const Vector& _vecToMul, const Vector& _vecToAdd)
     {
         return VectorHelper::MulAdd(m_vec, _vecToMul.m_vec, _vecToAdd.m_vec);
     }
 
-    NIX_INLINE Vector GetDot(const Vector& _other)
+    NIX_INLINE Vector Dot(const Vector& _other)
     {
         return VectorHelper::Dot(m_vec, _other.m_vec);
     }
-   
-    NIX_INLINE Vector GetDot3(const Vector& _other)
+
+    NIX_INLINE Vector Dot3(const Vector& _other)
     {
         return VectorHelper::Dot3(m_vec, _other.m_vec);
     }
 
-    //////////////////////////////////////////////////////////////////////////
-    // Inner Functions (do change local content)
-    NIX_INLINE void Abs()
+    NIX_INLINE Vector SquareLength()
     {
-        m_vec = VectorHelper::Abs(m_vec);
+        return VectorHelper::SquareLength(m_vec);
     }
 
-    NIX_INLINE void Floor()
+    NIX_INLINE Vector Length()
     {
-        m_vec = VectorHelper::Floor(m_vec);
+        return VectorHelper::Length(m_vec);
     }
 
-    NIX_INLINE void Ceil()
+    NIX_INLINE Vector SquareDistance(const Vector& _other)
     {
-        m_vec = VectorHelper::Ceil(m_vec);
+        return VectorHelper::SquareDistance(m_vec, _other.m_vec);
     }
 
-    // Computes and set (this * _vecToMul) + _vecToAdd.
-    NIX_INLINE void MulAdd(const Vector& _vecToMul, const Vector& _vecToAdd)
+    NIX_INLINE Vector Distance(const Vector& _other)
     {
-        m_vec = VectorHelper::MulAdd(m_vec, _vecToMul.m_vec, _vecToAdd.m_vec);
+        return VectorHelper::Distance(m_vec, _other.m_vec);
     }
 
-    NIX_INLINE void Dot(const Vector& _other)
+    NIX_INLINE Vector Cross(const Vector& _other)
     {
-        m_vec = VectorHelper::Dot(m_vec, _other.m_vec);
+        return VectorHelper::Cross(m_vec, _other.m_vec);
     }
 
-    NIX_INLINE void Dot3(const Vector& _other)
+    NIX_INLINE Vector Mod(const Vector& _other)
     {
-        m_vec = VectorHelper::Dot3(m_vec, _other.m_vec);
+        return VectorHelper::Mod(m_vec, _other.m_vec);
+    }
+
+    NIX_INLINE Vector Clamp(const Vector& _min, const Vector& _max)
+    {
+        return VectorHelper::Clamp(m_vec, _min.m_vec, _max.m_vec);
     }
 
 private:
