@@ -221,6 +221,7 @@ public:
         return mul;
     }
 
+    // Need to add lerp, blend and so other kind of functions (this comment is just a reminder!)
 
 private:
     constexpr static NIX_SIMD_ALIGN const __nixFloat4 m_kZeroingW = { 1.0f, 1.0f, 1.0f, 0.0f };
