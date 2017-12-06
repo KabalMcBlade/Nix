@@ -46,8 +46,8 @@ NIX_USING_NAMESPACE
 
 int main()
 {
-    Vector a(1.0f, 2.0f, 3.0f);
-    Vector b(6.0f, 7.0f, 8.0f);
+    Vector a(1.0f, 2.0f, 3.0f, 4.0f);
+    Vector b(6.0f, 7.0f, 8.0f, 9.0f);
 
     printf("Cross product\n");
 
@@ -59,83 +59,18 @@ int main()
     Vector res = a.Cross(b);
     res.Print();
 
-    /*
-    Vector a4(1.0f, 2.0f, 3.0f, 4.0f);
-    Vector b4(6.0f, 7.0f, 8.0f, 9.0f);
-    Vector res4 = a4.Dot(b4);
+    printf("\nLengths\n");
+    Vector la = a.Length();
+    Vector lb = b.Length();
+    la.Print();
+    lb.Print();
 
-    printf("Dot Result (4 elements and dot of 4 elements)\n");
-    printf("\nPrint3\n");
+    printf("\nLengths\n");
+    Vector la3 = a.Length3();
+    Vector lb3 = b.Length3();
+    la3.Print();
+    lb3.Print();
 
-    a4.Print3();
-    b4.Print3();
-    res4.Print3();
-
-    printf("\nPrint4\n");
-
-    a4.Print();
-    b4.Print();
-    res4.Print();
-
-    printf("\n================================\n");
-    
-    Vector a3(1.0f, 2.0f, 3.0f);
-    Vector b3(7.0f, 8.0f, 9.0f);
-    Vector res3 = a3.Dot(b3);
-
-    printf("\nDot Result (3 elements and dot of 4 elements)\n");
-    printf("\nPrint3\n");
-
-    a3.Print3();
-    b3.Print3();
-    res3.Print3();
-
-    printf("\nPrint4\n");
-
-    a3.Print();
-    b3.Print();
-    res3.Print();
-    
-    printf("\n================================\n");
-    
-    Vector a3f(1.0f, 2.0f, 3.0f);
-    Vector b3f(7.0f, 8.0f, 9.0f);
-    Vector res3f = a3f.Dot3(b3f);
-
-    printf("\nDot Result (3 elements and dot of 3 elements)\n");
-    printf("\nPrint3\n");
-
-    a3f.Print3();
-    b3f.Print3();
-    res3f.Print3();
-
-    printf("\nPrint4\n");
-
-    a3f.Print();
-    b3f.Print();
-    res3f.Print();
-
-    printf("\n================================\n");
-
-    // here the result expected is right (44) even if we're looking for 50, 
-    // just because we forgotten that in this case the second vector resulting in 6,7,8 and NOT as the before 7,8,9
-    Vector a4f(1.0f, 2.0f, 3.0f, 4.0f);
-    Vector b4f(6.0f, 7.0f, 8.0f, 9.0f);
-    Vector res4f = a4f.Dot3(b4f);
-
-    printf("\nDot Result (4 elements and dot of 3 elements)\n");
-    printf("\nPrint3\n");
-
-    a4f.Print3();
-    b4f.Print3();
-    res4f.Print3();
-
-    printf("\nPrint4\n");
-
-    a4f.Print();
-    b4f.Print();
-    res4f.Print();
-    */
     getchar();
 
     return 0;

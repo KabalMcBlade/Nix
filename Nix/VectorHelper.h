@@ -130,12 +130,24 @@ public:
 
     static NIX_INLINE __nixFloat4 SquareLength(const __nixFloat4& _v)
     {
-        return Dot(_v, _v);
+        return VectorHelper::Dot(_v, _v);
+    }
+
+    static NIX_INLINE __nixFloat4 SquareLength3(const __nixFloat4& _v)
+    {
+        return VectorHelper::Dot3(_v, _v);
     }
 
     static NIX_INLINE __nixFloat4 Length(const __nixFloat4& _v)
     {
         const __nixFloat4 sln = VectorHelper::SquareLength(_v);
+        const __nixFloat4 sqt = VectorHelper::Sqrt(sln);
+        return sqt;
+    }
+
+    static NIX_INLINE __nixFloat4 Length3(const __nixFloat4& _v)
+    {
+        const __nixFloat4 sln = VectorHelper::SquareLength3(_v);
         const __nixFloat4 sqt = VectorHelper::Sqrt(sln);
         return sqt;
     }
@@ -151,6 +163,13 @@ public:
     {
         const __nixFloat4 sub = VectorHelper::Sub(_a, _b);
         const __nixFloat4 len = VectorHelper::Length(sub);
+        return len;
+    }
+
+    static NIX_INLINE __nixFloat4 Distance3(const __nixFloat4& _a, const __nixFloat4& _b)
+    {
+        const __nixFloat4 sub = VectorHelper::Sub(_a, _b);
+        const __nixFloat4 len = VectorHelper::Length3(sub);
         return len;
     }
 
@@ -185,6 +204,23 @@ public:
     {
         return VectorHelper::Mul(VectorHelper::ReciprocalSqrt(_v), _v);
     }
+
+    static NIX_INLINE __nixFloat4 Normalize(const __nixFloat4& _v)
+    {
+        const __nixFloat4 dot = VectorHelper::Dot(_v, _v);
+        const __nixFloat4 rsr = VectorHelper::ReciprocalSqrt(dot);
+        const __nixFloat4 mul = VectorHelper::Mul(_v, rsr);
+        return mul;
+    }
+
+    static NIX_INLINE __nixFloat4 Normalize3(const __nixFloat4& _v)
+    {
+        const __nixFloat4 dot = VectorHelper::Dot3(_v, _v);
+        const __nixFloat4 rsr = VectorHelper::ReciprocalSqrt(dot);
+        const __nixFloat4 mul = VectorHelper::Mul(_v, rsr);
+        return mul;
+    }
+
 
 private:
     constexpr static NIX_SIMD_ALIGN const __nixFloat4 m_kZeroingW = { 1.0f, 1.0f, 1.0f, 0.0f };

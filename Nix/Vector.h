@@ -8,6 +8,11 @@
 NIX_NAMESPACE_BEGIN
 
 
+/*
+    This cover both vector3 and vector4
+    For the vector3 version, just referring to the function having the number "3" at the end, like Dot3
+*/
+
 NIX_SIMD_ALIGN class Vector
 {
 public:
@@ -98,6 +103,34 @@ public:
     }
 
     //////////////////////////////////////////////////////////////////////////
+    // Vector3 Version: Means that there are some difference to properly work upon 3 elements
+    NIX_INLINE Vector Dot3(const Vector& _other)
+    {
+        return VectorHelper::Dot3(m_vec, _other.m_vec);
+    }
+
+    NIX_INLINE Vector SquareLength3()
+    {
+        return VectorHelper::SquareLength3(m_vec);
+    }
+
+    NIX_INLINE Vector Length3()
+    {
+        return VectorHelper::Length3(m_vec);
+    }
+
+    NIX_INLINE Vector Normalize3()
+    {
+        return VectorHelper::Normalize3(m_vec);
+    }
+
+    NIX_INLINE Vector Distance3(const Vector& _other)
+    {
+        return VectorHelper::Distance3(m_vec, _other.m_vec);
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    // Both Vector3 and Vector4 Version (even possible)
     NIX_INLINE Vector Abs()
     {
         return VectorHelper::Abs(m_vec);
@@ -122,11 +155,6 @@ public:
     NIX_INLINE Vector Dot(const Vector& _other)
     {
         return VectorHelper::Dot(m_vec, _other.m_vec);
-    }
-
-    NIX_INLINE Vector Dot3(const Vector& _other)
-    {
-        return VectorHelper::Dot3(m_vec, _other.m_vec);
     }
 
     NIX_INLINE Vector SquareLength()
@@ -162,6 +190,21 @@ public:
     NIX_INLINE Vector Clamp(const Vector& _min, const Vector& _max)
     {
         return VectorHelper::Clamp(m_vec, _min.m_vec, _max.m_vec);
+    }
+
+    NIX_INLINE Vector Normalize()
+    {
+        return VectorHelper::Normalize(m_vec);
+    }
+
+    NIX_INLINE Vector Min(const Vector& _other)
+    {
+        return VectorHelper::Min(m_vec, _other.m_vec);
+    }
+
+    NIX_INLINE Vector Max(const Vector& _other)
+    {
+        return VectorHelper::Max(m_vec, _other.m_vec);
     }
 
 private:
