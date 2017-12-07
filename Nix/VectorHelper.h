@@ -221,7 +221,32 @@ public:
         return mul;
     }
 
-    // Need to add lerp, blend and so other kind of functions (this comment is just a reminder!)
+    static NIX_INLINE __nixFloat4 Lerp(const __nixFloat4& _from, const __nixFloat4& _to, const __nixFloat4& _t)
+    {
+        const __nixFloat4 sub = VectorHelper::Sub(VectorHelper::GetOne(), _t);
+        const __nixFloat4 mul0 = VectorHelper::Mul(sub, _from);
+        const __nixFloat4 mul1= VectorHelper::Mul(_t, _to);
+        const __nixFloat4 add = VectorHelper::Add(mul0, mul1);
+        return add;
+    }
+
+    // is a bit slow
+    static NIX_INLINE __nixFloat4 InverseLerp(const __nixFloat4& _v, const __nixFloat4& _min, const __nixFloat4& _max)
+    {
+        const __nixFloat4 equal = _mm_cmpeq_ps(_min, _max);
+        const nixS16 mask = _mm_movemask_ps(equal);
+        if (mask == 0xffffffff)
+        {
+            return VectorHelper::GetZero();
+        }
+        else
+        {
+            const __nixFloat4 sub0 = VectorHelper::Sub(_v, _min);
+            const __nixFloat4 sub1 = VectorHelper::Sub(_max, _min);
+            const __nixFloat4 div = VectorHelper::Div(sub0, sub1);
+            return div;
+        }
+    }
 
 private:
     constexpr static NIX_SIMD_ALIGN const __nixFloat4 m_kZeroingW = { 1.0f, 1.0f, 1.0f, 0.0f };

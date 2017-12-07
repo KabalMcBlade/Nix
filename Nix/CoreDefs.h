@@ -52,11 +52,14 @@ typedef bool            nixBool;
 typedef float           nixFloat;
 typedef double          nixDouble;
 
+
 typedef uint_fast8_t    nixU8;
+typedef uint_fast16_t   nixU16;
 typedef uint_fast32_t   nixU32;
 typedef uint_fast64_t   nixU64;
 
 typedef int_fast8_t     nixS8;
+typedef int_fast16_t    nixS16;
 typedef int_fast32_t    nixS32;
 typedef int_fast64_t    nixS64;
 

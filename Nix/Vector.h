@@ -207,11 +207,206 @@ public:
         return VectorHelper::Max(m_vec, _other.m_vec);
     }
 
+    // It means go FROM *this* vector TO *other* vector in T
+    NIX_INLINE Vector LerpTo(const Vector& _to, const Vector& _time)
+    {
+        return VectorHelper::Lerp(m_vec, _to.m_vec, _time.m_vec);
+    }
+
+    // It means go FROM *other* vector TO *this* vector in T
+    NIX_INLINE Vector LerpFrom(const Vector& _from, const Vector& _time)
+    {
+        return VectorHelper::Lerp(_from.m_vec, m_vec, _time.m_vec);
+    }
+
+    NIX_INLINE Vector InverseLerp(const Vector& _min, const Vector& _max)
+    {
+        return VectorHelper::InverseLerp(m_vec, _min.m_vec, _max.m_vec);
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    // Utility functions
+    NIX_INLINE Vector GetX()
+    {
+        return _mm_shuffle_ps(m_vec, m_vec, _MM_SHUFFLE(0, 0, 0, 0));
+    }
+
+    NIX_INLINE Vector GetY()
+    {
+        return _mm_shuffle_ps(m_vec, m_vec, _MM_SHUFFLE(1, 1, 1, 1));
+    }
+
+    NIX_INLINE Vector GetZ()
+    {
+        return _mm_shuffle_ps(m_vec, m_vec, _MM_SHUFFLE(2, 2, 2, 2));
+    }
+
+    NIX_INLINE Vector GetW()
+    {
+        return _mm_shuffle_ps(m_vec, m_vec, _MM_SHUFFLE(3, 3, 3, 3));
+    }
+
+    // From  [a,b,c,d ] To  [b,c,d,a]
+    NIX_INLINE Vector Rotate()
+    {
+        return _mm_shuffle_ps(m_vec, m_vec, 0x39);    
+    }
+
+
 private:
     friend class VectorHelper;
 
+    // for global operators
+    friend NIX_INLINE Vector operator+ (const Vector& _v, nixFloat _s);
+    friend NIX_INLINE Vector operator+ (nixFloat _s, const Vector& _v);
+    friend NIX_INLINE Vector operator+ (const Vector& _a, const Vector& _b);
+    friend NIX_INLINE Vector operator- (const Vector& _v, nixFloat _s);
+    friend NIX_INLINE Vector operator- (nixFloat _s, const Vector& _v);
+    friend NIX_INLINE Vector operator- (const Vector& _a, const Vector& _b);
+    friend NIX_INLINE Vector operator* (const Vector& _v, nixFloat _s);
+    friend NIX_INLINE Vector operator* (nixFloat _s, const Vector& _v);
+    friend NIX_INLINE Vector operator* (const Vector& _a, const Vector& _b);
+    friend NIX_INLINE Vector operator/ (const Vector& _v, nixFloat _s);
+    friend NIX_INLINE Vector operator/ (nixFloat _s, const Vector& _v);
+    friend NIX_INLINE Vector operator/ (const Vector& _a, const Vector& _b);
+    friend NIX_INLINE Vector operator- (const Vector& _v);
+    friend NIX_INLINE Vector operator++ (const Vector& _v, nixS32);
+    friend NIX_INLINE Vector operator-- (const Vector& _v, nixS32);
+    friend NIX_INLINE nixBool operator==(const Vector& _lhs, const Vector& _rhs);
+    friend NIX_INLINE nixBool operator!=(const Vector& _lhs, const Vector& _rhs);
+    friend NIX_INLINE nixBool operator< (const Vector& _lhs, const Vector& _rhs);
+    friend NIX_INLINE nixBool operator> (const Vector& _lhs, const Vector& _rhs);
+    friend NIX_INLINE nixBool operator<=(const Vector& _lhs, const Vector& _rhs);
+    friend NIX_INLINE nixBool operator>=(const Vector& _lhs, const Vector& _rhs);
+
     __nixFloat4 m_vec;
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+// Operators
+
+// operator+
+NIX_INLINE Vector operator+ (const Vector& _v, nixFloat _s)
+{
+    return VectorHelper::Add(_v.m_vec, VectorHelper::Splat(_s));
+}
+
+NIX_INLINE Vector operator+ (nixFloat _s, const Vector& _v)
+{
+    return VectorHelper::Add(VectorHelper::Splat(_s), _v.m_vec);
+}
+
+NIX_INLINE Vector operator+ (const Vector& _a, const Vector& _b)
+{
+    return VectorHelper::Add(_a.m_vec, _b.m_vec);
+}
+
+//operator-
+NIX_INLINE Vector operator- (const Vector& _v, nixFloat _s)
+{
+    return VectorHelper::Sub(_v.m_vec, VectorHelper::Splat(_s));
+}
+
+NIX_INLINE Vector operator- (nixFloat _s, const Vector& _v)
+{
+    return VectorHelper::Sub(VectorHelper::Splat(_s), _v.m_vec);
+}
+
+NIX_INLINE Vector operator- (const Vector& _a, const Vector& _b)
+{
+    return VectorHelper::Sub(_a.m_vec, _b.m_vec);
+}
+
+//operator*
+NIX_INLINE Vector operator* (const Vector& _v, nixFloat _s)
+{
+    return VectorHelper::Mul(_v.m_vec, VectorHelper::Splat(_s));
+}
+
+NIX_INLINE Vector operator* (nixFloat _s, const Vector& _v)
+{
+    return VectorHelper::Mul(VectorHelper::Splat(_s), _v.m_vec);
+}
+
+NIX_INLINE Vector operator* (const Vector& _a, const Vector& _b)
+{
+    return VectorHelper::Mul(_a.m_vec, _b.m_vec);
+}
+
+//operator/
+NIX_INLINE Vector  operator/ (const Vector& _v, nixFloat _s)
+{
+    return VectorHelper::Div(_v.m_vec, VectorHelper::Splat(_s));
+}
+
+NIX_INLINE Vector  operator/ (nixFloat _s, const Vector& _v)
+{
+    return VectorHelper::Div(VectorHelper::Splat(_s), _v.m_vec);
+}
+
+NIX_INLINE Vector  operator/ (const Vector& _a, const Vector& _b)
+{
+    return VectorHelper::Div(_a.m_vec, _b.m_vec);
+}
+
+// Unary constant operators
+NIX_INLINE Vector  operator- (const Vector& _v)
+{
+    return _mm_sub_ps(VectorHelper::GetZero(), _v.m_vec);
+}
+
+NIX_INLINE Vector  operator++ (const Vector& _v, nixS32)
+{
+    return _mm_add_ps(_v.m_vec, VectorHelper::GetOne());
+}
+
+NIX_INLINE Vector  operator-- (const Vector& _v, nixS32)
+{
+    return _mm_sub_ps(_v.m_vec, VectorHelper::GetOne());
+}
+
+NIX_INLINE nixBool operator==(const Vector& _lhs, const Vector& _rhs)
+{
+    const __nixFloat4 equal = _mm_cmpeq_ps(_lhs.m_vec, _rhs.m_vec);
+    const nixS16 mask = _mm_movemask_ps(equal);
+    return (mask == 0xffffffff);
+}
+
+NIX_INLINE nixBool operator!=(const Vector& _lhs, const Vector& _rhs)
+{
+    const __nixFloat4 equal = _mm_cmpneq_ps(_lhs.m_vec, _rhs.m_vec);
+    const nixS16 mask = _mm_movemask_ps(equal);
+    return (mask == 0xffffffff);
+}
+
+NIX_INLINE nixBool operator< (const Vector& _lhs, const Vector& _rhs)
+{
+    const __nixFloat4 equal = _mm_cmplt_ps(_lhs.m_vec, _rhs.m_vec);
+    const nixS16 mask = _mm_movemask_ps(equal);
+    return (mask == 0xffffffff);
+}
+
+NIX_INLINE nixBool operator> (const Vector& _lhs, const Vector& _rhs)
+{
+    const __nixFloat4 equal = _mm_cmpgt_ps(_lhs.m_vec, _rhs.m_vec);
+    const nixS16 mask = _mm_movemask_ps(equal);
+    return (mask == 0xffffffff);
+}
+
+NIX_INLINE nixBool operator<=(const Vector& _lhs, const Vector& _rhs)
+{
+    const __nixFloat4 equal = _mm_cmple_ps(_lhs.m_vec, _rhs.m_vec);
+    const nixS16 mask = _mm_movemask_ps(equal);
+    return (mask == 0xffffffff);
+}
+
+NIX_INLINE nixBool operator>=(const Vector& _lhs, const Vector& _rhs)
+{
+    const __nixFloat4 equal = _mm_cmpge_ps(_lhs.m_vec, _rhs.m_vec);
+    const nixS16 mask = _mm_movemask_ps(equal);
+    return (mask == 0xffffffff);
+}
 
 
 NIX_NAMESPACE_END
