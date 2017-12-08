@@ -46,6 +46,19 @@ NIX_USING_NAMESPACE
 
 int main()
 {
+    Vector asix(0.0f, 1.0f, 0.0f);
+    nixFloat radians = 1.5708f; // 90 deg
+
+    Quaternion rot(radians, asix);
+    printf("Quaternion rot\n");
+    printf("Axis: ");
+    asix.Print3();
+    printf("Radians: %f, Degree: %f\n", radians, NIX_RAD_TO_DEG(radians));
+    printf("Quaternion output\n");
+    rot.Print();
+    rot.PrintClear();
+
+    /*
     Vector a(1.0f, 2.0f, 3.0f, 4.0f);
     Vector b(6.0f, 7.0f, 8.0f, 9.0f);
 
@@ -70,6 +83,7 @@ int main()
     Vector lb3 = b.Length3();
     la3.Print();
     lb3.Print();
+    */
 
     getchar();
 

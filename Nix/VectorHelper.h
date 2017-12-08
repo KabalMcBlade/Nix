@@ -11,6 +11,8 @@ NIX_NAMESPACE_BEGIN
 NIX_SIMD_ALIGN class VectorHelper
 {
 public:
+    static NIX_INLINE __nixFloat4 GetSignMask() { return _mm_castsi128_ps(_mm_set1_epi32(0x80000000)); }
+
     static NIX_INLINE __nixFloat4 GetZero() { return _mm_setzero_ps(); }
     static NIX_INLINE __nixFloat4 GetOne() { return _mm_set1_ps(1.0f); }
 
@@ -29,8 +31,8 @@ public:
     static NIX_INLINE __nixFloat4 Mul(const __nixFloat4& _a, const __nixFloat4& _b) { return _mm_mul_ps(_a, _b); }
     static NIX_INLINE __nixFloat4 Div(const __nixFloat4& _a, const __nixFloat4& _b) { return _mm_div_ps(_a, _b); }
 
-    static NIX_INLINE __nixFloat4 Abs(const __nixFloat4& _v) { return _mm_andnot_ps(_mm_castsi128_ps(_mm_set1_epi32(0x80000000)), _v); }
-    static NIX_INLINE __nixFloat4 Neg(const __nixFloat4& _v) { return _mm_xor_ps(_v, _mm_castsi128_ps(_mm_set1_epi32(0x80000000))); }
+    static NIX_INLINE __nixFloat4 Abs(const __nixFloat4& _v) { return _mm_andnot_ps(VectorHelper::GetSignMask(), _v); }
+    static NIX_INLINE __nixFloat4 Neg(const __nixFloat4& _v) { return _mm_xor_ps(_v, VectorHelper::GetSignMask()); }
 
     static NIX_INLINE __nixFloat4 Sqrt(const __nixFloat4& _v) { return _mm_sqrt_ps(_v); }
     static NIX_INLINE __nixFloat4 ReciprocalSqrt(const __nixFloat4& _v) { return _mm_rsqrt_ps(_v); }
@@ -40,7 +42,7 @@ public:
 #   if defined(NIX_ARCH_SSE41)
         return _mm_round_ps(_v, _MM_FROUND_TO_NEAREST_INT);
 #   else
-        const __nixFloat4 sgn = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+        const __nixFloat4 sgn = VectorHelper::GetSignMask();
         const __nixFloat4 and = _mm_and_ps(sgn, _v);
         const __nixFloat4 or = _mm_or_ps(and, Splat(8388608.0f));
         const __nixFloat4 add = VectorHelper::Add(_v, or );
@@ -112,15 +114,15 @@ public:
 #   if defined(NIX_ARCH_SSE41)
         return _mm_dp_ps(_a, _b, 0x7f); // 0111 1111 -> the w value of arrays are not computed. The result is saved to the whole register
 #	elif defined(NIX_ARCH_SSE3)
-        const __nixFloat4 aW0 = VectorHelper::Mul(_a, m_kZeroingW);
-        const __nixFloat4 bW0 = VectorHelper::Mul(_b, m_kZeroingW);
+        const __nixFloat4 aW0 = VectorHelper::Mul(_a, kZeroingW);
+        const __nixFloat4 bW0 = VectorHelper::Mul(_b, kZeroingW);
         const __nixFloat4 mul = VectorHelper::Mul(aW0, bW0);
         const __nixFloat4 add = _mm_hadd_ps(mul, mul);
         const __nixFloat4 res = _mm_hadd_ps(add, add);
         return res;
 #   else
-        const __nixFloat4 aW0 = VectorHelper::Mul(_a, m_kZeroingW);
-        const __nixFloat4 bW0 = VectorHelper::Mul(_b, m_kZeroingW);
+        const __nixFloat4 aW0 = VectorHelper::Mul(_a, kZeroingW);
+        const __nixFloat4 bW0 = VectorHelper::Mul(_b, kZeroingW);
         const __nixFloat4 mul = VectorHelper::Mul(aW0, bW0);
         const __nixFloat4 add = VectorHelper::Add(mul, _mm_shuffle_ps(mul, mul, _MM_SHUFFLE(2, 3, 0, 1)));
         const __nixFloat4 res = VectorHelper::Add(add, _mm_shuffle_ps(add, add, _MM_SHUFFLE(0, 1, 2, 3)));
@@ -249,7 +251,7 @@ public:
     }
 
 private:
-    constexpr static NIX_SIMD_ALIGN const __nixFloat4 m_kZeroingW = { 1.0f, 1.0f, 1.0f, 0.0f };
+    constexpr static NIX_SIMD_ALIGN const __nixFloat4 kZeroingW = { 1.0f, 1.0f, 1.0f, 0.0f };
     //constexpr static NIX_SIMD_ALIGN const nixU32 maskRaw[] = { 0xffffffff, 0xffffffff, 0xffffffff, 0 };
 };
 

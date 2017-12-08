@@ -38,5 +38,11 @@
     <ClInclude Include="Nix\VectorHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Nix\MathHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Nix\Quaternion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

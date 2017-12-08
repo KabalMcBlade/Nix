@@ -255,6 +255,7 @@ public:
 
 private:
     friend class VectorHelper;
+    friend class Quaternion;
 
     // for global operators
     friend NIX_INLINE Vector operator+ (const Vector& _v, nixFloat _s);
