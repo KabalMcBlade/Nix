@@ -25,6 +25,8 @@ public:
     constexpr static const nixFloat kHalfPI = 1.570796f;
     constexpr static const nixFloat k3halfPI = 4.7123889f;
 
+    constexpr static const nixFloat kEpsilon = std::numeric_limits<nixFloat>::epsilon();
+
 public:
     static NIX_INLINE __nixFloat4 Cos(__nixFloat4 _angle)
     {

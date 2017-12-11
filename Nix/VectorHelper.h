@@ -15,6 +15,8 @@ public:
 
     static NIX_INLINE __nixFloat4 GetZero() { return _mm_setzero_ps(); }
     static NIX_INLINE __nixFloat4 GetOne() { return _mm_set1_ps(1.0f); }
+    static NIX_INLINE __nixFloat4 GetMinusOne() { return _mm_set1_ps(-1.0f); }
+    static NIX_INLINE __nixFloat4 GetHalf() { return _mm_set1_ps(0.5f); }
 
     static NIX_INLINE __nixFloat4 Get0001() { return _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f); }
     static NIX_INLINE __nixFloat4 Get1110() { return _mm_set_ps(0.0f, 1.0f, 1.0f, 1.0f); }

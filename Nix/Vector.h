@@ -104,150 +104,162 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
     // Vector3 Version: Means that there are some difference to properly work upon 3 elements
-    NIX_INLINE Vector Dot3(const Vector& _other)
+    NIX_INLINE Vector Dot3(const Vector& _other) const
     {
         return VectorHelper::Dot3(m_vec, _other.m_vec);
     }
 
-    NIX_INLINE Vector SquareLength3()
+    NIX_INLINE Vector SquareLength3() const
     {
         return VectorHelper::SquareLength3(m_vec);
     }
 
-    NIX_INLINE Vector Length3()
+    NIX_INLINE Vector Length3() const
     {
         return VectorHelper::Length3(m_vec);
     }
 
-    NIX_INLINE Vector Normalize3()
+    NIX_INLINE Vector Normalize3() const
     {
         return VectorHelper::Normalize3(m_vec);
     }
 
-    NIX_INLINE Vector Distance3(const Vector& _other)
+    NIX_INLINE Vector Distance3(const Vector& _other) const
     {
         return VectorHelper::Distance3(m_vec, _other.m_vec);
     }
 
     //////////////////////////////////////////////////////////////////////////
     // Both Vector3 and Vector4 Version (even possible)
-    NIX_INLINE Vector Abs()
+    NIX_INLINE Vector Abs() const
     {
         return VectorHelper::Abs(m_vec);
     }
 
-    NIX_INLINE Vector Floor()
+    NIX_INLINE Vector Floor() const
     {
         return VectorHelper::Floor(m_vec);
     }
 
-    NIX_INLINE Vector Ceil()
+    NIX_INLINE Vector Ceil() const
     {
         return VectorHelper::Ceil(m_vec);
     }
 
     // Computes and returns (this * _vecToMul) + _vecToAdd.
-    NIX_INLINE Vector MulAdd(const Vector& _vecToMul, const Vector& _vecToAdd)
+    NIX_INLINE Vector MulAdd(const Vector& _vecToMul, const Vector& _vecToAdd) const
     {
         return VectorHelper::MulAdd(m_vec, _vecToMul.m_vec, _vecToAdd.m_vec);
     }
 
-    NIX_INLINE Vector Dot(const Vector& _other)
+    NIX_INLINE Vector Dot(const Vector& _other) const
     {
         return VectorHelper::Dot(m_vec, _other.m_vec);
     }
 
-    NIX_INLINE Vector SquareLength()
+    NIX_INLINE Vector SquareLength() const
     {
         return VectorHelper::SquareLength(m_vec);
     }
 
-    NIX_INLINE Vector Length()
+    NIX_INLINE Vector Length() const
     {
         return VectorHelper::Length(m_vec);
     }
 
-    NIX_INLINE Vector SquareDistance(const Vector& _other)
+    NIX_INLINE Vector SquareDistance(const Vector& _other) const
     {
         return VectorHelper::SquareDistance(m_vec, _other.m_vec);
     }
 
-    NIX_INLINE Vector Distance(const Vector& _other)
+    NIX_INLINE Vector Distance(const Vector& _other) const
     {
         return VectorHelper::Distance(m_vec, _other.m_vec);
     }
 
-    NIX_INLINE Vector Cross(const Vector& _other)
+    NIX_INLINE Vector Cross(const Vector& _other) const
     {
         return VectorHelper::Cross(m_vec, _other.m_vec);
     }
 
-    NIX_INLINE Vector Mod(const Vector& _other)
+    NIX_INLINE Vector Mod(const Vector& _other) const
     {
         return VectorHelper::Mod(m_vec, _other.m_vec);
     }
 
-    NIX_INLINE Vector Clamp(const Vector& _min, const Vector& _max)
+    NIX_INLINE Vector Clamp(const Vector& _min, const Vector& _max) const
     {
         return VectorHelper::Clamp(m_vec, _min.m_vec, _max.m_vec);
     }
 
-    NIX_INLINE Vector Normalize()
+    NIX_INLINE Vector Normalize() const
     {
         return VectorHelper::Normalize(m_vec);
     }
 
-    NIX_INLINE Vector Min(const Vector& _other)
+    NIX_INLINE Vector Min(const Vector& _other) const
     {
         return VectorHelper::Min(m_vec, _other.m_vec);
     }
 
-    NIX_INLINE Vector Max(const Vector& _other)
+    NIX_INLINE Vector Max(const Vector& _other) const
     {
         return VectorHelper::Max(m_vec, _other.m_vec);
     }
 
     // It means go FROM *this* vector TO *other* vector in T
-    NIX_INLINE Vector LerpTo(const Vector& _to, const Vector& _time)
+    NIX_INLINE Vector LerpTo(const Vector& _to, const Vector& _time) const
     {
         return VectorHelper::Lerp(m_vec, _to.m_vec, _time.m_vec);
     }
 
     // It means go FROM *other* vector TO *this* vector in T
-    NIX_INLINE Vector LerpFrom(const Vector& _from, const Vector& _time)
+    NIX_INLINE Vector LerpFrom(const Vector& _from, const Vector& _time) const
     {
         return VectorHelper::Lerp(_from.m_vec, m_vec, _time.m_vec);
     }
 
-    NIX_INLINE Vector InverseLerp(const Vector& _min, const Vector& _max)
+    // It means go FROM *this* vector TO *other* vector in T
+    NIX_INLINE Vector LerpTo(const Vector& _to, const nixFloat& _time) const
+    {
+        return LerpTo(_to, VectorHelper::Splat(_time));
+    }
+
+    // It means go FROM *other* vector TO *this* vector in T
+    NIX_INLINE Vector LerpFrom(const Vector& _from, const nixFloat& _time) const
+    {
+        return LerpFrom(_from, VectorHelper::Splat(_time));
+    }
+
+    NIX_INLINE Vector InverseLerp(const Vector& _min, const Vector& _max) const
     {
         return VectorHelper::InverseLerp(m_vec, _min.m_vec, _max.m_vec);
     }
 
     //////////////////////////////////////////////////////////////////////////
     // Utility functions
-    NIX_INLINE Vector GetX()
+    NIX_INLINE Vector GetX() const
     {
         return _mm_shuffle_ps(m_vec, m_vec, _MM_SHUFFLE(0, 0, 0, 0));
     }
 
-    NIX_INLINE Vector GetY()
+    NIX_INLINE Vector GetY() const
     {
         return _mm_shuffle_ps(m_vec, m_vec, _MM_SHUFFLE(1, 1, 1, 1));
     }
 
-    NIX_INLINE Vector GetZ()
+    NIX_INLINE Vector GetZ() const
     {
         return _mm_shuffle_ps(m_vec, m_vec, _MM_SHUFFLE(2, 2, 2, 2));
     }
 
-    NIX_INLINE Vector GetW()
+    NIX_INLINE Vector GetW() const
     {
         return _mm_shuffle_ps(m_vec, m_vec, _MM_SHUFFLE(3, 3, 3, 3));
     }
 
     // From  [a,b,c,d ] To  [b,c,d,a]
-    NIX_INLINE Vector Rotate()
+    NIX_INLINE Vector Rotate() const
     {
         return _mm_shuffle_ps(m_vec, m_vec, 0x39);    
     }
@@ -279,6 +291,10 @@ private:
     friend NIX_INLINE nixBool operator> (const Vector& _lhs, const Vector& _rhs);
     friend NIX_INLINE nixBool operator<=(const Vector& _lhs, const Vector& _rhs);
     friend NIX_INLINE nixBool operator>=(const Vector& _lhs, const Vector& _rhs);
+
+    // from quaternion
+    friend NIX_INLINE Quaternion operator* (const Quaternion& _q1, const Quaternion& _q2);
+    friend NIX_INLINE Vector operator* (const Quaternion& _q, const Vector& _v);
 
     __nixFloat4 m_vec;
 };
