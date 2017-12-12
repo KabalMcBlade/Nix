@@ -154,6 +154,7 @@
     <ClInclude Include="Nix\Architecture.h" />
     <ClInclude Include="Nix\CoreDefs.h" />
     <ClInclude Include="Nix\MathHelper.h" />
+    <ClInclude Include="Nix\Matrix.h" />
     <ClInclude Include="Nix\Nix.h" />
     <ClInclude Include="Nix\Quaternion.h" />
     <ClInclude Include="Nix\Types.h" />
