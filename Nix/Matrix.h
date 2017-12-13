@@ -12,13 +12,17 @@ NIX_NAMESPACE_BEGIN
 
 NIX_SIMD_ALIGN class Matrix
 {
+    //////////////////////////////////////////////////////////////////////////
     // private at the beginning for macro purpose...
 private:
     friend class VectorHelper;
     //friend class Vector;
 
+    //////////////////////////////////////////////////////////////////////////
+    // MACROS SECTION
+
 ///
-#if defined(NIX_ARCH_AVX512)
+#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
     __nixFloat16 m_rows;
 
 #define SET_VALUE_RAW(_00, _01, _02, _03, _10, _11, _12, _13, _20, _21, _22, _23, _30, _31, _32, _33) \
@@ -30,8 +34,11 @@ private:
 #define SET_VALUE_MAT(_m) \
         this->m_rows = _m.m_rows;
 
+#define GET_VALUE(_i) \
+        _mm512_extractf32x4_ps(this->m_rows, _i);
+
 ///
-#elif defined(NIX_ARCH_AVX2) || defined(NIX_ARCH_AVX)
+#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
     __nixFloat8 m_rows[2];
 
 #define SET_VALUE_RAW(_00, _01, _02, _03, _10, _11, _12, _13, _20, _21, _22, _23, _30, _31, _32, _33) \
@@ -48,6 +55,10 @@ private:
         this->m_rows[0] = _m.m_rows[0]; \
         this->m_rows[1] = _m.m_rows[1];
 
+#define GET_VALUE(_i) \
+        static const nixU8 imm[4] = { 0, 1, 0, 1}; \
+        static const nixU8 idx[4] = { 0, 0, 1, 1}; \
+        _mm256_extractf128_ps(this->m_rows[idx[_i]], imm[_i]);
 ///
 #else 
     __nixFloat4 m_rows[4];
@@ -70,11 +81,21 @@ private:
         this->m_rows[2] = _m.m_rows[2]; \
         this->m_rows[3] = _m.m_rows[3];
 
-#define GET_VALUE_VEC(_i) \
-        nixAssert(_i > 0 && _i < 4, "Index out of range"); \
-        this->m_rows[i];
+#define GET_VALUE(_i) \
+        this->m_rows[_i];
+
+#define ADD_MAT(_m) \
+        this->m_rows[0] = VectorHelper::Add(this->m_rows[0], _m[0]); \
+        this->m_rows[1] = VectorHelper::Add(this->m_rows[1], _m[1]); \
+        this->m_rows[2] = VectorHelper::Add(this->m_rows[2], _m[2]); \
+        this->m_rows[3] = VectorHelper::Add(this->m_rows[3], _m[3]);
 
 #endif
+
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////
 public:
@@ -158,6 +179,46 @@ public:
     }
 #endif
 
+    //////////////////////////////////////
+    // Accesses
+    NIX_INLINE __nixFloat4& operator[](nixU8 _i)
+    {
+        return GET_VALUE(_i);
+    }
+
+    NIX_INLINE const __nixFloat4& operator[](nixU8 _i) const
+    {
+        return GET_VALUE(_i);
+    }
+
+    NIX_INLINE const __nixFloat4& GetOrtX() const
+    {
+        return GET_VALUE(0);
+    }
+
+    NIX_INLINE const __nixFloat4& GetOrtY() const
+    {
+        return GET_VALUE(1);
+    }
+
+    NIX_INLINE const __nixFloat4& GetOrtZ() const
+    {
+        return GET_VALUE(2);
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    // Operators
+    NIX_INLINE Matrix& operator=(const Matrix& _m)
+    {
+        SET_VALUE_MAT(_m);
+        return *this;
+    }
+
+    NIX_INLINE Matrix& operator+=(const Matrix& _m)
+    {
+        ADD_MAT(_m);
+        return *this;
+    }
 };
 
 NIX_NAMESPACE_END

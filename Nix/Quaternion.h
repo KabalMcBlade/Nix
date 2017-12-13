@@ -239,7 +239,7 @@ NIX_INLINE Quaternion operator* (const Quaternion& _q1, const Quaternion& _q2)
     const __nixFloat4 mul2 = VectorHelper::Mul(_q1.m_quat, _mm_shuffle_ps(_q2.m_quat, _q2.m_quat, _MM_SHUFFLE(2, 3, 0, 1)));
     const __nixFloat4 mul3 = VectorHelper::Mul(_q1.m_quat, _q2.m_quat);
 
-#   if defined(NIX_ARCH_SSE41)
+#if NIX_ARCH & NIX_ARCH_SSE41_FLAG
     const __nixFloat4 add00 = _mm_dp_ps(mul0, VectorHelper::Set(1.0f, 1.0f, -1.0f, 1.0f), 0xff);
     const __nixFloat4 add01 = _mm_dp_ps(mul1, VectorHelper::Set(-1.0f, 1.0f, 1.0f, 1.0f), 0xff);
     const __nixFloat4 add02 = _mm_dp_ps(mul2, VectorHelper::Set(1.0f, -1.0f, 1.0f, 1.0f), 0xff);

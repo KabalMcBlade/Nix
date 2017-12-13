@@ -25,24 +25,24 @@ public:
     static NIX_INLINE __nixFloat4 GetPlusInf() { return _mm_set1_ps(std::numeric_limits<nixFloat>::infinity()); }
     static NIX_INLINE __nixFloat4 GetMinusInf() { return _mm_set1_ps(-std::numeric_limits<nixFloat>::infinity()); }
 
-
-#if defined(NIX_ARCH_AVX512)
+    //
+    // *** SET *** FUNCTIONS
+#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
     static NIX_INLINE __nixFloat4 Set512(nixFloat _x0, nixFloat _y0, nixFloat _z0, nixFloat _w0, nixFloat _x1, nixFloat _y1, nixFloat _z1, nixFloat _w1,
-                                        nixFloat _x2, nixFloat _y2, nixFloat _z2, nixFloat _w2, nixFloat _x3, nixFloat _y3, nixFloat _z3, nixFloat _w3) { return _mm512_set_ps(_w0, _z0, _y0, _x0, _w1, _z1, _y1, _x1, _w2, _z2, _y2, _x2, _w3, _z3, _y3, _x3); }
+        nixFloat _x2, nixFloat _y2, nixFloat _z2, nixFloat _w2, nixFloat _x3, nixFloat _y3, nixFloat _z3, nixFloat _w3) {
+        return _mm512_set_ps(_w0, _z0, _y0, _x0, _w1, _z1, _y1, _x1, _w2, _z2, _y2, _x2, _w3, _z3, _y3, _x3);
+    }
     static NIX_INLINE __nixFloat4 Splat512(nixFloat _v) { return _mm512_set1_ps(_v); }
+#   endif
+
+#   if NIX_ARCH & NIX_ARCH_AVX_FLAG
     static NIX_INLINE __nixFloat4 Set256(nixFloat _x0, nixFloat _y0, nixFloat _z0, nixFloat _w0, nixFloat _x1, nixFloat _y1, nixFloat _z1, nixFloat _w1) { return _mm256_set_ps(_w0, _z0, _y0, _x0, _w1, _z1, _y1, _x1); }
     static NIX_INLINE __nixFloat4 Splat256(nixFloat _v) { return _mm256_set1_ps(_v); }
+#   endif
+
     static NIX_INLINE __nixFloat4 Set(nixFloat _x, nixFloat _y, nixFloat _z, nixFloat _w) { return _mm_set_ps(_w, _z, _y, _x); }
     static NIX_INLINE __nixFloat4 Splat(nixFloat _v) { return _mm_set1_ps(_v); }
-#elif defined(NIX_ARCH_AVX2) || defined(NIX_ARCH_AVX)
-    static NIX_INLINE __nixFloat4 Set256(nixFloat _x0, nixFloat _y0, nixFloat _z0, nixFloat _w0, nixFloat _x1, nixFloat _y1, nixFloat _z1, nixFloat _w1) { return _mm256_set_ps(_w0, _z0, _y0, _x0, _w1, _z1, _y1, _x1); }
-    static NIX_INLINE __nixFloat4 Splat256(nixFloat _v) { return _mm256_set1_ps(_v); }
-    static NIX_INLINE __nixFloat4 Set(nixFloat _x, nixFloat _y, nixFloat _z, nixFloat _w) { return _mm_set_ps(_w, _z, _y, _x); }
-    static NIX_INLINE __nixFloat4 Splat(nixFloat _v) { return _mm_set1_ps(_v); }
-#else 
-    static NIX_INLINE __nixFloat4 Set(nixFloat _x, nixFloat _y, nixFloat _z, nixFloat _w) { return _mm_set_ps(_w, _z, _y, _x); }
-    static NIX_INLINE __nixFloat4 Splat(nixFloat _v) { return _mm_set1_ps(_v); }
-#endif
+    //
 
 
     static NIX_INLINE __nixFloat4 Add(const __nixFloat4& _a, const __nixFloat4& _b) { return _mm_add_ps(_a, _b); }
@@ -58,7 +58,7 @@ public:
 
     static NIX_INLINE __nixFloat4 Round(const __nixFloat4& _v)
     {
-#   if defined(NIX_ARCH_SSE41)
+#   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_round_ps(_v, _MM_FROUND_TO_NEAREST_INT);
 #   else
         const __nixFloat4 sgn = VectorHelper::GetSignMask();
@@ -72,7 +72,7 @@ public:
 
     static NIX_INLINE __nixFloat4 Floor(const __nixFloat4& _v)
     {
-#   if defined(NIX_ARCH_SSE41)
+#   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_floor_ps(_v);
 #   else
         const __nixFloat4 rnd = VectorHelper::Round(_v);
@@ -85,7 +85,7 @@ public:
 
     static NIX_INLINE __nixFloat4 Ceil(const __nixFloat4& _v)
     {
-#   if defined(NIX_ARCH_SSE41)
+#   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_ceil_ps(_v);
 #   else
         const __nixFloat4 rnd = VectorHelper::Round(_v);
@@ -104,7 +104,7 @@ public:
     // Computes and returns _x * _y + _v.
     static NIX_INLINE __nixFloat4 MulAdd(const __nixFloat4& _x, const __nixFloat4& _y, const __nixFloat4& _v)
     {
-#   if defined(NIX_ARCH_AVX2)
+#   if NIX_ARCH & NIX_ARCH_AVX2_FLAG
         return _mm_fmadd_ps(_x, _y, _v);
 #   else
         return VectorHelper::Add(VectorHelper::Mul(_x, _y), _v);
@@ -113,9 +113,9 @@ public:
 
     static NIX_INLINE __nixFloat4 Dot(const __nixFloat4& _a, const __nixFloat4& _b)
     {
-#   if defined(NIX_ARCH_SSE41)
+#   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_dp_ps(_a, _b, 0xff); // 1111 1111 -> all values are computed and the result is saved to the whole register
-#	elif defined(NIX_ARCH_SSE3)
+#	elif NIX_ARCH & NIX_ARCH_SSE3_FLAG
         const __nixFloat4 mul = VectorHelper::Mul(_a, _b);
         const __nixFloat4 add = _mm_hadd_ps(mul, mul);
         const __nixFloat4 res = _mm_hadd_ps(add, add);
@@ -130,9 +130,9 @@ public:
 
     static NIX_INLINE __nixFloat4 Dot3(const __nixFloat4& _a, const __nixFloat4& _b)
     {
-#   if defined(NIX_ARCH_SSE41)
+#   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_dp_ps(_a, _b, 0x7f); // 0111 1111 -> the w value of arrays are not computed. The result is saved to the whole register
-#	elif defined(NIX_ARCH_SSE3)
+#	elif NIX_ARCH & NIX_ARCH_SSE3_FLAG
         const __nixFloat4 aW0 = VectorHelper::Mul(_a, kZeroingW);
         const __nixFloat4 bW0 = VectorHelper::Mul(_b, kZeroingW);
         const __nixFloat4 mul = VectorHelper::Mul(aW0, bW0);
