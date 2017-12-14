@@ -37,6 +37,12 @@ private:
 #define GET_VALUE(_i) \
         _mm512_extractf32x4_ps(this->m_rows, _i);
 
+#define ADD_MAT(_m) \
+        this->m_rows = VectorHelper::Add(this->m_rows, _m);
+
+#define SUB_MAT(_m) \
+        this->m_rows = VectorHelper::Sub(this->m_rows, _m);
+
 ///
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
     __nixFloat8 m_rows[2];
@@ -59,6 +65,15 @@ private:
         static const nixU8 imm[4] = { 0, 1, 0, 1}; \
         static const nixU8 idx[4] = { 0, 0, 1, 1}; \
         _mm256_extractf128_ps(this->m_rows[idx[_i]], imm[_i]);
+
+#define ADD_MAT(_m) \
+        this->m_rows[0] = VectorHelper::Add(this->m_rows[0], _m[0]); \
+        this->m_rows[1] = VectorHelper::Add(this->m_rows[1], _m[1]);
+
+#define SUB_MAT(_m) \
+        this->m_rows[0] = VectorHelper::Sub(this->m_rows[0], _m[0]); \
+        this->m_rows[1] = VectorHelper::Sub(this->m_rows[1], _m[1]);
+
 ///
 #else 
     __nixFloat4 m_rows[4];
@@ -90,6 +105,11 @@ private:
         this->m_rows[2] = VectorHelper::Add(this->m_rows[2], _m[2]); \
         this->m_rows[3] = VectorHelper::Add(this->m_rows[3], _m[3]);
 
+#define SUB_MAT(_m) \
+        this->m_rows[0] = VectorHelper::Sub(this->m_rows[0], _m[0]); \
+        this->m_rows[1] = VectorHelper::Sub(this->m_rows[1], _m[1]); \
+        this->m_rows[2] = VectorHelper::Sub(this->m_rows[2], _m[2]); \
+        this->m_rows[3] = VectorHelper::Sub(this->m_rows[3], _m[3]);
 #endif
 
 
@@ -217,6 +237,12 @@ public:
     NIX_INLINE Matrix& operator+=(const Matrix& _m)
     {
         ADD_MAT(_m);
+        return *this;
+    }
+
+    NIX_INLINE Matrix& operator-=(const Matrix& _m)
+    {
+        SUB_MAT(_m);
         return *this;
     }
 };

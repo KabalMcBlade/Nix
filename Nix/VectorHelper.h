@@ -25,24 +25,34 @@ public:
     static NIX_INLINE __nixFloat4 GetPlusInf() { return _mm_set1_ps(std::numeric_limits<nixFloat>::infinity()); }
     static NIX_INLINE __nixFloat4 GetMinusInf() { return _mm_set1_ps(-std::numeric_limits<nixFloat>::infinity()); }
 
-    //
-    // *** SET *** FUNCTIONS
+
 #   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-    static NIX_INLINE __nixFloat4 Set512(nixFloat _x0, nixFloat _y0, nixFloat _z0, nixFloat _w0, nixFloat _x1, nixFloat _y1, nixFloat _z1, nixFloat _w1,
+
+    static NIX_INLINE __nixFloat16 Set512(nixFloat _x0, nixFloat _y0, nixFloat _z0, nixFloat _w0, nixFloat _x1, nixFloat _y1, nixFloat _z1, nixFloat _w1,
         nixFloat _x2, nixFloat _y2, nixFloat _z2, nixFloat _w2, nixFloat _x3, nixFloat _y3, nixFloat _z3, nixFloat _w3) {
         return _mm512_set_ps(_w0, _z0, _y0, _x0, _w1, _z1, _y1, _x1, _w2, _z2, _y2, _x2, _w3, _z3, _y3, _x3);
     }
-    static NIX_INLINE __nixFloat4 Splat512(nixFloat _v) { return _mm512_set1_ps(_v); }
+    static NIX_INLINE __nixFloat16 Splat512(nixFloat _v) { return _mm512_set1_ps(_v); }
+    static NIX_INLINE __nixFloat16 Add(const __nixFloat16& _a, const __nixFloat16& _b) { return _mm512_add_ps(_a, _b); }
+    static NIX_INLINE __nixFloat16 Sub(const __nixFloat16& _a, const __nixFloat16& _b) { return _mm512_sub_ps(_a, _b); }
+    static NIX_INLINE __nixFloat16 Mul(const __nixFloat16& _a, const __nixFloat16& _b) { return _mm512_mul_ps(_a, _b); }
+    static NIX_INLINE __nixFloat16 Div(const __nixFloat16& _a, const __nixFloat16& _b) { return _mm512_div_ps(_a, _b); }
 #   endif
 
+
 #   if NIX_ARCH & NIX_ARCH_AVX_FLAG
-    static NIX_INLINE __nixFloat4 Set256(nixFloat _x0, nixFloat _y0, nixFloat _z0, nixFloat _w0, nixFloat _x1, nixFloat _y1, nixFloat _z1, nixFloat _w1) { return _mm256_set_ps(_w0, _z0, _y0, _x0, _w1, _z1, _y1, _x1); }
-    static NIX_INLINE __nixFloat4 Splat256(nixFloat _v) { return _mm256_set1_ps(_v); }
+
+    static NIX_INLINE __nixFloat8 Set256(nixFloat _x0, nixFloat _y0, nixFloat _z0, nixFloat _w0, nixFloat _x1, nixFloat _y1, nixFloat _z1, nixFloat _w1) { return _mm256_set_ps(_w0, _z0, _y0, _x0, _w1, _z1, _y1, _x1); }
+    static NIX_INLINE __nixFloat8 Splat256(nixFloat _v) { return _mm256_set1_ps(_v); }
+    static NIX_INLINE __nixFloat8 Add(const __nixFloat8& _a, const __nixFloat8& _b) { return _mm256_add_ps(_a, _b); }
+    static NIX_INLINE __nixFloat8 Sub(const __nixFloat8& _a, const __nixFloat8& _b) { return _mm256_sub_ps(_a, _b); }
+    static NIX_INLINE __nixFloat8 Mul(const __nixFloat8& _a, const __nixFloat8& _b) { return _mm256_mul_ps(_a, _b); }
+    static NIX_INLINE __nixFloat8 Div(const __nixFloat8& _a, const __nixFloat8& _b) { return _mm256_div_ps(_a, _b); }
+
 #   endif
 
     static NIX_INLINE __nixFloat4 Set(nixFloat _x, nixFloat _y, nixFloat _z, nixFloat _w) { return _mm_set_ps(_w, _z, _y, _x); }
     static NIX_INLINE __nixFloat4 Splat(nixFloat _v) { return _mm_set1_ps(_v); }
-    //
 
 
     static NIX_INLINE __nixFloat4 Add(const __nixFloat4& _a, const __nixFloat4& _b) { return _mm_add_ps(_a, _b); }
