@@ -6,7 +6,7 @@
 
 #include "VectorHelper.h"
 #include "MathHelper.h"
-#include "MathHelper.h"
 #include "Vector.h"
 #include "Quaternion.h"
 #include "Matrix.h"
+#include "MatrixHelper.h"

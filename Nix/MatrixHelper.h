@@ -4,6 +4,8 @@
 #include "Architecture.h"
 #include "Types.h"
 #include "VectorHelper.h"
+#include "Matrix.h"
+
 
 NIX_NAMESPACE_BEGIN
 
@@ -11,6 +13,7 @@ NIX_NAMESPACE_BEGIN
 NIX_SIMD_ALIGN class MatrixHelper
 {
 public:
+
 
 private:
 
