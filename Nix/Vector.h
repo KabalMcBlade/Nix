@@ -13,7 +13,7 @@ NIX_NAMESPACE_BEGIN
     For the vector3 version, just referring to the function having the number "3" at the end, like Dot3
 */
 
-NIX_SIMD_ALIGN class Vector
+NIX_SIMD_ALIGN_16 class Vector
 {
 public:
     //////////////////////////////////////////////////////////////////////////

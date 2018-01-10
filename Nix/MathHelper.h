@@ -16,7 +16,7 @@
 NIX_NAMESPACE_BEGIN
 
 
-NIX_SIMD_ALIGN class MathHelper
+NIX_SIMD_ALIGN_16 class MathHelper
 {
 public:
     constexpr static const nixFloat kPI = 3.141593f;

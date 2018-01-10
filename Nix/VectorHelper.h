@@ -8,7 +8,7 @@
 NIX_NAMESPACE_BEGIN
 
 
-NIX_SIMD_ALIGN class VectorHelper
+NIX_SIMD_ALIGN_16 class VectorHelper
 {
 public:
     static NIX_INLINE __nixFloat4 GetSignMask() { return _mm_castsi128_ps(_mm_set1_epi32(0x80000000)); }
@@ -280,8 +280,8 @@ public:
     }
 
 private:
-    constexpr static NIX_SIMD_ALIGN const __nixFloat4 kZeroingW = { 1.0f, 1.0f, 1.0f, 0.0f };
-    //constexpr static NIX_SIMD_ALIGN const nixU32 maskRaw[] = { 0xffffffff, 0xffffffff, 0xffffffff, 0 };
+    constexpr static NIX_SIMD_ALIGN_16 const __nixFloat4 kZeroingW = { 1.0f, 1.0f, 1.0f, 0.0f };
+    //constexpr static NIX_SIMD_ALIGN_16 const nixU32 maskRaw[] = { 0xffffffff, 0xffffffff, 0xffffffff, 0 };
 };
 
 

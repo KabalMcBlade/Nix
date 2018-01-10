@@ -24,8 +24,8 @@
 
 #define NIX_USING_NAMESPACE using namespace nix; 
 
-#define NIX_MEMORY_ALIGNMENT_SIZE 16
-
+#define NIX_MEMORY_ALIGNMENT_SIZE_16 16
+#define NIX_MEMORY_ALIGNMENT_SIZE_32 32
 
 #define NIX_OPTIMIZATION_OFF __pragma(optimize("",off))
 #define NIX_OPTIMIZATION_ON __pragma(optimize("",on))
@@ -41,8 +41,8 @@
 #define NIX_IS_ALIGNED(ptr, alignment)    ((uint_fast64_t)ptr & (alignment - 1)) == 0
 
 
-#define NIX_SIMD_ALIGN     NIX_MEMORY_ALIGNMENT(NIX_MEMORY_ALIGNMENT_SIZE)
-
+#define NIX_SIMD_ALIGN_16   NIX_MEMORY_ALIGNMENT(NIX_MEMORY_ALIGNMENT_SIZE_16)
+#define NIX_SIMD_ALIGN_32   NIX_MEMORY_ALIGNMENT(NIX_MEMORY_ALIGNMENT_SIZE_32)
 
 //////////////////////////////////////////////////////////////////////////
 // TYPEDEFS

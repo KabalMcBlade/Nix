@@ -10,7 +10,7 @@
 NIX_NAMESPACE_BEGIN
 
 
-NIX_SIMD_ALIGN class Quaternion
+NIX_SIMD_ALIGN_16 class Quaternion
 {
 public:
     NIX_INLINE Quaternion() : m_quat(VectorHelper::Set(0.0f, 0.0f, 0.0f, 1.0f)) {}

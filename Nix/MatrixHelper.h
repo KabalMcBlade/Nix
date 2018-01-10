@@ -10,7 +10,13 @@
 NIX_NAMESPACE_BEGIN
 
 
-NIX_SIMD_ALIGN class MatrixHelper
+#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
+NIX_SIMD_ALIGN_32 class MatrixHelper
+#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
+NIX_SIMD_ALIGN_32 class MatrixHelper
+#   else 
+NIX_SIMD_ALIGN_16 class MatrixHelper
+#   endif
 {
 public:
 

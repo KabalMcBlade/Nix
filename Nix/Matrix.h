@@ -10,7 +10,15 @@
 
 NIX_NAMESPACE_BEGIN
 
-NIX_SIMD_ALIGN class Matrix
+
+
+#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
+NIX_SIMD_ALIGN_32 class Matrix
+#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
+NIX_SIMD_ALIGN_32 class Matrix
+#   else 
+NIX_SIMD_ALIGN_16 class Matrix
+#   endif
 {
 public:
     //////////////////////////////////////////////////////////////////////////
@@ -383,12 +391,72 @@ public:
     {
 #   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
 
-        
+        // NOTE: this possibly doesn't work, I don't have possibility to test right now, keep just to left me a crumble about what I want to do.
+
+        static const int NIX_SIMD_ALIGN_32 msk0123[16] = { 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3 };
+        static const int NIX_SIMD_ALIGN_32 msk4567[16] = { 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7 };
+
+        static const __nixInt16 prm0123 = _mm512_load_si512(reinterpret_cast<const __nixInt16*>(msk0123));
+        static const __nixInt16 prm4567 = _mm512_load_si512(reinterpret_cast<const __nixInt16*>(msk4567));
+
+        __nixInt16 swp0 = _mm512_permutevar_ps(_m.m_rows, prm0123);
+        __nixInt16 swp1 = _mm512_permutevar_ps(_m.m_rows, prm4567);
+
+        __nixFloat16 mul0 = VectorHelper::Mul(this->m_rows, swp0);
+        __nixFloat16 mul1 = VectorHelper::Mul(this->m_rows, swp1);
+
+        this->m_rows = VectorHelper::Add(mul0, mul1);
 
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
+        static const int NIX_SIMD_ALIGN_32 msk01[8] = { 0, 0, 0, 0, 1, 1, 1, 1 };
+        static const int NIX_SIMD_ALIGN_32 msk23[8] = { 2, 2, 2, 2, 3, 3, 3, 3 };
+        static const int NIX_SIMD_ALIGN_32 msk45[8] = { 4, 4, 4, 4, 5, 5, 5, 5 };
+        static const int NIX_SIMD_ALIGN_32 msk67[8] = { 6, 6, 6, 6, 7, 7, 7, 7 };
 
+        static const __nixInt8 prm01 = _mm256_load_si256(reinterpret_cast<const __nixInt8*>(msk01));
+        static const __nixInt8 prm23 = _mm256_load_si256(reinterpret_cast<const __nixInt8*>(msk23));
+        static const __nixInt8 prm45 = _mm256_load_si256(reinterpret_cast<const __nixInt8*>(msk45));
+        static const __nixInt8 prm67 = _mm256_load_si256(reinterpret_cast<const __nixInt8*>(msk67));
 
+        {
+            __nixFloat8 swp0 = _mm256_permutevar8x32_ps(_m.m_rows[0], prm01);
+            __nixFloat8 swp1 = _mm256_permutevar8x32_ps(_m.m_rows[0], prm23);
+            __nixFloat8 swp2 = _mm256_permutevar8x32_ps(_m.m_rows[0], prm45);
+            __nixFloat8 swp3 = _mm256_permutevar8x32_ps(_m.m_rows[0], prm67);
+
+            __nixFloat8 mul0 = VectorHelper::Mul(this->m_rows[0], swp0);
+            __nixFloat8 mul1 = VectorHelper::Mul(this->m_rows[1], swp1);
+            __nixFloat8 mul2 = VectorHelper::Mul(this->m_rows[0], swp2);
+            __nixFloat8 mul3 = VectorHelper::Mul(this->m_rows[1], swp3);
+
+            __nixFloat8 add0 = VectorHelper::Add(mul0, mul1);
+            __nixFloat8 add1 = VectorHelper::Add(mul2, mul3);
+            __nixFloat8 prm0 = _mm256_permute2f128_ps(add0, add1, _MM_SHUFFLE(0, 2, 0, 0));
+            __nixFloat8 prm1 = _mm256_permute2f128_ps(add0, add1, _MM_SHUFFLE(0, 3, 0, 1));
+
+            this->m_rows[0] = VectorHelper::Add(prm0, prm1);
+        }
+
+        {
+            __nixFloat8 swp0 = _mm256_permutevar8x32_ps(_m.m_rows[1], prm01);
+            __nixFloat8 swp1 = _mm256_permutevar8x32_ps(_m.m_rows[1], prm23);
+            __nixFloat8 swp2 = _mm256_permutevar8x32_ps(_m.m_rows[1], prm45);
+            __nixFloat8 swp3 = _mm256_permutevar8x32_ps(_m.m_rows[1], prm67);
+
+            __nixFloat8 mul0 = VectorHelper::Mul(this->m_rows[0], swp0);
+            __nixFloat8 mul1 = VectorHelper::Mul(this->m_rows[1], swp1);
+            __nixFloat8 mul2 = VectorHelper::Mul(this->m_rows[0], swp2);
+            __nixFloat8 mul3 = VectorHelper::Mul(this->m_rows[1], swp3);
+
+            __nixFloat8 add0 = VectorHelper::Add(mul0, mul1);
+            __nixFloat8 add1 = VectorHelper::Add(mul2, mul3);
+            __nixFloat8 prm0 = _mm256_permute2f128_ps(add0, add1, _MM_SHUFFLE(0, 2, 0, 0));
+            __nixFloat8 prm1 = _mm256_permute2f128_ps(add0, add1, _MM_SHUFFLE(0, 3, 0, 1));
+
+            this->m_rows[1] = VectorHelper::Add(prm0, prm1);
+        }
+        
 #   else 
 
 
