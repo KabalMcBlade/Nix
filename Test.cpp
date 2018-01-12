@@ -85,6 +85,11 @@ int main()
     lb3.Print();
     */
 
+    Matrix a(10.0f);
+    Matrix b(5.0f);
+
+    a *= b;
+
     getchar();
 
     return 0;
