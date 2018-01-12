@@ -3,6 +3,12 @@ Tiny optimized math framework game oriented
 
 > Nix is an ancient greek word means Darkness.
 
+This would be a tiny math library for game purpose (just to be clear, the inverse of the matrix would be game oriented, with the 3x3 describes rotation and scaling and the 4th lane the translation, and not a generic transform)
+
+It implement SSE2, SSE3, SSSE3, SSE4, SSE4.2 and AVX and AVX2
+
+I had started to implement also the AVX512, for the skylake subset, but I'm unable to test it, hence I leave that for a next implementation.
+
 
 # Build Status
 
