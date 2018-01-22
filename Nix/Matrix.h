@@ -151,11 +151,11 @@ public:
 
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
-        this->m_rows[0] = _mmul256_castps128_ps256(_v0.m_vec);
-        this->m_rows[0] = _mmul256_insertf128_ps(this->m_rows[0], _v1.m_vec, 1);
+        this->m_rows[0] = _mm256_castps128_ps256(_v0.m_vec);
+        this->m_rows[0] = _mm256_insertf128_ps(this->m_rows[0], _v1.m_vec, 1);
 
-        this->m_rows[1] = _mmul256_castps128_ps256(_v2.m_vec);
-        this->m_rows[1] = _mmul256_insertf128_ps(this->m_rows[1], _v3.m_vec, 1);
+        this->m_rows[1] = _mm256_castps128_ps256(_v2.m_vec);
+        this->m_rows[1] = _mm256_insertf128_ps(this->m_rows[1], _v3.m_vec, 1);
 
 #   else 
 
@@ -196,11 +196,11 @@ public:
 
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
-        this->m_rows[0] = _mmul256_castps128_ps256(_v[0].m_vec);
-        this->m_rows[0] = _mmul256_insertf128_ps(this->m_rows[0].m_vec, _v[1].m_vec, 1);
+        this->m_rows[0] = _mm256_castps128_ps256(_v[0].m_vec);
+        this->m_rows[0] = _mm256_insertf128_ps(this->m_rows[0], _v[1].m_vec, 1);
 
-        this->m_rows[1] = _mmul256_castps128_ps256(_v[2].m_vec);
-        this->m_rows[1] = _mmul256_insertf128_ps(this->m_rows[1].m_vec, _v[3].m_vec, 1);
+        this->m_rows[1] = _mm256_castps128_ps256(_v[2].m_vec);
+        this->m_rows[1] = _mm256_insertf128_ps(this->m_rows[1], _v[3].m_vec, 1);
 
 #   else 
 
@@ -242,8 +242,10 @@ public:
     }
 #endif
 
-    //////////////////////////////////////
+
+    //////////////////////////////////////////////////////////////////////////
     // Accesses
+
     NIX_INLINE __nixFloat4& operator[](nixU8 _i)
     {
 #   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
@@ -252,9 +254,13 @@ public:
         
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
-        static const nixU8 imm[4] = { 0, 1, 0, 1 };
-        static const nixU8 idx[4] = { 0, 0, 1, 1 };
-        return _mmul256_extractf128_ps(this->m_rows[idx[_i]], imm[_i]);
+        switch(_i)
+        {
+        case 0: return _mm256_extractf128_ps(this->m_rows[0], 0); break;
+        case 1: return _mm256_extractf128_ps(this->m_rows[0], 1); break;
+        case 2: return _mm256_extractf128_ps(this->m_rows[1], 0); break;
+        case 3: return _mm256_extractf128_ps(this->m_rows[1], 1); break;
+        }
 
 #   else 
 
@@ -262,6 +268,7 @@ public:
 
 #   endif
     }
+
 
     NIX_INLINE const __nixFloat4& operator[](nixU8 _i) const
     {
@@ -271,9 +278,13 @@ public:
 
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
-        static const nixU8 imm[4] = { 0, 1, 0, 1 };
-        static const nixU8 idx[4] = { 0, 0, 1, 1 };
-        return _mmul256_extractf128_ps(this->m_rows[idx[_i]], imm[_i]);
+        switch (_i)
+        {
+        case 0: return _mm256_extractf128_ps(this->m_rows[0], 0); break;
+        case 1: return _mm256_extractf128_ps(this->m_rows[0], 1); break;
+        case 2: return _mm256_extractf128_ps(this->m_rows[1], 0); break;
+        case 3: return _mm256_extractf128_ps(this->m_rows[1], 1); break;
+        }
 
 #   else 
 
@@ -290,9 +301,7 @@ public:
 
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
-        static const nixU8 imm[4] = { 0, 1, 0, 1 };
-        static const nixU8 idx[4] = { 0, 0, 1, 1 };
-        return _mmul256_extractf128_ps(this->m_rows[idx[0]], imm[0]);
+        return _mm256_extractf128_ps(this->m_rows[0], 0);
 
 #   else 
 
@@ -309,9 +318,7 @@ public:
 
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
-        static const nixU8 imm[4] = { 0, 1, 0, 1 };
-        static const nixU8 idx[4] = { 0, 0, 1, 1 };
-        return _mmul256_extractf128_ps(this->m_rows[idx[1]], imm[1]);
+        return _mm256_extractf128_ps(this->m_rows[0], 1);
 
 #   else 
 
@@ -328,9 +335,7 @@ public:
 
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
-        static const nixU8 imm[4] = { 0, 1, 0, 1 };
-        static const nixU8 idx[4] = { 0, 0, 1, 1 };
-        return _mmul256_extractf128_ps(this->m_rows[idx[2]], imm[2]);
+        return _mm256_extractf128_ps(this->m_rows[1], 0);
 
 #   else 
 

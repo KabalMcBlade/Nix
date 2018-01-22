@@ -25,6 +25,8 @@ public:
     static NIX_INLINE __nixFloat4 GetPlusInf() { return _mm_set1_ps(std::numeric_limits<nixFloat>::infinity()); }
     static NIX_INLINE __nixFloat4 GetMinusInf() { return _mm_set1_ps(-std::numeric_limits<nixFloat>::infinity()); }
 
+    static NIX_INLINE __nixFloat4 GetSmallNumber() { return _mm_set1_ps(1.e-8f); }
+    static NIX_INLINE __nixFloat4 GetBigNumber() { return _mm_set1_ps(1.e+8f); }
 
 #   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
 
