@@ -49,7 +49,7 @@ public:
     {
 #   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
 
-        this->m_rows = VectorHelper::Set512(
+        this->m_rows = VectorHelper::Set(
             1.0f, 0.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f, 0.0f,
             0.0f, 0.0f, 1.0f, 0.0f,
@@ -57,11 +57,11 @@ public:
 
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
-        this->m_rows[0] = VectorHelper::Set256(
+        this->m_rows[0] = VectorHelper::Set(
             1.0f, 0.0f, 0.0f, 0.0f,
             0.0f, 1.0f, 0.0f, 0.0f);
 
-        this->m_rows[1] = VectorHelper::Set256(
+        this->m_rows[1] = VectorHelper::Set(
             0.0f, 0.0f, 1.0f, 0.0f,
             0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -79,7 +79,7 @@ public:
     {
 #   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
 
-        this->m_rows = VectorHelper::Set512(
+        this->m_rows = VectorHelper::Set(
             _s, 0.0f, 0.0f, 0.0f,
             0.0f, _s, 0.0f, 0.0f,
             0.0f, 0.0f, _s, 0.0f,
@@ -87,11 +87,11 @@ public:
 
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
-        this->m_rows[0] = VectorHelper::Set256(
+        this->m_rows[0] = VectorHelper::Set(
             _s, 0.0f, 0.0f, 0.0f,
             0.0f, _s, 0.0f, 0.0f);
 
-        this->m_rows[1] = VectorHelper::Set256(
+        this->m_rows[1] = VectorHelper::Set(
             0.0f, 0.0f, _s, 0.0f,
             0.0f, 0.0f, 0.0f, _s);
 
@@ -113,7 +113,7 @@ public:
     {
 #   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
 
-        this->m_rows = VectorHelper::Set512(
+        this->m_rows = VectorHelper::Set(
             _x0, _y0, _z0, _w0,
             _x1, _y1, _z1, _w1,
             _x2, _y2, _z2, _w2,
@@ -121,11 +121,11 @@ public:
 
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
-        this->m_rows[0] = VectorHelper::Set256(
+        this->m_rows[0] = VectorHelper::Set(
             _x0, _y0, _z0, _w0,
             _x1, _y1, _z1, _w1);
 
-        this->m_rows[1] = VectorHelper::Set256(
+        this->m_rows[1] = VectorHelper::Set(
             _x2, _y2, _z2, _w2,
             _x3, _y3, _z3, _w3);
 

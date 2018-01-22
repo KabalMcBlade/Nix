@@ -30,37 +30,48 @@ public:
 
 #   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
 
-    static NIX_INLINE __nixFloat16 Set512(nixFloat _x0, nixFloat _y0, nixFloat _z0, nixFloat _w0, nixFloat _x1, nixFloat _y1, nixFloat _z1, nixFloat _w1,
-        nixFloat _x2, nixFloat _y2, nixFloat _z2, nixFloat _w2, nixFloat _x3, nixFloat _y3, nixFloat _z3, nixFloat _w3) {
+    static NIX_INLINE __nixFloat16 Set(
+        const nixFloat& _x0, const nixFloat& _y0, const nixFloat& _z0, const nixFloat& _w0, 
+        const nixFloat& _x1, const nixFloat& _y1, const nixFloat& _z1, const nixFloat& _w1,
+        const nixFloat& _x2, const nixFloat& _y2, const nixFloat& _z2, const nixFloat& _w2, 
+        const nixFloat&_x3, const nixFloat& _y3, const nixFloat& _z3, const nixFloat& _w3) {
         return _mm512_set_ps(_w0, _z0, _y0, _x0, _w1, _z1, _y1, _x1, _w2, _z2, _y2, _x2, _w3, _z3, _y3, _x3);
     }
-    static NIX_INLINE __nixFloat16 Splat512(nixFloat _v) { return _mm512_set1_ps(_v); }
     static NIX_INLINE __nixFloat16 Add(const __nixFloat16& _a, const __nixFloat16& _b) { return _mm512_add_ps(_a, _b); }
     static NIX_INLINE __nixFloat16 Sub(const __nixFloat16& _a, const __nixFloat16& _b) { return _mm512_sub_ps(_a, _b); }
     static NIX_INLINE __nixFloat16 Mul(const __nixFloat16& _a, const __nixFloat16& _b) { return _mm512_mul_ps(_a, _b); }
     static NIX_INLINE __nixFloat16 Div(const __nixFloat16& _a, const __nixFloat16& _b) { return _mm512_div_ps(_a, _b); }
+    static NIX_INLINE __nixFloat16 Splat512(nixFloat _v) { return _mm512_set1_ps(_v); }
 #   endif
 
 
 #   if NIX_ARCH & NIX_ARCH_AVX_FLAG
 
-    static NIX_INLINE __nixFloat8 Set256(nixFloat _x0, nixFloat _y0, nixFloat _z0, nixFloat _w0, nixFloat _x1, nixFloat _y1, nixFloat _z1, nixFloat _w1) { return _mm256_set_ps(_w0, _z0, _y0, _x0, _w1, _z1, _y1, _x1); }
-    static NIX_INLINE __nixFloat8 Splat256(nixFloat _v) { return _mm256_set1_ps(_v); }
+    static NIX_INLINE __nixFloat8 Set(const nixFloat& _x0, const nixFloat& _y0, const nixFloat& _z0, const nixFloat& _w0, const nixFloat& _x1, const nixFloat& _y1, const nixFloat& _z1, const nixFloat& _w1) { return _mm256_set_ps(_w0, _z0, _y0, _x0, _w1, _z1, _y1, _x1); }
     static NIX_INLINE __nixFloat8 Add(const __nixFloat8& _a, const __nixFloat8& _b) { return _mm256_add_ps(_a, _b); }
     static NIX_INLINE __nixFloat8 Sub(const __nixFloat8& _a, const __nixFloat8& _b) { return _mm256_sub_ps(_a, _b); }
     static NIX_INLINE __nixFloat8 Mul(const __nixFloat8& _a, const __nixFloat8& _b) { return _mm256_mul_ps(_a, _b); }
     static NIX_INLINE __nixFloat8 Div(const __nixFloat8& _a, const __nixFloat8& _b) { return _mm256_div_ps(_a, _b); }
+    static NIX_INLINE __nixFloat8 Splat256(nixFloat _v) { return _mm256_set1_ps(_v); }
 
 #   endif
 
-    static NIX_INLINE __nixFloat4 Set(nixFloat _x, nixFloat _y, nixFloat _z, nixFloat _w) { return _mm_set_ps(_w, _z, _y, _x); }
-    static NIX_INLINE __nixFloat4 Splat(nixFloat _v) { return _mm_set1_ps(_v); }
-
-
+    static NIX_INLINE __nixFloat4 Set(const nixFloat& _x, const nixFloat& _y, const nixFloat& _z, const nixFloat& _w) { return _mm_set_ps(_w, _z, _y, _x); }
     static NIX_INLINE __nixFloat4 Add(const __nixFloat4& _a, const __nixFloat4& _b) { return _mm_add_ps(_a, _b); }
     static NIX_INLINE __nixFloat4 Sub(const __nixFloat4& _a, const __nixFloat4& _b) { return _mm_sub_ps(_a, _b); }
     static NIX_INLINE __nixFloat4 Mul(const __nixFloat4& _a, const __nixFloat4& _b) { return _mm_mul_ps(_a, _b); }
     static NIX_INLINE __nixFloat4 Div(const __nixFloat4& _a, const __nixFloat4& _b) { return _mm_div_ps(_a, _b); }
+
+    static NIX_INLINE __nixFloat4 Splat(const nixFloat& _v) 
+    { 
+#   if NIX_ARCH & NIX_ARCH_AVX_FLAG
+        return _mm_broadcast_ss(&_v);
+#   else
+        return _mm_set1_ps(_v);
+#   endif
+    }
+
+
 
     static NIX_INLINE __nixFloat4 Abs(const __nixFloat4& _v) { return _mm_andnot_ps(VectorHelper::GetSignMask(), _v); }
     static NIX_INLINE __nixFloat4 Neg(const __nixFloat4& _v) { return _mm_xor_ps(_v, VectorHelper::GetSignMask()); }
@@ -75,7 +86,7 @@ public:
 #   else
         const __nixFloat4 sgn = VectorHelper::GetSignMask();
         const __nixFloat4 and = _mm_and_ps(sgn, _v);
-        const __nixFloat4 or = _mm_or_ps(and, Splat(8388608.0f));
+        const __nixFloat4 or = _mm_or_ps(and, VectorHelper::Splat(8388608.0f));
         const __nixFloat4 add = VectorHelper::Add(_v, or );
         const __nixFloat4 sub = VectorHelper::Sub(add, or );
         return sub;
@@ -109,9 +120,9 @@ public:
     }
 
     static NIX_INLINE __nixFloat4 Min(const __nixFloat4& _x, const __nixFloat4& _y) { return _mm_min_ps(_x, _y); }
-    static NIX_INLINE __nixFloat4 Min(const __nixFloat4& _x, const nixFloat& _y) { return _mm_min_ps(_x, Splat(_y)); }
+    static NIX_INLINE __nixFloat4 Min(const __nixFloat4& _x, const nixFloat& _y) { return _mm_min_ps(_x, VectorHelper::Splat(_y)); }
     static NIX_INLINE __nixFloat4 Max(const __nixFloat4& _x, const __nixFloat4& _y) { return _mm_max_ps(_x, _y); }
-    static NIX_INLINE __nixFloat4 Max(const __nixFloat4& _x, const nixFloat& _y) { return _mm_max_ps(_x, Splat(_y)); }
+    static NIX_INLINE __nixFloat4 Max(const __nixFloat4& _x, const nixFloat& _y) { return _mm_max_ps(_x, VectorHelper::Splat(_y)); }
 
     // Computes and returns _x * _y + _v.
     static NIX_INLINE __nixFloat4 MulAdd(const __nixFloat4& _x, const __nixFloat4& _y, const __nixFloat4& _v)
