@@ -256,11 +256,11 @@ public:
     static NIX_INLINE void TransformInverse(const __nixFloat4 * const _m, __nixFloat4 * _out)
     {
         // transpose the 3x3 part, so m03 = m13 = m23 = 0
-        const __nixFloat4 lh = _mm_movelh_ps(_m[0], _m[1]);                   // 00, 01, 10, 11
-        const __nixFloat4 hl = _mm_movehl_ps(_m[1], _m[0]);                   // 02, 03, 12, 13
-        _out[0] = _mm_shuffle_ps(lh, _m[2], _MM_SHUFFLE(3, 0, 2, 0));   // 00, 10, 20, 23(=0)
-        _out[1] = _mm_shuffle_ps(lh, _m[2], _MM_SHUFFLE(3, 1, 3, 1));   // 01, 11, 21, 23(=0)
-        _out[2] = _mm_shuffle_ps(hl, _m[2], _MM_SHUFFLE(3, 2, 2, 0));   // 02, 12, 22, 23(=0)
+        const __nixFloat4 lh = _mm_movelh_ps(_m[0], _m[1]);
+        const __nixFloat4 hl = _mm_movehl_ps(_m[1], _m[0]);
+        _out[0] = _mm_shuffle_ps(lh, _m[2], _MM_SHUFFLE(3, 0, 2, 0));
+        _out[1] = _mm_shuffle_ps(lh, _m[2], _MM_SHUFFLE(3, 1, 3, 1));
+        _out[2] = _mm_shuffle_ps(hl, _m[2], _MM_SHUFFLE(3, 2, 2, 0));
 
         __nixFloat4 sqr;
         sqr = VectorHelper::Mul(_out[0], _out[0]);
