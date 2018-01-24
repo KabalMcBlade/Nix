@@ -59,70 +59,61 @@ public:
 
     static NIX_INLINE void Mul(const __nixFloat8 * const _a, const __nixFloat8 * const _b, __nixFloat8* _out)
     {
-        static const nixS32 NIX_SIMD_ALIGN_32 msk01[8] = { 0, 0, 0, 0, 1, 1, 1, 1 };
-        static const nixS32 NIX_SIMD_ALIGN_32 msk23[8] = { 2, 2, 2, 2, 3, 3, 3, 3 };
-        static const nixS32 NIX_SIMD_ALIGN_32 msk45[8] = { 4, 4, 4, 4, 5, 5, 5, 5 };
-        static const nixS32 NIX_SIMD_ALIGN_32 msk67[8] = { 6, 6, 6, 6, 7, 7, 7, 7 };
+        static const nixS32 sw0145bit = 0b00000011;
 
-        static const __nixInt8 prm01 = _mm256_load_si256(reinterpret_cast<const __nixInt8*>(msk01));
-        static const __nixInt8 prm23 = _mm256_load_si256(reinterpret_cast<const __nixInt8*>(msk23));
-        static const __nixInt8 prm45 = _mm256_load_si256(reinterpret_cast<const __nixInt8*>(msk45));
-        static const __nixInt8 prm67 = _mm256_load_si256(reinterpret_cast<const __nixInt8*>(msk67));
+        static const __nixInt8 msk10 = _mm256_set_epi32(1, 1, 1, 1, 0, 0, 0, 0);
+        static const __nixInt8 msk32 = _mm256_set_epi32(3, 3, 3, 3, 2, 2, 2, 2);
+        static const __nixInt8 msk01 = _mm256_set_epi32(0, 0, 0, 0, 1, 1, 1, 1);
+        static const __nixInt8 msk23 = _mm256_set_epi32(2, 2, 2, 2, 3, 3, 3, 3);
+
+        const __nixFloat8 prm0 = _mm256_permute2f128_ps(_a[0], _a[0], sw0145bit);
+        const __nixFloat8 prm1 = _mm256_permute2f128_ps(_a[1], _a[1], sw0145bit);
 
         {
-            const __nixFloat8 swp0 = _mm256_permutevar8x32_ps(_b[0], prm01);
-            const __nixFloat8 swp1 = _mm256_permutevar8x32_ps(_b[0], prm23);
-            const __nixFloat8 swp2 = _mm256_permutevar8x32_ps(_b[0], prm45);
-            const __nixFloat8 swp3 = _mm256_permutevar8x32_ps(_b[0], prm67);
+            const __nixFloat8 prm10 = _mm256_permutevar_ps(_b[0], msk10);
+            const __nixFloat8 prm32 = _mm256_permutevar_ps(_b[0], msk32);
+            const __nixFloat8 prm01 = _mm256_permutevar_ps(_b[0], msk01);
+            const __nixFloat8 prm23 = _mm256_permutevar_ps(_b[0], msk23);
 
-            const __nixFloat8 mul0 = VectorHelper::Mul(_a[0], swp0);
-            const __nixFloat8 mul1 = VectorHelper::Mul(_a[1], swp1);
-            const __nixFloat8 mul2 = VectorHelper::Mul(_a[0], swp2);
-            const __nixFloat8 mul3 = VectorHelper::Mul(_a[1], swp3);
-
-            const __nixFloat8 add0 = VectorHelper::Add(mul0, mul1);
-            const __nixFloat8 add1 = VectorHelper::Add(mul2, mul3);
-            const __nixFloat8 prm0 = _mm256_permute2f128_ps(add0, add1, _MM_SHUFFLE(0, 2, 0, 0));
-            const __nixFloat8 prm1 = _mm256_permute2f128_ps(add0, add1, _MM_SHUFFLE(0, 3, 0, 1));
-
-            _out[0] = VectorHelper::Add(prm0, prm1);
+            _out[0] = _mm256_add_ps(_mm256_add_ps(_mm256_mul_ps(_a[0], prm10), _mm256_mul_ps(_a[1], prm32)), _mm256_add_ps(_mm256_mul_ps(prm0, prm01), _mm256_mul_ps(prm1, prm23)));
         }
 
         {
-            const __nixFloat8 swp0 = _mm256_permutevar8x32_ps(_b[1], prm01);
-            const __nixFloat8 swp1 = _mm256_permutevar8x32_ps(_b[1], prm23);
-            const __nixFloat8 swp2 = _mm256_permutevar8x32_ps(_b[1], prm45);
-            const __nixFloat8 swp3 = _mm256_permutevar8x32_ps(_b[1], prm67);
+            const __nixFloat8 prm10 = _mm256_permutevar_ps(_b[1], msk10);
+            const __nixFloat8 prm32 = _mm256_permutevar_ps(_b[1], msk32);
+            const __nixFloat8 prm01 = _mm256_permutevar_ps(_b[1], msk01);
+            const __nixFloat8 prm23 = _mm256_permutevar_ps(_b[1], msk23);
 
-            const __nixFloat8 mul0 = VectorHelper::Mul(_a[0], swp0);
-            const __nixFloat8 mul1 = VectorHelper::Mul(_a[1], swp1);
-            const __nixFloat8 mul2 = VectorHelper::Mul(_a[0], swp2);
-            const __nixFloat8 mul3 = VectorHelper::Mul(_a[1], swp3);
-
-            const __nixFloat8 add0 = VectorHelper::Add(mul0, mul1);
-            const __nixFloat8 add1 = VectorHelper::Add(mul2, mul3);
-            const __nixFloat8 prm0 = _mm256_permute2f128_ps(add0, add1, _MM_SHUFFLE(0, 2, 0, 0));
-            const __nixFloat8 prm1 = _mm256_permute2f128_ps(add0, add1, _MM_SHUFFLE(0, 3, 0, 1));
-
-            _out[1] = VectorHelper::Add(prm0, prm1);
+            _out[1] = _mm256_add_ps(_mm256_add_ps(_mm256_mul_ps(_a[0], prm10), _mm256_mul_ps(_a[1], prm32)), _mm256_add_ps(_mm256_mul_ps(prm0, prm01), _mm256_mul_ps(prm1, prm23)));
         }
-
     }
+
 
     static NIX_INLINE void Transpose(const __nixFloat8 * const _m, __nixFloat8 * _out)
     {
-        static const nixS32 NIX_SIMD_ALIGN_32 msk01[8] = { 0, 4, 2, 6, 1, 5, 3, 7 };
-        static const nixS32 NIX_SIMD_ALIGN_32 msk23[8] = { 2, 6, 0, 4, 3, 7, 1, 5 };
+        const __nixFloat4 m0lo = _mm256_castps256_ps128(_m[0]);
+        const __nixFloat4 m0hi = _mm256_extractf128_ps(_m[0], 1);
 
-        const __nixInt8 prm1 = _mm256_load_si256(reinterpret_cast<const __nixInt8*>(msk01));
-        const __nixInt8 prm2 = _mm256_load_si256(reinterpret_cast<const __nixInt8*>(msk23));
+        const __nixFloat4 m1lo = _mm256_castps256_ps128(_m[1]);
+        const __nixFloat4 m1hi = _mm256_extractf128_ps(_m[1], 1);
 
-        const __nixFloat8 a0 = _mm256_permutevar8x32_ps(_m[0], prm1);
-        const __nixFloat8 a1 = _mm256_permutevar8x32_ps(_m[1], prm2);
+        const __nixFloat4 swp0 = _mm_shuffle_ps(m0lo, m0hi, 0x44);
+        const __nixFloat4 swp1 = _mm_shuffle_ps(m1lo, m1hi, 0x44);
+        const __nixFloat4 swp2 = _mm_shuffle_ps(m0lo, m0hi, 0xEE);
+        const __nixFloat4 swp3 = _mm_shuffle_ps(m1lo, m1hi, 0xEE);
 
-        _out[0] = _mm256_blend_ps(a0, a1, 0xCC);
-        _out[1] = _mm256_shuffle_ps(a0, a1, 0x4E);
+        const __nixFloat4 row0 = _mm_shuffle_ps(swp0, swp1, 0x88);
+        const __nixFloat4 row1 = _mm_shuffle_ps(swp0, swp1, 0xDD);
+        const __nixFloat4 row2 = _mm_shuffle_ps(swp2, swp3, 0x88);
+        const __nixFloat4 row3 = _mm_shuffle_ps(swp2, swp3, 0xDD);
+
+        _out[0] = _mm256_castps128_ps256(row0);
+        _out[0] = _mm256_insertf128_ps(_out[0], row1, 1);
+
+        _out[1] = _mm256_castps128_ps256(row2);
+        _out[1] = _mm256_insertf128_ps(_out[1], row3, 1);
     }
+
 
     // It works ONLY with transform matrix, not for generic matrix purpose
     // Moreover this not take into consider the scale, so this matrix is treated is of scale 1

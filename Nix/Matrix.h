@@ -420,6 +420,15 @@ public:
         MatrixHelper::Mul(ROWS_REF_T, ROWS_REF_R(_m), ROWS_REF_T);
         return *this;
     }
+
+    //////////////////////////////////////////////////////////////////////////
+    // Functions
+    NIX_INLINE Matrix Transpose()
+    {
+        Matrix result;
+        MatrixHelper::Transpose(ROWS_REF_T, ROWS_REF_R(result));
+        return result;
+    }
 };
 
 NIX_NAMESPACE_END
