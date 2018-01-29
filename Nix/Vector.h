@@ -297,6 +297,10 @@ private:
     friend NIX_INLINE Quaternion operator* (const Quaternion& _q1, const Quaternion& _q2);
     friend NIX_INLINE Vector operator* (const Quaternion& _q, const Vector& _v);
 
+    // from matrix
+    friend NIX_INLINE Vector operator*(const Matrix& _m, const Vector& _v);
+    friend NIX_INLINE Vector operator*(const Vector& _v, const Matrix& _m);
+
     __nixFloat4 m_vec;
 };
 

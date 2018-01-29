@@ -348,70 +348,19 @@ public:
     // Operators
     NIX_INLINE Matrix& operator=(const Matrix& _m)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        this->m_rows = _m.m_rows;
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        this->m_rows[0] = _m.m_rows[0];
-        this->m_rows[1] = _m.m_rows[1];
-
-#   else 
-
-        this->m_rows[0] = _m.m_rows[0];
-        this->m_rows[1] = _m.m_rows[1];
-        this->m_rows[2] = _m.m_rows[2];
-        this->m_rows[3] = _m.m_rows[3];
-
-#   endif
-
+        MatrixHelper::Set(ROWS_REF_R(_m), ROWS_REF_T);
         return *this;
     }
 
     NIX_INLINE Matrix& operator+=(const Matrix& _m)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        this->m_rows = VectorHelper::Add(this->m_rows, _m.m_rows);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        this->m_rows[0] = VectorHelper::Add(this->m_rows[0], _m.m_rows[0]);
-        this->m_rows[1] = VectorHelper::Add(this->m_rows[1], _m.m_rows[1]);
-
-#   else 
-
-        this->m_rows[0] = VectorHelper::Add(this->m_rows[0], _m.m_rows[0]);
-        this->m_rows[1] = VectorHelper::Add(this->m_rows[1], _m.m_rows[1]);
-        this->m_rows[2] = VectorHelper::Add(this->m_rows[2], _m.m_rows[2]);
-        this->m_rows[3] = VectorHelper::Add(this->m_rows[3], _m.m_rows[3]);
-
-#   endif
-
+        MatrixHelper::Add(ROWS_REF_T, ROWS_REF_R(_m), ROWS_REF_T);
         return *this;
     }
 
     NIX_INLINE Matrix& operator-=(const Matrix& _m)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        this->m_rows = VectorHelper::Sub(this->m_rows, _m.m_rows);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        this->m_rows[0] = VectorHelper::Sub(this->m_rows[0], _m.m_rows[0]);
-        this->m_rows[1] = VectorHelper::Sub(this->m_rows[1], _m.m_rows[1]);
-
-#   else 
-
-        this->m_rows[0] = VectorHelper::Sub(this->m_rows[0], _m.m_rows[0]);
-        this->m_rows[1] = VectorHelper::Sub(this->m_rows[1], _m.m_rows[1]);
-        this->m_rows[2] = VectorHelper::Sub(this->m_rows[2], _m.m_rows[2]);
-        this->m_rows[3] = VectorHelper::Sub(this->m_rows[3], _m.m_rows[3]);
-
-#   endif
-
+        MatrixHelper::Sub(ROWS_REF_T, ROWS_REF_R(_m), ROWS_REF_T);
         return *this;
     }
 
@@ -426,6 +375,42 @@ public:
         Matrix inv;
         MatrixHelper::Inverse(ROWS_REF_R(_m), ROWS_REF_R(inv));
         MatrixHelper::Mul(ROWS_REF_T, ROWS_REF_R(inv), ROWS_REF_T);
+        return *this;
+    }
+
+    NIX_INLINE Matrix& operator+=(const nixFloat& _s)
+    {
+        MatrixHelper::Add(ROWS_REF_T, _s, ROWS_REF_T);
+        return *this;
+    }
+
+    NIX_INLINE Matrix& operator-=(const nixFloat& _s)
+    {
+        MatrixHelper::Sub(ROWS_REF_T, _s, ROWS_REF_T);
+        return *this;
+    }
+
+    NIX_INLINE Matrix& operator*=(const nixFloat& _s)
+    {
+        MatrixHelper::Mul(ROWS_REF_T, _s, ROWS_REF_T);
+        return *this;
+    }
+
+    NIX_INLINE Matrix& operator/=(const nixFloat& _s)
+    {
+        MatrixHelper::Div(ROWS_REF_T, _s, ROWS_REF_T);
+        return *this;
+    }
+
+    NIX_INLINE Matrix& operator++()
+    {
+        MatrixHelper::Increment(ROWS_REF_T, ROWS_REF_T);
+        return *this;
+    }
+
+    NIX_INLINE Matrix& operator--()
+    {
+        MatrixHelper::Decrement(ROWS_REF_T, ROWS_REF_T);
         return *this;
     }
 
@@ -444,6 +429,147 @@ public:
         MatrixHelper::InverseNoScale(ROWS_REF_T, ROWS_REF_R(result));
         return result;
     }
+
+    NIX_INLINE Matrix Inverse()
+    {
+        Matrix result;
+        MatrixHelper::Inverse(ROWS_REF_T, ROWS_REF_R(result));
+        return result;
+    }
+
+
+    private:
+        friend class Vector;
+
+        // for global operators
+        friend NIX_INLINE Matrix operator+(const Matrix& _m, const nixFloat& _s);
+        friend NIX_INLINE Matrix operator+(const nixFloat& _s, const Matrix& _m);
+        friend NIX_INLINE Matrix operator+(const Matrix& _a, const Matrix& _b);
+        friend NIX_INLINE Matrix operator-(const Matrix& _m, const nixFloat& _s);
+        friend NIX_INLINE Matrix operator-(const nixFloat& _s, const Matrix& _m);
+        friend NIX_INLINE Matrix operator-(const Matrix& _a, const Matrix& _b);
+        friend NIX_INLINE Matrix operator*(const Matrix& _m, const nixFloat& _s);
+        friend NIX_INLINE Matrix operator*(const nixFloat& _s, const Matrix& _m);
+        friend NIX_INLINE Vector operator*(const Matrix& _m, const Vector& _v);
+        friend NIX_INLINE Vector operator*(const Vector& _v, const Matrix& _m);
+        friend NIX_INLINE Matrix operator*(const Matrix& _a, const Matrix& _b);
+        friend NIX_INLINE Matrix operator/(const Matrix& _m, const nixFloat& _s);
+        friend NIX_INLINE Matrix operator/(const nixFloat& _s, const Matrix& _m);
+        friend NIX_INLINE Matrix const operator-(const Matrix& _m);
+        friend NIX_INLINE Matrix const operator--(const Matrix& _m, nixS32);
+        friend NIX_INLINE Matrix const operator++(const Matrix& _m, nixS32);
 };
+
+
+//////////////////////////////////////////////////////////////
+// Operators
+
+NIX_INLINE Matrix operator+(const Matrix& _m, const nixFloat& _s)
+{
+    Matrix result;
+    MatrixHelper::Add(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
+    return result;
+}
+
+NIX_INLINE Matrix operator+(const nixFloat& _s, const Matrix& _m)
+{
+    Matrix result;
+    MatrixHelper::Add(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
+    return result;
+}
+
+NIX_INLINE Matrix operator+(const Matrix& _a, const Matrix& _b)
+{
+    Matrix result;
+    MatrixHelper::Add(ROWS_REF_R(_a), ROWS_REF_R(_b), ROWS_REF_R(result));
+    return result;
+}
+
+NIX_INLINE Matrix operator-(const Matrix& _m, const nixFloat& _s)
+{
+    Matrix result;
+    MatrixHelper::Sub(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
+    return result;
+}
+
+NIX_INLINE Matrix operator-(const nixFloat& _s, const Matrix& _m)
+{
+    Matrix result;
+    MatrixHelper::Sub(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
+    return result;
+}
+
+NIX_INLINE Matrix operator-(const Matrix& _a, const Matrix& _b)
+{
+    Matrix result;
+    MatrixHelper::Sub(ROWS_REF_R(_a), ROWS_REF_R(_b), ROWS_REF_R(result));
+    return result;
+}
+
+NIX_INLINE Matrix operator*(const Matrix& _m, const nixFloat& _s)
+{
+    Matrix result;
+    MatrixHelper::Mul(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
+    return result;
+}
+
+NIX_INLINE Matrix operator*(const nixFloat& _s, const Matrix& _m)
+{
+    Matrix result;
+    MatrixHelper::Mul(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
+    return result;
+}
+
+NIX_INLINE Vector operator*(const Matrix& _m, const Vector& _v)
+{
+    Vector result;
+    MatrixHelper::MulMatrixVector(ROWS_REF_R(_m), _v.m_vec, &result.m_vec);
+    return result;
+}
+
+NIX_INLINE Vector operator*(const Vector& _v, const Matrix& _m)
+{
+    Vector result;
+    MatrixHelper::MulVectorMatrix( _v.m_vec, ROWS_REF_R(_m), &result.m_vec);
+    return result;
+}
+
+NIX_INLINE Matrix operator*(const Matrix& _a, const Matrix& _b)
+{
+    Matrix result;
+    MatrixHelper::Mul(ROWS_REF_R(_a), ROWS_REF_R(_b), ROWS_REF_R(result));
+    return result;
+}
+
+NIX_INLINE Matrix operator/(const Matrix& _m, const nixFloat& _s)
+{
+    Matrix result;
+    MatrixHelper::Sub(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
+    return result;
+}
+
+NIX_INLINE Matrix operator/(const nixFloat& _s, const Matrix& _m)
+{
+    Matrix result;
+    MatrixHelper::Sub(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
+    return result;
+}
+
+NIX_INLINE Matrix const operator-(const Matrix& _m)
+{
+
+}
+
+NIX_INLINE Matrix const operator--(const Matrix& _m, nixS32)
+{
+
+}
+
+NIX_INLINE Matrix const operator++(const Matrix& _m, nixS32)
+{
+
+}
+
+
 
 NIX_NAMESPACE_END

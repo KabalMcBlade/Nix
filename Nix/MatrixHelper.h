@@ -55,6 +55,60 @@ public:
         nixAssert(false, "AVX512 is not yet implemented");
     }
 
+    static NIX_INLINE void Set(const __nixFloat16 * const _m, __nixFloat16* _out)
+    {
+        *_out = *_m;
+    }
+
+    static NIX_INLINE void Add(const __nixFloat16 * const _a, const __nixFloat16 * const _b, __nixFloat16* _out)
+    {
+        *_out = VectorHelper::Add(*_a, *_b);
+    }
+
+    static NIX_INLINE void Sub(const __nixFloat16 * const _a, const __nixFloat16 * const _b, __nixFloat16* _out)
+    {
+        *_out = VectorHelper::Sub(*_a, *_b);
+    }
+
+    static NIX_INLINE void Add(const __nixFloat16 * const _m, nixFloat _s, __nixFloat16* _out)
+    {
+        __nixFloat16 opv = VectorHelper::Splat512(_s);
+        *_out = VectorHelper::Add(*_m, opv);
+    }
+
+    static NIX_INLINE void Sub(const __nixFloat16 * const _m, nixFloat _s, __nixFloat16* _out)
+    {
+        __nixFloat16 opv = VectorHelper::Splat512(_s);
+        *_out = VectorHelper::Sub(*_m, opv);
+    }
+
+
+    static NIX_INLINE void Mul(const __nixFloat16 * const _m, nixFloat _s, __nixFloat16* _out)
+    {
+        const __nixFloat16 opv = VectorHelper::Splat512(_s);
+        *_out = VectorHelper::Mul(*_m, opv);
+    }
+
+    static NIX_INLINE void Div(const __nixFloat16 * const _m, nixFloat _s, __nixFloat16* _out)
+    {
+        const __nixFloat16 opv = VectorHelper::Div(VectorHelper::GetOne512(), VectorHelper::Splat512(_s));
+        *_out = VectorHelper::Mul(*_m, opv);
+    }
+
+    static NIX_INLINE void Increment(const __nixFloat16 * const _m, __nixFloat16* _out)
+    {
+        const __nixFloat16 one = VectorHelper::GetOne512();
+        *_out = VectorHelper::Add(*_m, one);
+    }
+
+    static NIX_INLINE void Decrement(const __nixFloat16 * const _m, __nixFloat16* _out)
+    {
+        const __nixFloat16 one = VectorHelper::GetOne512();
+        *_out = VectorHelper::Sub(*_m, one);
+    }
+
+
+
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
 
@@ -211,7 +265,82 @@ public:
         _out[1] = _mm256_insertf128_ps(_out[1], row3, 1);
     }
 
+    static NIX_INLINE void Set(const __nixFloat8 * const _m, __nixFloat8* _out)
+    {
+        _out[0] = _m[0];
+        _out[1] = _m[1];
+    }
+
+    static NIX_INLINE void Add(const __nixFloat8 * const _a, const __nixFloat8 * const _b, __nixFloat8* _out)
+    {
+        _out[0] = VectorHelper::Add(_a[0], _b[0]);
+        _out[1] = VectorHelper::Add(_a[1], _b[1]);
+    }
+
+    static NIX_INLINE void Sub(const __nixFloat8 * const _a, const __nixFloat8 * const _b, __nixFloat8* _out)
+    {
+        _out[0] = VectorHelper::Sub(_a[0], _b[0]);
+        _out[1] = VectorHelper::Sub(_a[1], _b[1]);
+    }
+
+    static NIX_INLINE void Add(const __nixFloat8 * const _m, nixFloat _s, __nixFloat8* _out)
+    {
+        const __nixFloat8 opv = VectorHelper::Splat256(_s);
+        _out[0] = VectorHelper::Add(_m[0], opv);
+        _out[1] = VectorHelper::Add(_m[1], opv);
+    }
+
+    static NIX_INLINE void Sub(const __nixFloat8 * const _m, nixFloat _s, __nixFloat8* _out)
+    {
+        const __nixFloat8 opv = VectorHelper::Splat256(_s);
+        _out[0] = VectorHelper::Sub(_m[0], opv);
+        _out[1] = VectorHelper::Sub(_m[1], opv);
+    }
+
+    static NIX_INLINE void Mul(const __nixFloat8 * const _m, nixFloat _s, __nixFloat8* _out)
+    {
+        const __nixFloat8 opv = VectorHelper::Splat256(_s);
+        _out[0] = VectorHelper::Mul(_m[0], opv);
+        _out[1] = VectorHelper::Mul(_m[1], opv);
+    }
+
+    static NIX_INLINE void Div(const __nixFloat8 * const _m, nixFloat _s, __nixFloat8* _out)
+    {
+        const __nixFloat8 opv = VectorHelper::Div(VectorHelper::GetOne256(), VectorHelper::Splat256(_s));
+        _out[0] = VectorHelper::Mul(_m[0], opv);
+        _out[1] = VectorHelper::Mul(_m[1], opv);
+    }
+
+    static NIX_INLINE void Increment(const __nixFloat8 * const _m, __nixFloat8* _out)
+    {
+        const __nixFloat8 one = VectorHelper::GetOne256();
+        _out[0] = VectorHelper::Add(_m[0], one);
+        _out[1] = VectorHelper::Add(_m[1], one);
+    }
+
+    static NIX_INLINE void Decrement(const __nixFloat8 * const _m, __nixFloat8* _out)
+    {
+        const __nixFloat8 one = VectorHelper::GetOne256();
+        _out[0] = VectorHelper::Sub(_m[0], one);
+        _out[1] = VectorHelper::Sub(_m[1], one);
+    }
+
+    static NIX_INLINE void MulMatrixVector(const __nixFloat8 * const _m, const __nixFloat4& _v, __nixFloat4* _out)
+    {
+
+    }
+
+    static NIX_INLINE void MulVectorMatrix(const __nixFloat4& _v, const __nixFloat8 * const _m, __nixFloat4* _out)
+    {
+
+    }
+
+
+
+
+
 #   else 
+
 
     static NIX_INLINE void Mul(const __nixFloat4 * const _a, const __nixFloat4 * const _b, __nixFloat4* _out)
     {
@@ -362,12 +491,124 @@ public:
         _out[3] = VectorHelper::Sub(VectorHelper::Set(0.f, 0.f, 0.f, 1.f), _out[3]);
     }
 
+    static NIX_INLINE void Set(const __nixFloat4 * const _m, __nixFloat4* _out)
+    {
+        _out[0] = _m[0];
+        _out[1] = _m[1];
+        _out[2] = _m[2];
+        _out[3] = _m[3];
+    }
+
+    static NIX_INLINE void Add(const __nixFloat4 * const _a, const __nixFloat4 * const _b, __nixFloat4* _out)
+    {
+        _out[0] = VectorHelper::Add(_a[0], _b[0]);
+        _out[1] = VectorHelper::Add(_a[1], _b[1]);
+        _out[2] = VectorHelper::Add(_a[2], _b[2]);
+        _out[3] = VectorHelper::Add(_a[3], _b[3]);
+    }
+
+    static NIX_INLINE void Sub(const __nixFloat4 * const _a, const __nixFloat4 * const _b, __nixFloat4* _out)
+    {
+        _out[0] = VectorHelper::Sub(_a[0], _b[0]);
+        _out[1] = VectorHelper::Sub(_a[1], _b[1]);
+        _out[2] = VectorHelper::Sub(_a[2], _b[2]);
+        _out[3] = VectorHelper::Sub(_a[3], _b[3]);
+    }
+
+    static NIX_INLINE void Add(const __nixFloat4 * const _m, nixFloat _s, __nixFloat4* _out)
+    {
+        const __nixFloat4 opv = VectorHelper::Splat(_s);
+        _out[0] = VectorHelper::Add(_m[0], opv);
+        _out[1] = VectorHelper::Add(_m[1], opv);
+        _out[2] = VectorHelper::Add(_m[2], opv);
+        _out[3] = VectorHelper::Add(_m[3], opv);
+    }
+
+    static NIX_INLINE void Sub(const __nixFloat4 * const _m, nixFloat _s, __nixFloat4* _out)
+    {
+        const __nixFloat4 opv = VectorHelper::Splat(_s);
+        _out[0] = VectorHelper::Sub(_m[0], opv);
+        _out[1] = VectorHelper::Sub(_m[1], opv);
+        _out[2] = VectorHelper::Sub(_m[2], opv);
+        _out[3] = VectorHelper::Sub(_m[3], opv);
+    }
+
+    static NIX_INLINE void Mul(const __nixFloat4 * const _m, nixFloat _s, __nixFloat4* _out)
+    {
+        const __nixFloat4 opv = VectorHelper::Splat(_s);
+        _out[0] = VectorHelper::Mul(_m[0], opv);
+        _out[1] = VectorHelper::Mul(_m[1], opv);
+        _out[2] = VectorHelper::Mul(_m[2], opv);
+        _out[3] = VectorHelper::Mul(_m[3], opv);
+    }
+
+    static NIX_INLINE void Div(const __nixFloat4 * const _m, nixFloat _s, __nixFloat4* _out)
+    {
+        const __nixFloat4 opv = VectorHelper::Div(VectorHelper::GetOne(), VectorHelper::Splat(_s));
+        _out[0] = VectorHelper::Mul(_m[0], opv);
+        _out[1] = VectorHelper::Mul(_m[1], opv);
+        _out[2] = VectorHelper::Mul(_m[2], opv);
+        _out[3] = VectorHelper::Mul(_m[3], opv);
+    }
+
+    static NIX_INLINE void Increment(const __nixFloat4 * const _m, __nixFloat4* _out)
+    {
+        const __nixFloat4 one = VectorHelper::GetOne();
+        _out[0] = VectorHelper::Add(_m[0], one);
+        _out[1] = VectorHelper::Add(_m[1], one);
+        _out[2] = VectorHelper::Add(_m[2], one);
+        _out[3] = VectorHelper::Add(_m[3], one);
+    }
+
+    static NIX_INLINE void Decrement(const __nixFloat4 * const _m, __nixFloat4* _out)
+    {
+        const __nixFloat4 one = VectorHelper::GetOne();
+        _out[0] = VectorHelper::Sub(_m[0], one);
+        _out[1] = VectorHelper::Sub(_m[1], one);
+        _out[2] = VectorHelper::Sub(_m[2], one);
+        _out[3] = VectorHelper::Sub(_m[3], one);
+    }
+
+    static NIX_INLINE void MulMatrixVector(const __nixFloat4 * const _m, const __nixFloat4& _v, __nixFloat4* _out)
+    {
+        const __nixFloat4 swp0 = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 0, 0, 0));
+        const __nixFloat4 swp1 = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(1, 1, 1, 1));
+        const __nixFloat4 swp2 = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(2, 2, 2, 2));
+        const __nixFloat4 swp3 = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 3, 3, 3));
+
+        const __nixFloat4 mul0 = VectorHelper::Mul(_m[0], swp0);
+        const __nixFloat4 mul1 = VectorHelper::Mul(_m[1], swp1);
+        const __nixFloat4 mul2 = VectorHelper::Mul(_m[2], swp2);
+        const __nixFloat4 mul3 = VectorHelper::Mul(_m[3], swp3);
+
+        const __nixFloat4 add0 = VectorHelper::Add(mul0, mul1);
+        const __nixFloat4 add1 = VectorHelper::Add(mul2, mul3);
+
+        *_out = VectorHelper::Add(add0, add1);
+    }
+
+    static NIX_INLINE void MulVectorMatrix(const __nixFloat4& _v, const __nixFloat4 * const _m, __nixFloat4* _out)
+    {
+        const __nixFloat4 mul0 = VectorHelper::Mul(_v, _m[0]);
+        const __nixFloat4 mul1 = VectorHelper::Mul(_v, _m[1]);
+        const __nixFloat4 mul2 = VectorHelper::Mul(_v, _m[2]);
+        const __nixFloat4 mul3 = VectorHelper::Mul(_v, _m[3]);
+
+        const __nixFloat4 lo0 = _mm_unpacklo_ps(mul0, mul1);
+        const __nixFloat4 hi0 = _mm_unpackhi_ps(mul0, mul1);
+        const __nixFloat4 add0 = VectorHelper::Add(lo0, hi0);
+
+        const __nixFloat4 lo1 = _mm_unpacklo_ps(mul2, mul3);
+        const __nixFloat4 hi1 = _mm_unpackhi_ps(mul2, mul3);
+        const __nixFloat4 add1 = VectorHelper::Add(lo1, hi1);
+
+        const __nixFloat4 mlh = _mm_movelh_ps(add0, add1);
+        const __nixFloat4 mhl = _mm_movehl_ps(add1, add0);
+
+        *_out = VectorHelper::Add(mlh, mhl);
+    }
+
 #   endif
-
-
-
-
-private:
 
 };
 

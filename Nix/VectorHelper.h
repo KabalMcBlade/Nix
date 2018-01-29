@@ -30,6 +30,9 @@ public:
 
 #   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
 
+    static NIX_INLINE __nixFloat16 GetZero512() { return _mm512_setzero_ps(); }
+    static NIX_INLINE __nixFloat16 GetOne512() { return _mm512_set1_ps(1.0f); }
+
     static NIX_INLINE __nixFloat16 Set(
         const nixFloat& _x0, const nixFloat& _y0, const nixFloat& _z0, const nixFloat& _w0, 
         const nixFloat& _x1, const nixFloat& _y1, const nixFloat& _z1, const nixFloat& _w1,
@@ -42,10 +45,15 @@ public:
     static NIX_INLINE __nixFloat16 Mul(const __nixFloat16& _a, const __nixFloat16& _b) { return _mm512_mul_ps(_a, _b); }
     static NIX_INLINE __nixFloat16 Div(const __nixFloat16& _a, const __nixFloat16& _b) { return _mm512_div_ps(_a, _b); }
     static NIX_INLINE __nixFloat16 Splat512(nixFloat _v) { return _mm512_set1_ps(_v); }
+
+
 #   endif
 
 
 #   if NIX_ARCH & NIX_ARCH_AVX_FLAG
+
+    static NIX_INLINE __nixFloat8 GetZero256() { return _mm256_setzero_ps(); }
+    static NIX_INLINE __nixFloat8 GetOne256() { return _mm256_set1_ps(1.0f); }
 
     static NIX_INLINE __nixFloat8 Set(const nixFloat& _x0, const nixFloat& _y0, const nixFloat& _z0, const nixFloat& _w0, const nixFloat& _x1, const nixFloat& _y1, const nixFloat& _z1, const nixFloat& _w1) { return _mm256_set_ps(_w1, _z1, _y1, _x1, _w0, _z0, _y0, _x0); }
     static NIX_INLINE __nixFloat8 Add(const __nixFloat8& _a, const __nixFloat8& _b) { return _mm256_add_ps(_a, _b); }

@@ -85,7 +85,7 @@ int main()
     lb3.Print();
     */
     /*
-    Matrix mIdentity;
+    
 
     Matrix mOp0(
         10.0f, 12.0f, 14.0f, 18.0f, 
@@ -117,6 +117,15 @@ int main()
     Matrix mTrans = mTSR.Transpose();
 
     Matrix mInvNoScale = mTSR.InverseNoScale();
+
+
+    //////////////////////////////////////////////////////////////////////////
+
+    Matrix mIdentity;
+    Vector vTwice(2.0f);
+
+    Vector r = mTsrOp * vTwice;
+
 
     getchar();
 
