@@ -421,12 +421,27 @@ public:
         return *this;
     }
 
+    NIX_INLINE Matrix& operator/=(const Matrix& _m)
+    {
+        Matrix inv;
+        MatrixHelper::Inverse(ROWS_REF_R(_m), ROWS_REF_R(inv));
+        MatrixHelper::Mul(ROWS_REF_T, ROWS_REF_R(inv), ROWS_REF_T);
+        return *this;
+    }
+
     //////////////////////////////////////////////////////////////////////////
     // Functions
     NIX_INLINE Matrix Transpose()
     {
         Matrix result;
         MatrixHelper::Transpose(ROWS_REF_T, ROWS_REF_R(result));
+        return result;
+    }
+
+    NIX_INLINE Matrix InverseNoScale()
+    {
+        Matrix result;
+        MatrixHelper::InverseNoScale(ROWS_REF_T, ROWS_REF_R(result));
         return result;
     }
 };

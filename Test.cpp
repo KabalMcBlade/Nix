@@ -84,17 +84,39 @@ int main()
     la3.Print();
     lb3.Print();
     */
+    /*
+    Matrix mIdentity;
 
-    Matrix a(
-        10.0f, 11.0f, 12.0f, 13.0f, 
-        20.0f, 21.0f, 22.0f, 23.0f, 
-        30.0f, 31.0f, 32.0f, 33.0f, 
-        40.0f, 41.0f, 42.0f, 43.0f);
-    Matrix b(5.0f);
+    Matrix mOp0(
+        10.0f, 12.0f, 14.0f, 18.0f, 
+        20.0f, 22.0f, 24.0f, 28.0f, 
+        30.0f, 32.0f, 34.0f, 38.0f, 
+        40.0f, 42.0f, 44.0f, 48.0f);
+    Matrix mOp1(2.0f);
 
-    a *= b;
+    mOp0 *= mOp1;
+    mOp0 /= mOp1;
+    */
 
-    Matrix t = a.Transpose();
+    Matrix mTSR(
+        -0.75f, 0.0f, 0.65f, 0.0f,
+        0.0f, 1.0f, .0f, 0.0f,
+        -0.65f, 0.0f, -0.75f, 0.0f,
+        10.0f, 10.0f, 20.0f, 1.0f);
+    //Matrix mTsrOp(2.0f);
+
+    Matrix mTsrOp(
+        0.15f, 0.0f, -0.98f, 0.0f,
+        0.0f, 1.0f, .0f, 0.0f,
+        0.98f, 0.0f, 0.15f, 0.0f,
+        2.0f, 2.0f, 5.0f, 1.0f);
+
+    mTSR *= mTsrOp;
+    mTSR /= mTsrOp;
+
+    Matrix mTrans = mTSR.Transpose();
+
+    Matrix mInvNoScale = mTSR.InverseNoScale();
 
     getchar();
 
