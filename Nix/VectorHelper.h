@@ -79,7 +79,10 @@ public:
 #   endif
     }
 
-
+    static NIX_INLINE __nixInt4 Splat(nixS32 _s)
+    {
+        return _mm_set1_epi32(_s);
+    }
 
     static NIX_INLINE __nixFloat4 Abs(const __nixFloat4& _v) { return _mm_andnot_ps(VectorHelper::GetSignMask(), _v); }
     static NIX_INLINE __nixFloat4 Neg(const __nixFloat4& _v) { return _mm_xor_ps(_v, VectorHelper::GetSignMask()); }

@@ -107,7 +107,11 @@ public:
         *_out = VectorHelper::Sub(*_m, one);
     }
 
-
+    static NIX_INLINE void Negate(const __nixFloat16 * const _m, __nixFloat16* _out)
+    {
+        const __nixFloat16 zero = VectorHelper::GetZero512();
+        *_out = VectorHelper::Sub(zero, _m[0]);
+    }
 
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
@@ -325,18 +329,101 @@ public:
         _out[1] = VectorHelper::Sub(_m[1], one);
     }
 
+    static NIX_INLINE void Negate(const __nixFloat8 * const _m, __nixFloat8* _out)
+    {
+        const __nixFloat8 zero = VectorHelper::GetZero256();
+        _out[0] = VectorHelper::Sub(zero, _m[0]);
+        _out[1] = VectorHelper::Sub(zero, _m[1]);
+    }
+
     static NIX_INLINE void MulMatrixVector(const __nixFloat8 * const _m, const __nixFloat4& _v, __nixFloat4* _out)
     {
+        
+        __nixFloat8 swp0 = _mm256_castps128_ps256(_mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 0, 0, 0)));
+        swp0 = _mm256_insertf128_ps(swp0, _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(1, 1, 1, 1)), 1);
 
+        __nixFloat8 swp1 = _mm256_castps128_ps256(_mm_shuffle_ps(_v, _v, _MM_SHUFFLE(2, 2, 2, 2)));
+        swp1 = _mm256_insertf128_ps(swp1, _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 3, 3, 3)), 1);
+
+        const __nixFloat8 mul0 = VectorHelper::Mul(_m[0], swp0);
+        const __nixFloat8 mul1 = VectorHelper::Mul(_m[1], swp1);
+
+        /*
+        // This is the begin of the code for proper AVX2... but looking at this seems to have a lot of effort...
+        // moreover if we though that at the end it would be cast to a _m128...
+        // I'll keep for next, for now just "split" the 256 to 128 and thats it.
+
+        //////////////////////////////////////////////////////////////////////////
+        // mul0
+        const __nixFloat8 prm0 = _mm256_permute2f128_ps(mul0, mul0, 0b00000001);
+
+        const __nixFloat8 swp01 = _mm256_shuffle_ps(mul0, prm0, 0b01000100);
+        const __nixFloat8 swp02 = _mm256_shuffle_ps(mul0, prm0, 0b11101110);
+
+        const __nixFloat8 res01 = _mm256_permute_ps(swp01, 0b11011000);
+        const __nixFloat8 res02 = _mm256_permute_ps(swp02, 0b11011000);
+
+        const __nixFloat8 m0lb = _mm256_blend_ps(res01, res02, 0b11110000);
+
+        const __nixFloat8 sum0 = _mm256_hadd_ps(m0lb, m0lb);
+
+
+        //////////////////////////////////////////////////////////////////////////
+        // mul1
+        const __nixFloat8 prm1 = _mm256_permute2f128_ps(mul1, mul1, 0b00000001);
+
+        const __nixFloat8 swp11 = _mm256_shuffle_ps(mul1, prm1, 0b01000100);
+        const __nixFloat8 swp12 = _mm256_shuffle_ps(mul1, prm1, 0b11101110);
+
+        const __nixFloat8 res11 = _mm256_permute_ps(swp11, 0b11011000);
+        const __nixFloat8 res12 = _mm256_permute_ps(swp12, 0b11011000);
+
+        const __nixFloat8 m1lb = _mm256_blend_ps(res11, res12, 0b11110000);
+
+        const __nixFloat8 sum1 = _mm256_hadd_ps(m1lb, m1lb);
+        */
+
+        const __nixFloat4 m0lo = _mm256_castps256_ps128(mul0);
+        const __nixFloat4 m0hi = _mm256_extractf128_ps(mul0, 1);
+
+        const __nixFloat4 m1lo = _mm256_castps256_ps128(mul1);
+        const __nixFloat4 m1hi = _mm256_extractf128_ps(mul1, 1);
+
+        //////////////////////////////////////////////////////////////////////////
+        const __nixFloat4 add0 = VectorHelper::Add(m0lo, m0hi);
+        const __nixFloat4 add1 = VectorHelper::Add(m1lo, m1hi);
+
+        *_out = VectorHelper::Add(add0, add1);
     }
 
     static NIX_INLINE void MulVectorMatrix(const __nixFloat4& _v, const __nixFloat8 * const _m, __nixFloat4* _out)
     {
+        // also for this function, I simply split the 256 into 128, instead to do a lot of permutation...
 
+        const __nixFloat4 m0lo = _mm256_castps256_ps128(_m[0]);
+        const __nixFloat4 m0hi = _mm256_extractf128_ps(_m[0], 1);
+
+        const __nixFloat4 m1lo = _mm256_castps256_ps128(_m[1]);
+        const __nixFloat4 m1hi = _mm256_extractf128_ps(_m[1], 1);
+
+        const __nixFloat4 mul0 = VectorHelper::Mul(_v, m0lo);
+        const __nixFloat4 mul1 = VectorHelper::Mul(_v, m0hi);
+        const __nixFloat4 mul2 = VectorHelper::Mul(_v, m1lo);
+        const __nixFloat4 mul3 = VectorHelper::Mul(_v, m1hi);
+
+        const __nixFloat4 lo0 = _mm_unpacklo_ps(mul0, mul1);
+        const __nixFloat4 hi0 = _mm_unpackhi_ps(mul0, mul1);
+        const __nixFloat4 add0 = VectorHelper::Add(lo0, hi0);
+
+        const __nixFloat4 lo1 = _mm_unpacklo_ps(mul2, mul3);
+        const __nixFloat4 hi1 = _mm_unpackhi_ps(mul2, mul3);
+        const __nixFloat4 add1 = VectorHelper::Add(lo1, hi1);
+
+        const __nixFloat4 mlh = _mm_movelh_ps(add0, add1);
+        const __nixFloat4 mhl = _mm_movehl_ps(add1, add0);
+
+        *_out = VectorHelper::Add(mlh, mhl);
     }
-
-
-
 
 
 #   else 
@@ -567,6 +654,15 @@ public:
         _out[1] = VectorHelper::Sub(_m[1], one);
         _out[2] = VectorHelper::Sub(_m[2], one);
         _out[3] = VectorHelper::Sub(_m[3], one);
+    }
+
+    static NIX_INLINE void Negate(const __nixFloat4 * const _m, __nixFloat4* _out)
+    {
+        const __nixFloat4 zero = VectorHelper::GetZero();
+        _out[0] = VectorHelper::Sub(zero, _m[0]);
+        _out[1] = VectorHelper::Sub(zero, _m[1]);
+        _out[2] = VectorHelper::Sub(zero, _m[2]);
+        _out[3] = VectorHelper::Sub(zero, _m[3]);
     }
 
     static NIX_INLINE void MulMatrixVector(const __nixFloat4 * const _m, const __nixFloat4& _v, __nixFloat4* _out)

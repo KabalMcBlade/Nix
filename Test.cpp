@@ -124,9 +124,9 @@ int main()
     Matrix mIdentity;
     Vector vTwice(2.0f);
 
-    Vector r = mTsrOp * vTwice;
+    Vector r = vTwice * mTsrOp;
 
-
+     
     getchar();
 
     return 0;

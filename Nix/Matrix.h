@@ -544,30 +544,36 @@ NIX_INLINE Matrix operator*(const Matrix& _a, const Matrix& _b)
 NIX_INLINE Matrix operator/(const Matrix& _m, const nixFloat& _s)
 {
     Matrix result;
-    MatrixHelper::Sub(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
+    MatrixHelper::Div(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
     return result;
 }
 
 NIX_INLINE Matrix operator/(const nixFloat& _s, const Matrix& _m)
 {
     Matrix result;
-    MatrixHelper::Sub(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
+    MatrixHelper::Div(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
     return result;
 }
 
 NIX_INLINE Matrix const operator-(const Matrix& _m)
 {
-
+    Matrix result;
+    MatrixHelper::Negate(ROWS_REF_R(_m), ROWS_REF_R(result));
+    return result;
 }
 
 NIX_INLINE Matrix const operator--(const Matrix& _m, nixS32)
 {
-
+    Matrix result;
+    MatrixHelper::Decrement(ROWS_REF_R(_m), ROWS_REF_R(result));
+    return result;
 }
 
 NIX_INLINE Matrix const operator++(const Matrix& _m, nixS32)
 {
-
+    Matrix result;
+    MatrixHelper::Increment(ROWS_REF_R(_m), ROWS_REF_R(result));
+    return result;
 }
 
 
