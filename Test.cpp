@@ -84,19 +84,7 @@ int main()
     la3.Print();
     lb3.Print();
     */
-    /*
-    
 
-    Matrix mOp0(
-        10.0f, 12.0f, 14.0f, 18.0f, 
-        20.0f, 22.0f, 24.0f, 28.0f, 
-        30.0f, 32.0f, 34.0f, 38.0f, 
-        40.0f, 42.0f, 44.0f, 48.0f);
-    Matrix mOp1(2.0f);
-
-    mOp0 *= mOp1;
-    mOp0 /= mOp1;
-    */
 
     Matrix mTSR(
         -0.75f, 0.0f, 0.65f, 0.0f,

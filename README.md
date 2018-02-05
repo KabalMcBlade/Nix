@@ -9,6 +9,11 @@ It implement SSE2, SSE3, SSSE3, SSE4, SSE4.2 and AVX and AVX2
 
 I had started to implement also the AVX512, for the skylake subset, but I'm unable to test it, hence I leave that for a next implementation.
 
+Now I'm bored to implement this library without any purpose. Hence I'm going to stop the developening of this and start a project that actually using this.
+
+> Why I did such effort?
+> The answer is easy: I want a lightweight math library with low overhead, with NO vtable call, optimized as good as I need, full SIMD (no scalar) and easy to use.
+
 
 # Build Status
 
