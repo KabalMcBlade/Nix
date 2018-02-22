@@ -303,6 +303,41 @@ public:
         }
     }
 
+    static NIX_INLINE nixFloat ExtractElement_0(const __nixFloat4& _v)
+    {
+        return _mm_cvtss_f32(_v);
+    }
+    static NIX_INLINE nixFloat ExtractElement_1(const __nixFloat4& _v)
+    {
+#   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
+        nixFloat r;
+        _MM_EXTRACT_FLOAT(r, _v, 1);
+        return r;
+#   else
+        return _mm_cvtss_f32(_mm_shuffle_ps(_v, _v, _MM_SHUFFLE(1, 1, 1, 1)));
+#   endif
+    }
+    static NIX_INLINE nixFloat ExtractElement_2(const __nixFloat4& _v)
+    {
+#   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
+        nixFloat r;
+        _MM_EXTRACT_FLOAT(r, _v, 2);
+        return r;
+#   else
+        return _mm_cvtss_f32(_mm_shuffle_ps(_v, _v, _MM_SHUFFLE(2, 2, 2, 2)));
+#   endif
+    }
+    static NIX_INLINE nixFloat ExtractElement_3(const __nixFloat4& _v)
+    {
+#   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
+        nixFloat r;
+        _MM_EXTRACT_FLOAT(r, _v, 3);
+        return r;
+#   else
+        return _mm_cvtss_f32(_mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 3, 3, 3)));
+#   endif
+    }
+
 private:
     constexpr static NIX_SIMD_ALIGN_16 const __nixFloat4 kZeroingW = { 1.0f, 1.0f, 1.0f, 0.0f };
     //constexpr static NIX_SIMD_ALIGN_16 const nixU32 maskRaw[] = { 0xffffffff, 0xffffffff, 0xffffffff, 0 };

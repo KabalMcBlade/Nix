@@ -416,27 +416,40 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
     // Functions
-    NIX_INLINE Matrix Transpose()
+    NIX_INLINE Matrix Transpose() const
     {
         Matrix result;
         MatrixHelper::Transpose(ROWS_REF_T, ROWS_REF_R(result));
         return result;
     }
 
-    NIX_INLINE Matrix InverseNoScale()
+    NIX_INLINE Matrix InverseNoScale() const
     {
         Matrix result;
         MatrixHelper::InverseNoScale(ROWS_REF_T, ROWS_REF_R(result));
         return result;
     }
 
-    NIX_INLINE Matrix Inverse()
+    NIX_INLINE Matrix Inverse() const
     {
         Matrix result;
         MatrixHelper::Inverse(ROWS_REF_T, ROWS_REF_R(result));
         return result;
     }
 
+    NIX_INLINE Matrix Translate(const Vector& _v) const
+    {
+        Matrix result;
+        MatrixHelper::Translate(ROWS_REF_T, _v.m_vec, ROWS_REF_R(result));
+        return result;
+    }
+
+    NIX_INLINE Matrix Scale(const Vector& _s) const
+    {
+        Matrix result;
+        MatrixHelper::Scale(ROWS_REF_T, _s.m_vec, ROWS_REF_R(result));
+        return result;
+    }
 
     private:
         friend class Vector;

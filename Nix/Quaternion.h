@@ -5,7 +5,7 @@
 #include "Types.h"
 #include "VectorHelper.h"
 #include "MathHelper.h"
-
+#include "Matrix.h"
 
 NIX_NAMESPACE_BEGIN
 
@@ -197,6 +197,23 @@ public:
         const __nixFloat4 res = _mm_shuffle_ps(sd, sd, _MM_SHUFFLE(0, 2, 1, 3));
 
         return res;
+    }
+
+    NIX_INLINE Matrix ToMatrix() const
+    {
+        nixFloat qX = VectorHelper::ExtractElement_0(m_quat);
+        nixFloat qY = VectorHelper::ExtractElement_1(m_quat);
+        nixFloat qZ = VectorHelper::ExtractElement_2(m_quat);
+        nixFloat qW = VectorHelper::ExtractElement_3(m_quat);
+
+        Matrix rotation(
+            1.f - 2.f * (qY * qY + qZ * qZ),    2.f * (qX * qY + qW * qZ),          2.f * (qX * qZ - qW * qY),          0.f,
+            2.f * (qX * qY - qW * qZ),          1.f - 2.f * (qX * qX + qZ * qZ),    2.f * (qY * qZ + qW * qX),          0.f,
+            2.f * (qX * qZ + qW * qY),          2.f * (qY * qZ - qW * qX),          1.f - 2.f * (qX * qX + qY * qY),    0.f,
+            0.f,                                0.f,                                0.f,                                1.f
+        );
+        
+        return rotation;
     }
 
 private:

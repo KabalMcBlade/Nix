@@ -113,6 +113,16 @@ public:
         *_out = VectorHelper::Sub(zero, _m[0]);
     }
 
+    static NIX_INLINE void Translate(const __nixFloat16 * const _m, const __nixFloat4& _v, __nixFloat16* _out)
+    {
+        nixAssert(false, "AVX512 is not yet implemented");
+    }
+
+    static NIX_INLINE void Scale(const __nixFloat16 * const _m, const __nixFloat4& _v, __nixFloat16* _out)
+    {
+        nixAssert(false, "AVX512 is not yet implemented");
+    }
+
 #   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
 
 
@@ -425,6 +435,49 @@ public:
         *_out = VectorHelper::Add(mlh, mhl);
     }
 
+    static NIX_INLINE void Translate(const __nixFloat8 * const _m, const __nixFloat4& _v, __nixFloat8* _out)
+    {
+        const __nixFloat4 m0lo = _mm256_castps256_ps128(_m[0]);
+        const __nixFloat4 m0hi = _mm256_extractf128_ps(_m[0], 1);
+
+        const __nixFloat4 m1lo = _mm256_castps256_ps128(_m[1]);
+        const __nixFloat4 m1hi = _mm256_extractf128_ps(_m[1], 1);
+
+        const __nixFloat4& swpX = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 0, 0, 0));
+        const __nixFloat4& swpY = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(1, 1, 1, 1));
+        const __nixFloat4& swpZ = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(2, 2, 2, 2));
+
+        const __nixFloat4& v0 = VectorHelper::Mul(m0lo, swpX);
+        const __nixFloat4& v1 = VectorHelper::Mul(m0hi, swpY);
+        const __nixFloat4& v2 = VectorHelper::Mul(m1lo, swpZ);
+
+        const __nixFloat4& row3 = VectorHelper::Add(VectorHelper::Add(VectorHelper::Add(v0, v1), v2), m1hi);
+
+        _out[2] = _mm256_insertf128_ps(_out[2], row3, 1);
+    }
+
+    static NIX_INLINE void Scale(const __nixFloat8 * const _m, const __nixFloat4& _v, __nixFloat8* _out)
+    {
+        const __nixFloat4 m0lo = _mm256_castps256_ps128(_m[0]);
+        const __nixFloat4 m0hi = _mm256_extractf128_ps(_m[0], 1);
+
+        const __nixFloat4 m1lo = _mm256_castps256_ps128(_m[1]);
+        const __nixFloat4 m1hi = _mm256_extractf128_ps(_m[1], 1);
+
+        const __nixFloat4& swpX = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 0, 0, 0));
+        const __nixFloat4& swpY = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(1, 1, 1, 1));
+        const __nixFloat4& swpZ = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(2, 2, 2, 2));
+
+        const __nixFloat4& row0 = VectorHelper::Mul(m0lo, swpX);
+        const __nixFloat4& row1 = VectorHelper::Mul(m0hi, swpY);
+        const __nixFloat4& row2 = VectorHelper::Mul(m1lo, swpZ);
+
+        _out[0] = _mm256_castps128_ps256(row0);
+        _out[0] = _mm256_insertf128_ps(_out[0], row1, 1);
+
+        _out[1] = _mm256_castps128_ps256(row2);
+        _out[1] = _mm256_insertf128_ps(_out[1], m1hi, 1);
+    }
 
 #   else 
 
@@ -702,6 +755,32 @@ public:
         const __nixFloat4 mhl = _mm_movehl_ps(add1, add0);
 
         *_out = VectorHelper::Add(mlh, mhl);
+    }
+
+    static NIX_INLINE void Translate(const __nixFloat4 * const _m, const __nixFloat4& _v, __nixFloat4* _out)
+    {
+        const __nixFloat4& swpX = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 0, 0, 0));
+        const __nixFloat4& swpY = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(1, 1, 1, 1));
+        const __nixFloat4& swpZ = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(2, 2, 2, 2));
+
+        const __nixFloat4& v0 = VectorHelper::Mul(_m[0], swpX);
+        const __nixFloat4& v1 = VectorHelper::Mul(_m[1], swpY);
+        const __nixFloat4& v2 = VectorHelper::Mul(_m[2], swpZ);
+        
+        const __nixFloat4& row3 = VectorHelper::Add(VectorHelper::Add(v0, v1), v2);
+        _out[3] = VectorHelper::Add(row3, _m[3]);
+    }
+
+    static NIX_INLINE void Scale(const __nixFloat4 * const _m, const __nixFloat4& _v, __nixFloat4* _out)
+    {
+        const __nixFloat4& swpX = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(0, 0, 0, 0));
+        const __nixFloat4& swpY = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(1, 1, 1, 1));
+        const __nixFloat4& swpZ = _mm_shuffle_ps(_v, _v, _MM_SHUFFLE(2, 2, 2, 2));
+
+        _out[0] = VectorHelper::Mul(_m[0], swpX);
+        _out[1] = VectorHelper::Mul(_m[1], swpY);
+        _out[2] = VectorHelper::Mul(_m[2], swpZ);
+        _out[3] = _m[3];
     }
 
 #   endif
