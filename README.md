@@ -21,4 +21,4 @@ I had started to implement also the AVX512, for the skylake subset, but I'm unab
 
 | Platform | Build Status |
 |:--------:|:------------:|
-| Windows (Visual Studio 2015) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/kabal2013/Nix?branch=master&svg=true)](https://ci.appveyor.com/project/Kabal2013/Nix) |
+| Windows (Visual Studio 2015) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/kabalmcblade/Nix?branch=master&svg=true)](https://ci.appveyor.com/project/kabalmcblade/Nix) |
