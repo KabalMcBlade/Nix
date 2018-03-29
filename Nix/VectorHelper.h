@@ -5,6 +5,16 @@
 #include "Types.h"
 
 
+
+#ifdef max
+#undef max
+#endif //
+
+#ifdef min
+#undef min
+#endif //
+
+
 NIX_NAMESPACE_BEGIN
 
 
