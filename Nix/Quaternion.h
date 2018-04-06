@@ -43,7 +43,8 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
     // Operators
-    
+    NIX_INLINE operator const __nixFloat4&() const { return m_quat; }
+
     NIX_INLINE Quaternion& operator=(const Quaternion& _q)
     {
         this->m_quat = _q.m_quat;

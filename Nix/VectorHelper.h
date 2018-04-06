@@ -27,6 +27,12 @@ public:
     static NIX_INLINE __nixFloat4 GetOne() { return _mm_set1_ps(1.0f); }
     static NIX_INLINE __nixFloat4 GetMinusOne() { return _mm_set1_ps(-1.0f); }
     static NIX_INLINE __nixFloat4 GetHalf() { return _mm_set1_ps(0.5f); }
+    static NIX_INLINE __nixFloat4 Get255() { return _mm_set1_ps(255.0f); }
+    static NIX_INLINE __nixFloat4 GetMinChar() { return _mm_set1_ps(-128.0f); }
+    static NIX_INLINE __nixFloat4 GetMaxChar() { return _mm_set1_ps(127.0f); }
+    static NIX_INLINE __nixFloat4 GetMinShort() { return _mm_set1_ps(-32768.0f); }
+    static NIX_INLINE __nixFloat4 GetMaxShort() { return _mm_set1_ps(32767.0f); }
+    static NIX_INLINE __nixFloat4 Get255Over2() { return _mm_set1_ps(127.5f); }
 
     static NIX_INLINE __nixFloat4 Get0001() { return _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f); }
     static NIX_INLINE __nixFloat4 Get1110() { return _mm_set_ps(0.0f, 1.0f, 1.0f, 1.0f); }

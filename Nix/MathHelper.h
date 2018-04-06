@@ -63,6 +63,58 @@ public:
         *_sin = VectorHelper::Mul(sinmultiplier, VectorHelper::Sqrt(VectorHelper::Sub(VectorHelper::GetOne(), VectorHelper::Mul(*_cos, *_cos))));
     }
     
+    // If a converted result is negative the value (0) is returned and if the
+    // converted result is larger than the maximum byte the value (255) is returned.
+    static NIX_INLINE nixU8 FloatToByte(nixFloat _value)
+    {
+        __nixFloat4 x = _mm_load_ss(&_value);
+        x = _mm_max_ss(x, VectorHelper::GetZero());
+        x = _mm_min_ss(x, VectorHelper::Get255());
+        return static_cast<nixU8>(_mm_cvttss_si32(x));
+    }
+
+    static NIX_INLINE void VectorToByte(const nixFloat& _x, const nixFloat& _y, const nixFloat& _z, nixU8* _out) 
+    {
+        const __nixFloat4 xyz = _mm_unpacklo_ps(_mm_unpacklo_ps(_mm_load_ss(&_x), _mm_load_ss(&_z)), _mm_load_ss(&_y));
+        const __nixFloat4 xyzScaled = VectorHelper::MulAdd(_mm_add_ps(xyz, VectorHelper::GetOne()), VectorHelper::Get255Over2(), VectorHelper::GetHalf());
+        const __nixInt4 xyzInt = _mm_cvtps_epi32(xyzScaled);
+        const __nixInt4 xyzShort = _mm_packs_epi32(xyzInt, xyzInt);
+        const __nixInt4 xyzChar = _mm_packus_epi16(xyzShort, xyzShort);
+        const __nixInt4 xyz16 = _mm_unpacklo_epi8(xyzChar, _mm_setzero_si128());
+
+        _out[0] = (nixU8)_mm_extract_epi16(xyz16, 0);	// cannot use _mm_extract_epi8 because it is an SSE4 instruction
+        _out[1] = (nixU8)_mm_extract_epi16(xyz16, 1);
+        _out[2] = (nixU8)_mm_extract_epi16(xyz16, 2);
+    }
+
+    static NIX_INLINE void VectorToByte(const nixFloat& _x, const nixFloat& _y, const nixFloat& _z, const nixFloat& _w, nixU8* _out)
+    {
+        const __nixFloat4 xyzw = VectorHelper::Set(_x, _y, _z, _w);
+        const __nixFloat4 xyzwScaled = VectorHelper::MulAdd(_mm_add_ps(xyzw, VectorHelper::GetOne()), VectorHelper::Get255Over2(), VectorHelper::GetHalf());
+        const __nixInt4 xyzwInt = _mm_cvtps_epi32(xyzwScaled);
+        const __nixInt4 xyzwShort = _mm_packs_epi32(xyzwInt, xyzwInt);
+        const __nixInt4 xyzwChar = _mm_packus_epi16(xyzwShort, xyzwShort);
+        const __nixInt4 xyzw16 = _mm_unpacklo_epi8(xyzwChar, _mm_setzero_si128());
+
+        _out[0] = (nixU8)_mm_extract_epi16(xyzw16, 0);	// cannot use _mm_extract_epi8 because it is an SSE4 instruction
+        _out[1] = (nixU8)_mm_extract_epi16(xyzw16, 1);
+        _out[2] = (nixU8)_mm_extract_epi16(xyzw16, 2);
+        _out[3] = (nixU8)_mm_extract_epi16(xyzw16, 3);
+    }
+
+    static NIX_INLINE void VectorToByte(const __nixFloat4& _v, nixU8* _out)
+    {
+        const __nixFloat4 xyzScaled = VectorHelper::MulAdd(_mm_add_ps(_v, VectorHelper::GetOne()), VectorHelper::Get255Over2(), VectorHelper::GetHalf());
+        const __nixInt4 xyzInt = _mm_cvtps_epi32(xyzScaled);
+        const __nixInt4 xyzShort = _mm_packs_epi32(xyzInt, xyzInt);
+        const __nixInt4 xyzChar = _mm_packus_epi16(xyzShort, xyzShort);
+        const __nixInt4 xyz16 = _mm_unpacklo_epi8(xyzChar, _mm_setzero_si128());
+
+        _out[0] = (nixU8)_mm_extract_epi16(xyz16, 0);	// cannot use _mm_extract_epi8 because it is an SSE4 instruction
+        _out[1] = (nixU8)_mm_extract_epi16(xyz16, 1);
+        _out[2] = (nixU8)_mm_extract_epi16(xyz16, 2);
+    }
+
 private:
 
     // Look at: http://www.ganssle.com/approx.htm for more details

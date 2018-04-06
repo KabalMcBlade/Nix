@@ -46,6 +46,8 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
     // Operators
+    NIX_INLINE operator const __nixFloat4&() const { return m_vec; }
+
     NIX_INLINE Vector& operator= (const Vector& _v)
     {
         this->m_vec = _v.m_vec;
