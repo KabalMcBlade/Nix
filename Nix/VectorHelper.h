@@ -165,7 +165,7 @@ public:
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_dp_ps(_a, _b, 0xff); // 1111 1111 -> all values are computed and the result is saved to the whole register
-#	elif NIX_ARCH & NIX_ARCH_SSE3_FLAG
+#    elif NIX_ARCH & NIX_ARCH_SSE3_FLAG
         const __nixFloat4 mul = VectorHelper::Mul(_a, _b);
         const __nixFloat4 add = _mm_hadd_ps(mul, mul);
         const __nixFloat4 res = _mm_hadd_ps(add, add);
@@ -182,7 +182,7 @@ public:
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_dp_ps(_a, _b, 0x7f); // 0111 1111 -> the w value of arrays are not computed. The result is saved to the whole register
-#	elif NIX_ARCH & NIX_ARCH_SSE3_FLAG
+#    elif NIX_ARCH & NIX_ARCH_SSE3_FLAG
         const __nixFloat4 aW0 = VectorHelper::Mul(_a, kZeroingW);
         const __nixFloat4 bW0 = VectorHelper::Mul(_b, kZeroingW);
         const __nixFloat4 mul = VectorHelper::Mul(aW0, bW0);

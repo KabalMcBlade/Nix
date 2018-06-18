@@ -82,7 +82,7 @@ public:
         const __nixInt4 xyzChar = _mm_packus_epi16(xyzShort, xyzShort);
         const __nixInt4 xyz16 = _mm_unpacklo_epi8(xyzChar, _mm_setzero_si128());
 
-        _out[0] = (nixU8)_mm_extract_epi16(xyz16, 0);	// cannot use _mm_extract_epi8 because it is an SSE4 instruction
+        _out[0] = (nixU8)_mm_extract_epi16(xyz16, 0);    // cannot use _mm_extract_epi8 because it is an SSE4 instruction
         _out[1] = (nixU8)_mm_extract_epi16(xyz16, 1);
         _out[2] = (nixU8)_mm_extract_epi16(xyz16, 2);
     }
@@ -96,7 +96,7 @@ public:
         const __nixInt4 xyzwChar = _mm_packus_epi16(xyzwShort, xyzwShort);
         const __nixInt4 xyzw16 = _mm_unpacklo_epi8(xyzwChar, _mm_setzero_si128());
 
-        _out[0] = (nixU8)_mm_extract_epi16(xyzw16, 0);	// cannot use _mm_extract_epi8 because it is an SSE4 instruction
+        _out[0] = (nixU8)_mm_extract_epi16(xyzw16, 0);    // cannot use _mm_extract_epi8 because it is an SSE4 instruction
         _out[1] = (nixU8)_mm_extract_epi16(xyzw16, 1);
         _out[2] = (nixU8)_mm_extract_epi16(xyzw16, 2);
         _out[3] = (nixU8)_mm_extract_epi16(xyzw16, 3);
@@ -110,7 +110,7 @@ public:
         const __nixInt4 xyzChar = _mm_packus_epi16(xyzShort, xyzShort);
         const __nixInt4 xyz16 = _mm_unpacklo_epi8(xyzChar, _mm_setzero_si128());
 
-        _out[0] = (nixU8)_mm_extract_epi16(xyz16, 0);	// cannot use _mm_extract_epi8 because it is an SSE4 instruction
+        _out[0] = (nixU8)_mm_extract_epi16(xyz16, 0);    // cannot use _mm_extract_epi8 because it is an SSE4 instruction
         _out[1] = (nixU8)_mm_extract_epi16(xyz16, 1);
         _out[2] = (nixU8)_mm_extract_epi16(xyz16, 2);
     }
