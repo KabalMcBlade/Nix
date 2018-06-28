@@ -80,6 +80,46 @@ public:
         SetFromAngleAxis(_radians, Vector(_x, _y, _z));
     }
 
+    NIX_INLINE void SetFromMatrix(const Matrix& _matrix)
+    {
+        NIX_SIMD_ALIGN_16 nixFloat m0[4];
+        NIX_SIMD_ALIGN_16 nixFloat m1[4];
+        NIX_SIMD_ALIGN_16 nixFloat m2[4];
+
+        _mm_store_ps(m0, _matrix[0]);
+        _mm_store_ps(m1, _matrix[1]);
+        _mm_store_ps(m2, _matrix[2]);
+
+        const nixFloat trace = m0[0] + m1[1] + m2[2] + 1.0f;
+        if (trace > 0.0f)
+        {
+            const nixFloat s = 0.5f / std::sqrtf(trace);
+            m_quat = VectorHelper::Set((m1[2] - m2[1]) * s, (m2[0] - m0[2]) * s, (m0[1] - m1[0]) * s, 0.25f / s);
+        }
+        else
+        {
+            if (m0[0] > m1[1])
+            {
+                if (m0[0] > m2[2])
+                {
+                    const nixFloat s = std::sqrt(m0[0] - m1[1] - m2[2] + 1.0f) * 0.5f;
+                    m_quat = VectorHelper::Set(0.5f * s, (m0[1] + m1[0]) * s, (m2[0] + m0[2]) * s, (m1[2] - m2[1]) * s);
+                }
+            }
+            else
+            {
+                if (m1[1] > m2[2])
+                {
+                    const nixFloat s = std::sqrt(m1[1] - m0[0] - m2[2] + 1.0f) * 0.5f;
+                    m_quat = VectorHelper::Set((m0[1] + m1[0]) * s, 0.5f * s, (m1[2] + m2[1]) * s, (m2[0] - m0[2]) * s);
+                }
+            }
+
+            const nixFloat s = std::sqrt(m2[2] - m0[0] - m1[1] + 1.0f) * 0.5f;
+            m_quat = VectorHelper::Set((m2[0] + m0[2]) * s, (m1[2] + m2[1]) * s, 0.5f * s, (m0[1] - m1[0]) * s);
+        }
+    }
+
     // Mostly used for debug purpose
     NIX_INLINE Vector GetAxis() const
     {
