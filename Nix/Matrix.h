@@ -453,6 +453,12 @@ public:
 #   endif
     }
 
+    NIX_INLINE Vector Determinant() const
+    {
+        Vector result;
+        MatrixHelper::Determinant(ROWS_REF_T, &result.m_vec);
+        return result;
+    }
 
     NIX_INLINE Matrix Transpose() const
     {

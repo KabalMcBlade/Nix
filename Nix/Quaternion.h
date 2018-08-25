@@ -120,6 +120,25 @@ public:
         }
     }
 
+    NIX_INLINE void SetFromEuler(const Vector& _euler)
+    {
+        const __nixFloat4 angle = VectorHelper::Mul(VectorHelper::GetHalf(), _euler.m_vec);
+
+        __nixFloat4 sn;
+        __nixFloat4 cs;
+        MathHelper::SinCos(angle, &sn, &cs);
+
+        const __nixFloat4 sc = _mm_shuffle_ps(sn, cs, _MM_SHUFFLE(1, 2, 2, 1));
+
+        const __nixFloat4 l = VectorHelper::Mul(VectorHelper::Mul(_mm_shuffle_ps(sn, sc, _MM_SHUFFLE(2, 0, 0, 2)), _mm_shuffle_ps(cs, cs, _MM_SHUFFLE(0, 2, 2, 0))), _mm_shuffle_ps(cs, cs, _MM_SHUFFLE(1, 1, 0, 1)));
+        const __nixFloat4 r = VectorHelper::Mul(VectorHelper::Mul(_mm_shuffle_ps(cs, sc, _MM_SHUFFLE(2, 0, 3, 1)), _mm_shuffle_ps(sn, sn, _MM_SHUFFLE(0, 2, 2, 0))), _mm_shuffle_ps(sn, sn, _MM_SHUFFLE(1, 1, 0, 1)));
+
+        const __nixFloat4 sum = VectorHelper::Add(l, r);
+        const __nixFloat4 dif = VectorHelper::Sub(l, r);
+        const __nixFloat4 sd = _mm_shuffle_ps(sum, dif, _MM_SHUFFLE(0, 2, 1, 3));
+        m_quat = _mm_shuffle_ps(sd, sd, _MM_SHUFFLE(0, 2, 1, 3));
+    }
+
     // Mostly used for debug purpose
     NIX_INLINE Vector GetAxis() const
     {
@@ -217,27 +236,6 @@ public:
         nixFloat sDot = 0;
         _mm_store_ss(&sDot, dot.m_vec);
         return Conjugate() / sDot;
-    }
-
-    NIX_INLINE Quaternion FromEuler(const Vector& _euler) const
-    {
-        const __nixFloat4 angle = VectorHelper::Mul(VectorHelper::GetHalf(), _euler.m_vec);
-
-        __nixFloat4 sn;
-        __nixFloat4 cs;
-        MathHelper::SinCos(angle, &sn, &cs);
-
-        const __nixFloat4 sc = _mm_shuffle_ps(sn, cs, _MM_SHUFFLE(1, 2, 2, 1));
-
-        const __nixFloat4 l = VectorHelper::Mul(VectorHelper::Mul(_mm_shuffle_ps(sn, sc, _MM_SHUFFLE(2, 0, 0, 2)), _mm_shuffle_ps(cs, cs, _MM_SHUFFLE(0, 2, 2, 0))), _mm_shuffle_ps(cs, cs, _MM_SHUFFLE(1, 1, 0, 1)));
-        const __nixFloat4 r = VectorHelper::Mul(VectorHelper::Mul(_mm_shuffle_ps(cs, sc, _MM_SHUFFLE(2, 0, 3, 1)), _mm_shuffle_ps(sn, sn, _MM_SHUFFLE(0, 2, 2, 0))), _mm_shuffle_ps(sn, sn, _MM_SHUFFLE(1, 1, 0, 1)));
-
-        const __nixFloat4 sum = VectorHelper::Add(l, r);
-        const __nixFloat4 dif = VectorHelper::Sub(l, r);
-        const __nixFloat4 sd = _mm_shuffle_ps(sum, dif, _MM_SHUFFLE(0, 2, 1, 3));
-        const __nixFloat4 res = _mm_shuffle_ps(sd, sd, _MM_SHUFFLE(0, 2, 1, 3));
-
-        return res;
     }
 
     NIX_INLINE Matrix ToMatrix() const

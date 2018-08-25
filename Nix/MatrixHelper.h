@@ -184,6 +184,53 @@ public:
         _out[1] = _mm256_insertf128_ps(_out[1], row3, 1);
     }
 
+    static NIX_INLINE void Determinant(const __nixFloat8 * const _m, __nixFloat4* _out)
+    {
+        // also for this function, I simply split the 256 into 128, instead to do a lot of permutation...
+
+        const __nixFloat4 m0lo = _mm256_castps256_ps128(_m[0]);
+        const __nixFloat4 m0hi = _mm256_extractf128_ps(_m[0], 1);
+
+        const __nixFloat4 m1lo = _mm256_castps256_ps128(_m[1]);
+        const __nixFloat4 m1hi = _mm256_extractf128_ps(_m[1], 1);
+
+        const __nixFloat4 swp0 = _mm_shuffle_ps(m1lo, m1lo, _MM_SHUFFLE(0, 1, 1, 2));
+        const __nixFloat4 swp1 = _mm_shuffle_ps(m1hi, m1hi, _MM_SHUFFLE(3, 2, 3, 3));
+        const __nixFloat4 mul0 = VectorHelper::Mul(swp0, swp1);
+
+        const __nixFloat4 swp2 = _mm_shuffle_ps(m1lo, m1lo, _MM_SHUFFLE(3, 2, 3, 3));
+        const __nixFloat4 swp3 = _mm_shuffle_ps(m1hi, m1hi, _MM_SHUFFLE(0, 1, 1, 2));
+        const __nixFloat4 mul1 = VectorHelper::Mul(swp2, swp3);
+
+        const __nixFloat4 sub0 = VectorHelper::Sub(mul0, mul1);
+
+        const __nixFloat4 swp4 = _mm_shuffle_ps(m1lo, m1lo, _MM_SHUFFLE(0, 0, 1, 2));
+        const __nixFloat4 swp5 = _mm_shuffle_ps(m1hi, m1hi, _MM_SHUFFLE(1, 2, 0, 0));
+        const __nixFloat4 mul2 = VectorHelper::Mul(swp4, swp5);
+        const __nixFloat4 sub1 = VectorHelper::Sub(_mm_movehl_ps(mul2, mul2), mul2);
+
+        const __nixFloat4 sbf0 = _mm_shuffle_ps(sub0, sub0, _MM_SHUFFLE(2, 1, 0, 0));
+        const __nixFloat4 swf0 = _mm_shuffle_ps(m0hi, m0hi, _MM_SHUFFLE(0, 0, 0, 1));
+        const __nixFloat4 mlf0 = VectorHelper::Mul(swf0, sbf0);
+
+        const __nixFloat4 sbft = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(0, 0, 3, 1));
+        const __nixFloat4 sbf1 = _mm_shuffle_ps(sbft, sbft, _MM_SHUFFLE(3, 1, 1, 0));
+        const __nixFloat4 swf1 = _mm_shuffle_ps(m0hi, m0hi, _MM_SHUFFLE(1, 1, 2, 2));
+        const __nixFloat4 mlf1 = VectorHelper::Mul(swf1, sbf1);
+
+        const __nixFloat4 subr = VectorHelper::Sub(mlf0, mlf1);
+
+        const __nixFloat4 sbt0 = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(1, 0, 2, 2));
+        const __nixFloat4 sbt1 = _mm_shuffle_ps(sbt0, sbt0, _MM_SHUFFLE(3, 3, 2, 0));
+        const __nixFloat4 swft = _mm_shuffle_ps(m0hi, m0hi, _MM_SHUFFLE(2, 3, 3, 3));
+        const __nixFloat4 mlfc = VectorHelper::Mul(swft, sbt1);
+
+        const __nixFloat4 addr = VectorHelper::Add(subr, mlfc);
+        const __nixFloat4 detc = VectorHelper::Mul(addr, _mm_setr_ps(1.0f, -1.0f, 1.0f, -1.0f));
+
+        *_out = VectorHelper::Dot(m0lo, detc);
+    }
+
 
     // Because _mm256_permutevar8x32_ps is not widely implements in CPU, I've to work in 128 instead of 256 here...
     // So it is NOT optimize at all...
@@ -569,6 +616,44 @@ public:
         _out[3] = _mm_shuffle_ps(swp2, swp3, 0xDD);
     }
 
+    static NIX_INLINE void Determinant(const __nixFloat4 * const _m, __nixFloat4* _out)
+    {
+        const __nixFloat4 swp0 = _mm_shuffle_ps(_m[2], _m[2], _MM_SHUFFLE(0, 1, 1, 2));
+        const __nixFloat4 swp1 = _mm_shuffle_ps(_m[3], _m[3], _MM_SHUFFLE(3, 2, 3, 3));
+        const __nixFloat4 mul0 = VectorHelper::Mul(swp0, swp1);
+
+        const __nixFloat4 swp2 = _mm_shuffle_ps(_m[2], _m[2], _MM_SHUFFLE(3, 2, 3, 3));
+        const __nixFloat4 swp3 = _mm_shuffle_ps(_m[3], _m[3], _MM_SHUFFLE(0, 1, 1, 2));
+        const __nixFloat4 mul1 = VectorHelper::Mul(swp2, swp3);
+
+        const __nixFloat4 sub0 = VectorHelper::Sub(mul0, mul1);
+
+        const __nixFloat4 swp4 = _mm_shuffle_ps(_m[2], _m[2], _MM_SHUFFLE(0, 0, 1, 2));
+        const __nixFloat4 swp5 = _mm_shuffle_ps(_m[3], _m[3], _MM_SHUFFLE(1, 2, 0, 0));
+        const __nixFloat4 mul2 = VectorHelper::Mul(swp4, swp5);
+        const __nixFloat4 sub1 = VectorHelper::Sub(_mm_movehl_ps(mul2, mul2), mul2);
+
+        const __nixFloat4 sbf0 = _mm_shuffle_ps(sub0, sub0, _MM_SHUFFLE(2, 1, 0, 0));
+        const __nixFloat4 swf0 = _mm_shuffle_ps(_m[1], _m[1], _MM_SHUFFLE(0, 0, 0, 1));
+        const __nixFloat4 mlf0 = VectorHelper::Mul(swf0, sbf0);
+
+        const __nixFloat4 sbft = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(0, 0, 3, 1));
+        const __nixFloat4 sbf1 = _mm_shuffle_ps(sbft, sbft, _MM_SHUFFLE(3, 1, 1, 0));
+        const __nixFloat4 swf1 = _mm_shuffle_ps(_m[1], _m[1], _MM_SHUFFLE(1, 1, 2, 2));
+        const __nixFloat4 mlf1 = VectorHelper::Mul(swf1, sbf1);
+
+        const __nixFloat4 subr = VectorHelper::Sub(mlf0, mlf1);
+
+        const __nixFloat4 sbt0 = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(1, 0, 2, 2));
+        const __nixFloat4 sbt1 = _mm_shuffle_ps(sbt0, sbt0, _MM_SHUFFLE(3, 3, 2, 0));
+        const __nixFloat4 swft = _mm_shuffle_ps(_m[1], _m[1], _MM_SHUFFLE(2, 3, 3, 3));
+        const __nixFloat4 mlfc = VectorHelper::Mul(swft, sbt1);
+
+        const __nixFloat4 addr = VectorHelper::Add(subr, mlfc);
+        const __nixFloat4 detc = VectorHelper::Mul(addr, _mm_setr_ps(1.0f, -1.0f, 1.0f, -1.0f));
+
+        *_out = VectorHelper::Dot(_m[0], detc);
+    }
 
     // It works ONLY with transform matrix, not for generic matrix purpose
     // Moreover this not take into consider the scale, so this matrix is treated is of scale 1
