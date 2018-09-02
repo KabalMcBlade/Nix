@@ -500,7 +500,8 @@ public:
 
         const __nixFloat4& row3 = VectorHelper::Add(VectorHelper::Add(VectorHelper::Add(v0, v1), v2), m1hi);
 
-        _out[2] = _mm256_insertf128_ps(_out[2], row3, 1);
+        _out[0] = _m[0];
+        _out[1] = _mm256_insertf128_ps(_out[2], row3, 1);
     }
 
     static NIX_INLINE void Scale(const __nixFloat8 * const _m, const __nixFloat4& _v, __nixFloat8* _out)
@@ -853,6 +854,9 @@ public:
         const __nixFloat4& v2 = VectorHelper::Mul(_m[2], swpZ);
         
         const __nixFloat4& row3 = VectorHelper::Add(VectorHelper::Add(v0, v1), v2);
+        _out[0] = _m[0];
+        _out[1] = _m[1];
+        _out[2] = _m[2];
         _out[3] = VectorHelper::Add(row3, _m[3]);
     }
 
