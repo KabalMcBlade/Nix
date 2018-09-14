@@ -38,7 +38,6 @@
 
 // Memory alignment
 #define NIX_MEMORY_ALIGNMENT(x)     __declspec(align(x))
-#define NIX_IS_ALIGNED(ptr, alignment)    ((uint_fast64_t)ptr & (alignment - 1)) == 0
 
 
 #define NIX_SIMD_ALIGN_16   NIX_MEMORY_ALIGNMENT(NIX_MEMORY_ALIGNMENT_SIZE_16)
