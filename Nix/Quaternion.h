@@ -216,7 +216,7 @@ public:
         }
         else
         {
-            nixFloat angle = std::acosh(cosTheta);
+            nixFloat angle = std::acos(cosTheta);
 
             const __nixFloat4 sin = MathHelper::Sin(VectorHelper::Set(0.0f, angle, _time * angle,  (1.0f - _time) * angle));
             const __nixFloat4 div = VectorHelper::Div(VectorHelper::GetOne(), _mm_shuffle_ps(sin, sin, _MM_SHUFFLE(1, 1, 1, 1)));
