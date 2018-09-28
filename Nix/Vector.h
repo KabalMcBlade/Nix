@@ -238,6 +238,31 @@ public:
         return VectorHelper::InverseLerp(m_vec, _min.m_vec, _max.m_vec);
     }
 
+    // It means go FROM *this* vector TO *other* vector in T
+    NIX_INLINE Vector StepTo(const Vector& _to, const Vector& _time) const
+    {
+        return VectorHelper::Step(m_vec, _to.m_vec, _time.m_vec);
+    }
+
+    // It means go FROM *other* vector TO *this* vector in T
+    NIX_INLINE Vector StepFrom(const Vector& _from, const Vector& _time) const
+    {
+        return VectorHelper::Step(_from.m_vec, m_vec, _time.m_vec);
+    }
+
+    // It means go FROM *this* vector TO *other* vector in T
+    NIX_INLINE Vector StepTo(const Vector& _to, const nixFloat& _time) const
+    {
+        return StepTo(_to, VectorHelper::Splat(_time));
+    }
+
+    // It means go FROM *other* vector TO *this* vector in T
+    NIX_INLINE Vector StepFrom(const Vector& _from, const nixFloat& _time) const
+    {
+        return StepFrom(_from, VectorHelper::Splat(_time));
+    }
+
+
     //////////////////////////////////////////////////////////////////////////
     // Utility functions
     NIX_INLINE Vector GetX() const

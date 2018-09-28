@@ -198,6 +198,30 @@ public:
         return LerpFrom(_from, VectorHelper::Splat(_time));
     }
 
+    // It means go FROM *this* quaternion TO *other* quaternion in T
+    NIX_INLINE Vector StepTo(const Quaternion& _to, const Vector& _time) const
+    {
+        return VectorHelper::Step(m_quat, _to.m_quat, _time.m_vec);
+    }
+
+    // It means go FROM *other* quaternion TO *this* quaternion in T
+    NIX_INLINE Vector StepFrom(const Quaternion& _from, const Vector& _time) const
+    {
+        return VectorHelper::Step(_from.m_quat, m_quat, _time.m_vec);
+    }
+
+    // It means go FROM *this* quaternion TO *other* quaternion in T
+    NIX_INLINE Vector StepTo(const Quaternion& _to, const nixFloat& _time) const
+    {
+        return StepTo(_to, VectorHelper::Splat(_time));
+    }
+
+    // It means go FROM *other* quaternion TO *this* quaternion in T
+    NIX_INLINE Vector StepFrom(const Quaternion& _from, const nixFloat& _time) const
+    {
+        return StepFrom(_from, VectorHelper::Splat(_time));
+    }
+
     NIX_INLINE Quaternion Slerp(const Quaternion& _other, const nixFloat& _time) const
     {
         Vector vCosTheta = Dot(_other);

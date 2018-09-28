@@ -4,6 +4,8 @@
 #include "Architecture.h"
 #include "Types.h"
 
+#define USE_SSE2
+#include "sse_mathfun.h"
 
 
 #ifdef max
@@ -292,6 +294,12 @@ public:
         return mul;
     }
 
+    static NIX_INLINE __nixFloat4 Pow(const __nixFloat4& _x, const __nixFloat4& _y)
+    {
+        //pow(x, y) == exp(y*log(x))
+        return exp_ps(VectorHelper::Mul(_y, log_ps(_x)));
+    }
+
     static NIX_INLINE __nixFloat4 Lerp(const __nixFloat4& _from, const __nixFloat4& _to, const __nixFloat4& _t)
     {
         const __nixFloat4 sub = VectorHelper::Sub(VectorHelper::GetOne(), _t);
@@ -300,6 +308,48 @@ public:
         const __nixFloat4 add = VectorHelper::Add(mul0, mul1);
         return add;
     }
+
+    static NIX_INLINE __nixFloat4 Step(const __nixFloat4& _from, const __nixFloat4& _to, const __nixFloat4& _t)
+    {
+        const __nixFloat4 edge = GetHalf();
+        const __nixFloat4 cmp0 = _mm_cmpngt_ps(_t, edge);
+
+        const nixS16 mask = _mm_movemask_ps(cmp0);
+        if (mask == 0xffffffff)
+        {
+            return _from;
+        }
+        else
+        {
+            return _to;
+        }
+    }
+
+    static NIX_INLINE __nixFloat4 HermiteCubicSpline(const __nixFloat4& _p0, const __nixFloat4& _m0, const __nixFloat4& _p1, const __nixFloat4& _m1, const __nixFloat4& _t)
+    {
+        static const __nixFloat4 one = Splat(1.0f);
+        static const __nixFloat4 two = Splat(2.0f);
+        static const __nixFloat4 minustwo = Splat(-2.0f);
+        static const __nixFloat4 three = Splat(3.0f);
+
+        const __nixFloat4 p0c = VectorHelper::Add(VectorHelper::Sub(VectorHelper::Mul(two, Pow(_t, three)), VectorHelper::Mul(three, Pow(_t, two))), one);
+        const __nixFloat4 m0c = VectorHelper::Add(VectorHelper::Sub(Pow(_t, three), VectorHelper::Mul(two, Pow(_t, two))), _t);
+        const __nixFloat4 p1c = VectorHelper::Add(VectorHelper::Mul(minustwo, Pow(_t, three)), VectorHelper::Mul(three, Pow(_t, two)));
+        const __nixFloat4 m1c = VectorHelper::Sub(Pow(_t, three), Pow(_t, two));
+
+        const __nixFloat4 p0 = VectorHelper::Mul(p0c, _p0);
+        const __nixFloat4 m0 = VectorHelper::Mul(m0c, _m0);
+        const __nixFloat4 p1 = VectorHelper::Mul(p1c, _p1);
+        const __nixFloat4 m1 = VectorHelper::Mul(m1c, _m1);
+
+        const __nixFloat4 add0 = VectorHelper::Add(p0, m0);
+        const __nixFloat4 add1 = VectorHelper::Add(p1, m1);
+
+        const __nixFloat4 add = VectorHelper::Add(add0, add1);
+
+        return add;
+    }
+
 
     // is a bit slow
     static NIX_INLINE __nixFloat4 InverseLerp(const __nixFloat4& _v, const __nixFloat4& _min, const __nixFloat4& _max)
