@@ -269,7 +269,7 @@ public:
     static NIX_INLINE __nixFloat4 Clamp(const __nixFloat4& _v, const __nixFloat4& _min, const __nixFloat4& _max)
     {
         const __nixFloat4 min = VectorHelper::Min(_v, _max);
-        const __nixFloat4 max = VectorHelper::Max(_min, _min);
+        const __nixFloat4 max = VectorHelper::Max(min, _min);
         return max;
     }
 
