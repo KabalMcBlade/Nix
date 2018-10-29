@@ -20,10 +20,50 @@
 NIX_NAMESPACE_BEGIN
 
 
+#define SWIZZLE(V, X, Y, Z, W) __nixFloat4(_mm_shuffle_ps(V, V, _MM_SHUFFLE(W, Z, Y, X)))
+
 NIX_SIMD_ALIGN_16 class VectorHelper
 {
 public:
     static NIX_INLINE __nixFloat4 GetSignMask() { return _mm_castsi128_ps(_mm_set1_epi32(0x80000000)); }
+    static NIX_INLINE __nixFloat4 GetSignMaskNeg() { return _mm_castsi128_ps(_mm_set1_epi32(~0x80000000)); }
+
+    static NIX_INLINE __nixInt4 GetSignMaskI() { return _mm_set1_epi32(0x80000000); }
+    static NIX_INLINE __nixInt4 GetSignMaskNegI() { return _mm_set1_epi32(~0x80000000); }
+
+    static NIX_INLINE __nixFloat4 GetNotAll() { return _mm_castsi128_ps(_mm_set1_epi32(~0x00000000)); }
+
+    static NIX_INLINE __nixInt4 GetNotAllI() { return _mm_set1_epi32(~0x00000000); }
+
+
+    static NIX_INLINE __nixFloat4 GetMaskSignZeroSignZero() { return _mm_castsi128_ps(_mm_set_epi32(0x80000000, 0x00000000, 0x80000000, 0x00000000)); }
+    static NIX_INLINE __nixFloat4 GetMaskZeroSignZeroSign() { return _mm_castsi128_ps(_mm_set_epi32(0x00000000, 0x80000000, 0x00000000, 0x80000000)); }
+
+    static NIX_INLINE __nixFloat4 GetTanCP0() { return _mm_set1_ps(9.38540185543E-3f); }
+    static NIX_INLINE __nixFloat4 GetTanCP1() { return _mm_set1_ps(3.11992232697E-3f); }
+    static NIX_INLINE __nixFloat4 GetTanCP2() { return _mm_set1_ps(2.44301354525E-2f); }
+    static NIX_INLINE __nixFloat4 GetTanCP3() { return _mm_set1_ps(5.34112807005E-2f); }
+    static NIX_INLINE __nixFloat4 GetTanCP4() { return _mm_set1_ps(1.33387994085E-1f); }
+    static NIX_INLINE __nixFloat4 GetTanCP5() { return _mm_set1_ps(3.33331568548E-1f); }
+
+    static NIX_INLINE __nixFloat4 GetNegDP1() { return _mm_set1_ps(0.78515625f); }
+    static NIX_INLINE __nixFloat4 GetNegDP2() { return _mm_set1_ps(2.4187564849853515625e-4f); }
+    static NIX_INLINE __nixFloat4 GetNegDP3() { return _mm_set1_ps(3.77489497744594108e-8f); }
+
+
+    static NIX_INLINE __nixFloat4 GetOPI() { return _mm_set1_ps(1.27323954473516f); }
+    static NIX_INLINE __nixFloat4 GetPIF() { return _mm_set1_ps(3.141592653589793238f); }
+    static NIX_INLINE __nixFloat4 GetPIH() { return _mm_set1_ps(1.5707963267948966192f); }
+    static NIX_INLINE __nixFloat4 GetPIQ() { return _mm_set1_ps(0.7853981633974483096f); }
+
+    static NIX_INLINE __nixFloat4 GetTanHI() { return _mm_set1_ps(2.414213562373095f); }
+    static NIX_INLINE __nixFloat4 GetTanLO() { return _mm_set1_ps(0.4142135623730950f); }
+    static NIX_INLINE __nixFloat4 GetTanP0() { return _mm_set1_ps(8.05374449538e-2f); }
+    static NIX_INLINE __nixFloat4 GetTanP1() { return _mm_set1_ps(1.38776856032E-1f); }
+    static NIX_INLINE __nixFloat4 GetTanP2() { return _mm_set1_ps(1.99777106478E-1f); }
+    static NIX_INLINE __nixFloat4 GetTanP3() { return _mm_set1_ps(3.33329491539E-1f); }
+
+
 
     static NIX_INLINE __nixFloat4 GetZero() { return _mm_setzero_ps(); }
     static NIX_INLINE __nixFloat4 GetOne() { return _mm_set1_ps(1.0f); }
@@ -45,6 +85,15 @@ public:
 
     static NIX_INLINE __nixFloat4 GetSmallNumber() { return _mm_set1_ps(1.e-8f); }
     static NIX_INLINE __nixFloat4 GetBigNumber() { return _mm_set1_ps(1.e+8f); }
+
+
+    static NIX_INLINE __nixInt4 GetZeroI() { return _mm_set1_epi32(0u); }
+    static NIX_INLINE __nixInt4 GetOneI() { return _mm_set1_epi32(1u); }
+    static NIX_INLINE __nixInt4 GetOneNegI() { return _mm_set1_epi32(~1u); }
+    static NIX_INLINE __nixInt4 GetTwoI() { return _mm_set1_epi32(2u); }
+    static NIX_INLINE __nixInt4 GetFourI() { return _mm_set1_epi32(4u); }
+    static NIX_INLINE __nixInt4 Get127I() { return _mm_set1_epi32(127u); }
+
 
 #   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
 
@@ -97,10 +146,15 @@ public:
 #   endif
     }
 
-    static NIX_INLINE __nixInt4 Splat(nixS32 _s)
+    static NIX_INLINE __nixInt4 Splat(const nixS32& _v)
     {
-        return _mm_set1_epi32(_s);
+        return _mm_set1_epi32(_v);
     }
+    static NIX_INLINE __nixInt4 Splat(const nixU32& _v)
+    {
+        return _mm_set1_epi32(_v);
+    }
+
 
     static NIX_INLINE __nixFloat4 Abs(const __nixFloat4& _v) { return _mm_andnot_ps(VectorHelper::GetSignMask(), _v); }
     static NIX_INLINE __nixFloat4 Neg(const __nixFloat4& _v) { return _mm_xor_ps(_v, VectorHelper::GetSignMask()); }
@@ -369,11 +423,31 @@ public:
         }
     }
 
-    static NIX_INLINE nixFloat ExtractElement_0(const __nixFloat4& _v)
+    //////////////////////////////////////////////////////////////////////////
+    // Faster helper accessor for swizzle
+    //////////////////////////////////////////////////////////////////////////
+
+    static NIX_INLINE __nixFloat4 InsertAt(const __nixFloat4& _v, nixFloat _x, nixU32 _i)
+    {
+#   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
+        return _mm_insert_ps(_v, _mm_set_ss(_x), _i << 4);
+#   else
+        NIX_SIMD_ALIGN_16 nixU32 mask[4] = { 0xffffffff,0xffffffff,0xffffffff,0xffffffff };
+        __nixFloat4 tmp, vec_masked, p_masked;
+        mask[_i >> 4] = 0x0; 
+        vec_masked = _mm_and_ps(*(__nixFloat4*)mask, _v);
+        p_masked = _mm_andnot_ps(*(__nixFloat4*)mask, _mm_set_ss(_x));
+        tmp = _mm_or_ps(vec_masked, p_masked);
+        return tmp;
+#   endif
+    }
+
+    static NIX_INLINE nixFloat ExtractX(const __nixFloat4& _v)
     {
         return _mm_cvtss_f32(_v);
     }
-    static NIX_INLINE nixFloat ExtractElement_1(const __nixFloat4& _v)
+
+    static NIX_INLINE nixFloat ExtractY(const __nixFloat4& _v)
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         nixFloat r;
@@ -383,7 +457,8 @@ public:
         return _mm_cvtss_f32(_mm_shuffle_ps(_v, _v, _MM_SHUFFLE(1, 1, 1, 1)));
 #   endif
     }
-    static NIX_INLINE nixFloat ExtractElement_2(const __nixFloat4& _v)
+
+    static NIX_INLINE nixFloat ExtractZ(const __nixFloat4& _v)
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         nixFloat r;
@@ -393,7 +468,8 @@ public:
         return _mm_cvtss_f32(_mm_shuffle_ps(_v, _v, _MM_SHUFFLE(2, 2, 2, 2)));
 #   endif
     }
-    static NIX_INLINE nixFloat ExtractElement_3(const __nixFloat4& _v)
+
+    static NIX_INLINE nixFloat ExtractW(const __nixFloat4& _v)
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         nixFloat r;
@@ -403,6 +479,292 @@ public:
         return _mm_cvtss_f32(_mm_shuffle_ps(_v, _v, _MM_SHUFFLE(3, 3, 3, 3)));
 #   endif
     }
+
+    static NIX_INLINE __nixFloat4 XXXX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 0, 0); }
+    static NIX_INLINE __nixFloat4 XXXY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 0, 1); }
+    static NIX_INLINE __nixFloat4 XXXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 0, 2); }
+    static NIX_INLINE __nixFloat4 XXXW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 0, 3); }
+    static NIX_INLINE __nixFloat4 XXYX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 1, 0); }
+    static NIX_INLINE __nixFloat4 XXYY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 1, 1); }
+    static NIX_INLINE __nixFloat4 XXYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 1, 2); }
+    static NIX_INLINE __nixFloat4 XXYW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 1, 3); }
+    static NIX_INLINE __nixFloat4 XXZX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 2, 0); }
+    static NIX_INLINE __nixFloat4 XXZY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 2, 1); }
+    static NIX_INLINE __nixFloat4 XXZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 2, 2); }
+    static NIX_INLINE __nixFloat4 XXZW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 2, 3); }
+    static NIX_INLINE __nixFloat4 XXWX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 3, 0); }
+    static NIX_INLINE __nixFloat4 XXWY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 3, 1); }
+    static NIX_INLINE __nixFloat4 XXWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 3, 2); }
+    static NIX_INLINE __nixFloat4 XXWW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 0, 3, 3); }
+    static NIX_INLINE __nixFloat4 XYXX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 0, 0); }
+    static NIX_INLINE __nixFloat4 XYXY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 0, 1); }
+    static NIX_INLINE __nixFloat4 XYXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 0, 2); }
+    static NIX_INLINE __nixFloat4 XYXW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 0, 3); }
+    static NIX_INLINE __nixFloat4 XYYX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 1, 0); }
+    static NIX_INLINE __nixFloat4 XYYY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 1, 1); }
+    static NIX_INLINE __nixFloat4 XYYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 1, 2); }
+    static NIX_INLINE __nixFloat4 XYYW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 1, 3); }
+    static NIX_INLINE __nixFloat4 XYZX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 2, 0); }
+    static NIX_INLINE __nixFloat4 XYZY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 2, 1); }
+    static NIX_INLINE __nixFloat4 XYZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 2, 2); }
+    static NIX_INLINE __nixFloat4 XYZW(const __nixFloat4& _v) { return _v; }
+    static NIX_INLINE __nixFloat4 XYWX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 3, 0); }
+    static NIX_INLINE __nixFloat4 XYWY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 3, 1); }
+    static NIX_INLINE __nixFloat4 XYWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 3, 2); }
+    static NIX_INLINE __nixFloat4 XYWW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 1, 3, 3); }
+    static NIX_INLINE __nixFloat4 XZXX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 0, 0); }
+    static NIX_INLINE __nixFloat4 XZXY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 0, 1); }
+    static NIX_INLINE __nixFloat4 XZXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 0, 2); }
+    static NIX_INLINE __nixFloat4 XZXW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 0, 3); }
+    static NIX_INLINE __nixFloat4 XZYX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 1, 0); }
+    static NIX_INLINE __nixFloat4 XZYY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 1, 1); }
+    static NIX_INLINE __nixFloat4 XZYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 1, 2); }
+    static NIX_INLINE __nixFloat4 XZYW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 1, 3); }
+    static NIX_INLINE __nixFloat4 XZZX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 2, 0); }
+    static NIX_INLINE __nixFloat4 XZZY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 2, 1); }
+    static NIX_INLINE __nixFloat4 XZZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 2, 2); }
+    static NIX_INLINE __nixFloat4 XZZW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 2, 3); }
+    static NIX_INLINE __nixFloat4 XZWX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 3, 0); }
+    static NIX_INLINE __nixFloat4 XZWY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 3, 1); }
+    static NIX_INLINE __nixFloat4 XZWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 3, 2); }
+    static NIX_INLINE __nixFloat4 XZWW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 2, 3, 3); }
+    static NIX_INLINE __nixFloat4 XWXX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 0, 0); }
+    static NIX_INLINE __nixFloat4 XWXY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 0, 1); }
+    static NIX_INLINE __nixFloat4 XWXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 0, 2); }
+    static NIX_INLINE __nixFloat4 XWXW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 0, 3); }
+    static NIX_INLINE __nixFloat4 XWYX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 1, 0); }
+    static NIX_INLINE __nixFloat4 XWYY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 1, 1); }
+    static NIX_INLINE __nixFloat4 XWYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 1, 2); }
+    static NIX_INLINE __nixFloat4 XWYW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 1, 3); }
+    static NIX_INLINE __nixFloat4 XWZX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 2, 0); }
+    static NIX_INLINE __nixFloat4 XWZY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 2, 1); }
+    static NIX_INLINE __nixFloat4 XWZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 2, 2); }
+    static NIX_INLINE __nixFloat4 XWZW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 2, 3); }
+    static NIX_INLINE __nixFloat4 XWWX(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 3, 0); }
+    static NIX_INLINE __nixFloat4 XWWY(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 3, 1); }
+    static NIX_INLINE __nixFloat4 XWWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 3, 2); }
+    static NIX_INLINE __nixFloat4 XWWW(const __nixFloat4& _v) { return SWIZZLE(_v, 0, 3, 3, 3); }
+
+    static NIX_INLINE __nixFloat4 YXXX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 0, 0); }
+    static NIX_INLINE __nixFloat4 YXXY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 0, 1); }
+    static NIX_INLINE __nixFloat4 YXXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 0, 2); }
+    static NIX_INLINE __nixFloat4 YXXW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 0, 3); }
+    static NIX_INLINE __nixFloat4 YXYX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 1, 0); }
+    static NIX_INLINE __nixFloat4 YXYY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 1, 1); }
+    static NIX_INLINE __nixFloat4 YXYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 1, 2); }
+    static NIX_INLINE __nixFloat4 YXYW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 1, 3); }
+    static NIX_INLINE __nixFloat4 YXZX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 2, 0); }
+    static NIX_INLINE __nixFloat4 YXZY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 2, 1); }
+    static NIX_INLINE __nixFloat4 YXZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 2, 2); }
+    static NIX_INLINE __nixFloat4 YXZW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 2, 3); }
+    static NIX_INLINE __nixFloat4 YXWX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 3, 0); }
+    static NIX_INLINE __nixFloat4 YXWY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 3, 1); }
+    static NIX_INLINE __nixFloat4 YXWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 3, 2); }
+    static NIX_INLINE __nixFloat4 YXWW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 0, 3, 3); }
+    static NIX_INLINE __nixFloat4 YYXX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 0, 0); }
+    static NIX_INLINE __nixFloat4 YYXY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 0, 1); }
+    static NIX_INLINE __nixFloat4 YYXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 0, 2); }
+    static NIX_INLINE __nixFloat4 YYXW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 0, 3); }
+    static NIX_INLINE __nixFloat4 YYYX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 1, 0); }
+    static NIX_INLINE __nixFloat4 YYYY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 1, 1); }
+    static NIX_INLINE __nixFloat4 YYYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 1, 2); }
+    static NIX_INLINE __nixFloat4 YYYW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 1, 3); }
+    static NIX_INLINE __nixFloat4 YYZX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 2, 0); }
+    static NIX_INLINE __nixFloat4 YYZY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 2, 1); }
+    static NIX_INLINE __nixFloat4 YYZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 2, 2); }
+    static NIX_INLINE __nixFloat4 YYZW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 2, 3); }
+    static NIX_INLINE __nixFloat4 YYWX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 3, 0); }
+    static NIX_INLINE __nixFloat4 YYWY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 3, 1); }
+    static NIX_INLINE __nixFloat4 YYWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 3, 2); }
+    static NIX_INLINE __nixFloat4 YYWW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 1, 3, 3); }
+    static NIX_INLINE __nixFloat4 YZXX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 0, 0); }
+    static NIX_INLINE __nixFloat4 YZXY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 0, 1); }
+    static NIX_INLINE __nixFloat4 YZXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 0, 2); }
+    static NIX_INLINE __nixFloat4 YZXW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 0, 3); }
+    static NIX_INLINE __nixFloat4 YZYX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 1, 0); }
+    static NIX_INLINE __nixFloat4 YZYY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 1, 1); }
+    static NIX_INLINE __nixFloat4 YZYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 1, 2); }
+    static NIX_INLINE __nixFloat4 YZYW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 1, 3); }
+    static NIX_INLINE __nixFloat4 YZZX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 2, 0); }
+    static NIX_INLINE __nixFloat4 YZZY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 2, 1); }
+    static NIX_INLINE __nixFloat4 YZZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 2, 2); }
+    static NIX_INLINE __nixFloat4 YZZW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 2, 3); }
+    static NIX_INLINE __nixFloat4 YZWX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 3, 0); }
+    static NIX_INLINE __nixFloat4 YZWY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 3, 1); }
+    static NIX_INLINE __nixFloat4 YZWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 3, 2); }
+    static NIX_INLINE __nixFloat4 YZWW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 2, 3, 3); }
+    static NIX_INLINE __nixFloat4 YWXX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 0, 0); }
+    static NIX_INLINE __nixFloat4 YWXY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 0, 1); }
+    static NIX_INLINE __nixFloat4 YWXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 0, 2); }
+    static NIX_INLINE __nixFloat4 YWXW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 0, 3); }
+    static NIX_INLINE __nixFloat4 YWYX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 1, 0); }
+    static NIX_INLINE __nixFloat4 YWYY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 1, 1); }
+    static NIX_INLINE __nixFloat4 YWYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 1, 2); }
+    static NIX_INLINE __nixFloat4 YWYW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 1, 3); }
+    static NIX_INLINE __nixFloat4 YWZX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 2, 0); }
+    static NIX_INLINE __nixFloat4 YWZY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 2, 1); }
+    static NIX_INLINE __nixFloat4 YWZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 2, 2); }
+    static NIX_INLINE __nixFloat4 YWZW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 2, 3); }
+    static NIX_INLINE __nixFloat4 YWWX(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 3, 0); }
+    static NIX_INLINE __nixFloat4 YWWY(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 3, 1); }
+    static NIX_INLINE __nixFloat4 YWWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 3, 2); }
+    static NIX_INLINE __nixFloat4 YWWW(const __nixFloat4& _v) { return SWIZZLE(_v, 1, 3, 3, 3); }
+
+    static NIX_INLINE __nixFloat4 ZXXX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 0, 0); }
+    static NIX_INLINE __nixFloat4 ZXXY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 0, 1); }
+    static NIX_INLINE __nixFloat4 ZXXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 0, 2); }
+    static NIX_INLINE __nixFloat4 ZXXW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 0, 3); }
+    static NIX_INLINE __nixFloat4 ZXYX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 1, 0); }
+    static NIX_INLINE __nixFloat4 ZXYY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 1, 1); }
+    static NIX_INLINE __nixFloat4 ZXYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 1, 2); }
+    static NIX_INLINE __nixFloat4 ZXYW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 1, 3); }
+    static NIX_INLINE __nixFloat4 ZXZX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 2, 0); }
+    static NIX_INLINE __nixFloat4 ZXZY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 2, 1); }
+    static NIX_INLINE __nixFloat4 ZXZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 2, 2); }
+    static NIX_INLINE __nixFloat4 ZXZW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 2, 3); }
+    static NIX_INLINE __nixFloat4 ZXWX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 3, 0); }
+    static NIX_INLINE __nixFloat4 ZXWY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 3, 1); }
+    static NIX_INLINE __nixFloat4 ZXWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 3, 2); }
+    static NIX_INLINE __nixFloat4 ZXWW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 0, 3, 3); }
+    static NIX_INLINE __nixFloat4 ZYXX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 0, 0); }
+    static NIX_INLINE __nixFloat4 ZYXY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 0, 1); }
+    static NIX_INLINE __nixFloat4 ZYXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 0, 2); }
+    static NIX_INLINE __nixFloat4 ZYXW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 0, 3); }
+    static NIX_INLINE __nixFloat4 ZYYX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 1, 0); }
+    static NIX_INLINE __nixFloat4 ZYYY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 1, 1); }
+    static NIX_INLINE __nixFloat4 ZYYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 1, 2); }
+    static NIX_INLINE __nixFloat4 ZYYW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 1, 3); }
+    static NIX_INLINE __nixFloat4 ZYZX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 2, 0); }
+    static NIX_INLINE __nixFloat4 ZYZY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 2, 1); }
+    static NIX_INLINE __nixFloat4 ZYZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 2, 2); }
+    static NIX_INLINE __nixFloat4 ZYZW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 2, 3); }
+    static NIX_INLINE __nixFloat4 ZYWX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 3, 0); }
+    static NIX_INLINE __nixFloat4 ZYWY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 3, 1); }
+    static NIX_INLINE __nixFloat4 ZYWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 3, 2); }
+    static NIX_INLINE __nixFloat4 ZYWW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 1, 3, 3); }
+    static NIX_INLINE __nixFloat4 ZZXX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 0, 0); }
+    static NIX_INLINE __nixFloat4 ZZXY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 0, 1); }
+    static NIX_INLINE __nixFloat4 ZZXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 0, 2); }
+    static NIX_INLINE __nixFloat4 ZZXW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 0, 3); }
+    static NIX_INLINE __nixFloat4 ZZYX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 1, 0); }
+    static NIX_INLINE __nixFloat4 ZZYY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 1, 1); }
+    static NIX_INLINE __nixFloat4 ZZYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 1, 2); }
+    static NIX_INLINE __nixFloat4 ZZYW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 1, 3); }
+    static NIX_INLINE __nixFloat4 ZZZX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 2, 0); }
+    static NIX_INLINE __nixFloat4 ZZZY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 2, 1); }
+    static NIX_INLINE __nixFloat4 ZZZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 2, 2); }
+    static NIX_INLINE __nixFloat4 ZZZW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 2, 3); }
+    static NIX_INLINE __nixFloat4 ZZWX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 3, 0); }
+    static NIX_INLINE __nixFloat4 ZZWY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 3, 1); }
+    static NIX_INLINE __nixFloat4 ZZWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 3, 2); }
+    static NIX_INLINE __nixFloat4 ZZWW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 2, 3, 3); }
+    static NIX_INLINE __nixFloat4 ZWXX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 0, 0); }
+    static NIX_INLINE __nixFloat4 ZWXY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 0, 1); }
+    static NIX_INLINE __nixFloat4 ZWXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 0, 2); }
+    static NIX_INLINE __nixFloat4 ZWXW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 0, 3); }
+    static NIX_INLINE __nixFloat4 ZWYX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 1, 0); }
+    static NIX_INLINE __nixFloat4 ZWYY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 1, 1); }
+    static NIX_INLINE __nixFloat4 ZWYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 1, 2); }
+    static NIX_INLINE __nixFloat4 ZWYW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 1, 3); }
+    static NIX_INLINE __nixFloat4 ZWZX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 2, 0); }
+    static NIX_INLINE __nixFloat4 ZWZY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 2, 1); }
+    static NIX_INLINE __nixFloat4 ZWZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 2, 2); }
+    static NIX_INLINE __nixFloat4 ZWZW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 2, 3); }
+    static NIX_INLINE __nixFloat4 ZWWX(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 3, 0); }
+    static NIX_INLINE __nixFloat4 ZWWY(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 3, 1); }
+    static NIX_INLINE __nixFloat4 ZWWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 3, 2); }
+    static NIX_INLINE __nixFloat4 ZWWW(const __nixFloat4& _v) { return SWIZZLE(_v, 2, 3, 3, 3); }
+
+    static NIX_INLINE __nixFloat4 WXXX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 0, 0); }
+    static NIX_INLINE __nixFloat4 WXXY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 0, 1); }
+    static NIX_INLINE __nixFloat4 WXXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 0, 2); }
+    static NIX_INLINE __nixFloat4 WXXW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 0, 3); }
+    static NIX_INLINE __nixFloat4 WXYX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 1, 0); }
+    static NIX_INLINE __nixFloat4 WXYY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 1, 1); }
+    static NIX_INLINE __nixFloat4 WXYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 1, 2); }
+    static NIX_INLINE __nixFloat4 WXYW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 1, 3); }
+    static NIX_INLINE __nixFloat4 WXZX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 2, 0); }
+    static NIX_INLINE __nixFloat4 WXZY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 2, 1); }
+    static NIX_INLINE __nixFloat4 WXZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 2, 2); }
+    static NIX_INLINE __nixFloat4 WXZW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 2, 3); }
+    static NIX_INLINE __nixFloat4 WXWX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 3, 0); }
+    static NIX_INLINE __nixFloat4 WXWY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 3, 1); }
+    static NIX_INLINE __nixFloat4 WXWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 3, 2); }
+    static NIX_INLINE __nixFloat4 WXWW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 0, 3, 3); }
+    static NIX_INLINE __nixFloat4 WYXX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 0, 0); }
+    static NIX_INLINE __nixFloat4 WYXY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 0, 1); }
+    static NIX_INLINE __nixFloat4 WYXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 0, 2); }
+    static NIX_INLINE __nixFloat4 WYXW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 0, 3); }
+    static NIX_INLINE __nixFloat4 WYYX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 1, 0); }
+    static NIX_INLINE __nixFloat4 WYYY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 1, 1); }
+    static NIX_INLINE __nixFloat4 WYYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 1, 2); }
+    static NIX_INLINE __nixFloat4 WYYW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 1, 3); }
+    static NIX_INLINE __nixFloat4 WYZX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 2, 0); }
+    static NIX_INLINE __nixFloat4 WYZY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 2, 1); }
+    static NIX_INLINE __nixFloat4 WYZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 2, 2); }
+    static NIX_INLINE __nixFloat4 WYZW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 2, 3); }
+    static NIX_INLINE __nixFloat4 WYWX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 3, 0); }
+    static NIX_INLINE __nixFloat4 WYWY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 3, 1); }
+    static NIX_INLINE __nixFloat4 WYWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 3, 2); }
+    static NIX_INLINE __nixFloat4 WYWW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 1, 3, 3); }
+    static NIX_INLINE __nixFloat4 WZXX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 0, 0); }
+    static NIX_INLINE __nixFloat4 WZXY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 0, 1); }
+    static NIX_INLINE __nixFloat4 WZXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 0, 2); }
+    static NIX_INLINE __nixFloat4 WZXW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 0, 3); }
+    static NIX_INLINE __nixFloat4 WZYX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 1, 0); }
+    static NIX_INLINE __nixFloat4 WZYY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 1, 1); }
+    static NIX_INLINE __nixFloat4 WZYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 1, 2); }
+    static NIX_INLINE __nixFloat4 WZYW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 1, 3); }
+    static NIX_INLINE __nixFloat4 WZZX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 2, 0); }
+    static NIX_INLINE __nixFloat4 WZZY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 2, 1); }
+    static NIX_INLINE __nixFloat4 WZZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 2, 2); }
+    static NIX_INLINE __nixFloat4 WZZW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 2, 3); }
+    static NIX_INLINE __nixFloat4 WZWX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 3, 0); }
+    static NIX_INLINE __nixFloat4 WZWY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 3, 1); }
+    static NIX_INLINE __nixFloat4 WZWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 3, 2); }
+    static NIX_INLINE __nixFloat4 WZWW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 2, 3, 3); }
+    static NIX_INLINE __nixFloat4 WWXX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 0, 0); }
+    static NIX_INLINE __nixFloat4 WWXY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 0, 1); }
+    static NIX_INLINE __nixFloat4 WWXZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 0, 2); }
+    static NIX_INLINE __nixFloat4 WWXW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 0, 3); }
+    static NIX_INLINE __nixFloat4 WWYX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 1, 0); }
+    static NIX_INLINE __nixFloat4 WWYY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 1, 1); }
+    static NIX_INLINE __nixFloat4 WWYZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 1, 2); }
+    static NIX_INLINE __nixFloat4 WWYW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 1, 3); }
+    static NIX_INLINE __nixFloat4 WWZX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 2, 0); }
+    static NIX_INLINE __nixFloat4 WWZY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 2, 1); }
+    static NIX_INLINE __nixFloat4 WWZZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 2, 2); }
+    static NIX_INLINE __nixFloat4 WWZW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 2, 3); }
+    static NIX_INLINE __nixFloat4 WWWX(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 3, 0); }
+    static NIX_INLINE __nixFloat4 WWWY(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 3, 1); }
+    static NIX_INLINE __nixFloat4 WWWZ(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 3, 2); }
+    static NIX_INLINE __nixFloat4 WWWW(const __nixFloat4& _v) { return SWIZZLE(_v, 3, 3, 3, 3); }
+
+    //////////////////////////////////////////////////////////////////////////
+
+    static NIX_INLINE __nixFloat4 AX_BX_AY_BY(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_unpacklo_ps(_a, _b); }
+    static NIX_INLINE __nixFloat4 AX_AY_BX_BY(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_movelh_ps(_a, _b); }
+    static NIX_INLINE __nixFloat4 AZ_BZ_AW_BW(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_unpackhi_ps(_a, _b); }
+    static NIX_INLINE __nixFloat4 BZ_BW_AZ_AW(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_movehl_ps(_a, _b); }
+    static NIX_INLINE __nixFloat4 BX_AY_AZ_AW(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_move_ss(_a, _b); }
+    static NIX_INLINE __nixFloat4 AX_AX_AZ_AZ(const __nixFloat4& _a)                          
+    {
+#   if NIX_ARCH & NIX_ARCH_SSE3_FLAG
+        return _mm_moveldup_ps(_a);
+#   else
+        return _mm_shuffle_ps(_a, _a, _MM_SHUFFLE(2, 2, 0, 0));
+#   endif   
+    }
+    static NIX_INLINE __nixFloat4 AY_AX_BY_BX(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_shuffle_ps(_a, _b, _MM_SHUFFLE(0, 1, 0, 1)); }
+    static NIX_INLINE __nixFloat4 AW_AZ_BW_BZ(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_shuffle_ps(_a, _b, _MM_SHUFFLE(2, 3, 2, 3)); }
+    static NIX_INLINE __nixFloat4 AW_AX_BY_BZ(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_shuffle_ps(_a, _b, _MM_SHUFFLE(2, 1, 0, 3)); }
+    static NIX_INLINE __nixFloat4 AX_AY_BX_BW(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_shuffle_ps(_a, _b, _MM_SHUFFLE(3, 0, 1, 0)); }
+    static NIX_INLINE __nixFloat4 AZ_AW_BY_BW(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_shuffle_ps(_a, _b, _MM_SHUFFLE(3, 1, 3, 2)); }
+    static NIX_INLINE __nixFloat4 AX_AY_BZ_BW(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_shuffle_ps(_a, _b, _MM_SHUFFLE(3, 2, 1, 0)); }
+    static NIX_INLINE __nixFloat4 AX_AZ_BX_BZ(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_shuffle_ps(_a, _b, _MM_SHUFFLE(2, 0, 2, 0)); }
+    static NIX_INLINE __nixFloat4 AY_AW_BY_BW(const __nixFloat4& _a, const __nixFloat4& _b)    { return _mm_shuffle_ps(_a, _b, _MM_SHUFFLE(3, 1, 3, 1)); }
+
+    //////////////////////////////////////////////////////////////////////////
 
 private:
     constexpr static NIX_SIMD_ALIGN_16 const __nixFloat4 kZeroingW = { 1.0f, 1.0f, 1.0f, 0.0f };

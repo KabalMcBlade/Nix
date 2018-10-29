@@ -307,6 +307,8 @@ private:
     friend NIX_INLINE Vector operator* (const Vector& _v, nixFloat _s);
     friend NIX_INLINE Vector operator* (nixFloat _s, const Vector& _v);
     friend NIX_INLINE Vector operator* (const Vector& _a, const Vector& _b);
+    friend NIX_INLINE Vector operator* (const Vector& _a, const __nixFloat4& _b);
+    friend NIX_INLINE Vector operator* (const __nixFloat4& _a, const Vector& _b);
     friend NIX_INLINE Vector operator/ (const Vector& _v, nixFloat _s);
     friend NIX_INLINE Vector operator/ (nixFloat _s, const Vector& _v);
     friend NIX_INLINE Vector operator/ (const Vector& _a, const Vector& _b);
@@ -382,6 +384,17 @@ NIX_INLINE Vector operator* (const Vector& _a, const Vector& _b)
 {
     return VectorHelper::Mul(_a.m_vec, _b.m_vec);
 }
+
+NIX_INLINE Vector operator* (const Vector& _a, const __nixFloat4& _b)
+{
+    return VectorHelper::Mul(_a.m_vec, _b);
+}
+
+NIX_INLINE Vector operator* (const __nixFloat4& _a, const Vector& _b)
+{
+    return VectorHelper::Mul(_a, _b.m_vec);
+}
+
 
 //operator/
 NIX_INLINE Vector  operator/ (const Vector& _v, nixFloat _s)

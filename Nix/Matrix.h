@@ -414,45 +414,6 @@ public:
         return *this;
     }
 
-    //////////////////////////////////////////////////////////////////////////
-    // Functions
-    void SetFromYawPitchRoll(const nixFloat& _yaw, const nixFloat& _pitch, const nixFloat& _roll)
-    {
-        nixFloat cosYaw = std::cosf(_yaw);
-        nixFloat sinYaw = std::sinf(_yaw);
-        nixFloat cosPitch = std::cosf(_pitch);
-        nixFloat sinPitch = std::sinf(_pitch);
-        nixFloat cosRoll = std::cosf(_roll);
-        nixFloat sinRoll = std::sinf(_roll);
-
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        this->m_rows = VectorHelper::Set(
-            cosYaw * cosRoll + sinYaw * sinPitch * sinRoll, sinRoll * cosPitch, -sinYaw * cosRoll + cosYaw * sinPitch * sinRoll, 0.0f,
-            -cosYaw * sinRoll + sinYaw * sinPitch * cosRoll, cosRoll * cosPitch, sinRoll * sinYaw + cosYaw * sinPitch * cosRoll, 0.0f,
-            sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        this->m_rows[0] = VectorHelper::Set(
-            cosYaw * cosRoll + sinYaw * sinPitch * sinRoll, sinRoll * cosPitch, -sinYaw * cosRoll + cosYaw * sinPitch * sinRoll, 0.0f,
-            -cosYaw * sinRoll + sinYaw * sinPitch * cosRoll, cosRoll * cosPitch, sinRoll * sinYaw + cosYaw * sinPitch * cosRoll, 0.0f);
-
-        this->m_rows[1] = VectorHelper::Set(
-            sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f);
-
-#   else 
-
-        this->m_rows[0] = VectorHelper::Set(cosYaw * cosRoll + sinYaw * sinPitch * sinRoll, sinRoll * cosPitch, -sinYaw * cosRoll + cosYaw * sinPitch * sinRoll, 0.0f);
-        this->m_rows[1] = VectorHelper::Set(-cosYaw * sinRoll + sinYaw * sinPitch * cosRoll, cosRoll * cosPitch, sinRoll * sinYaw + cosYaw * sinPitch * cosRoll, 0.0f);
-        this->m_rows[2] = VectorHelper::Set(sinYaw * cosPitch, -sinPitch, cosYaw * cosPitch, 0.0f);
-        this->m_rows[3] = VectorHelper::Set(0.0f, 0.0f, 0.0f, 1.0f);
-
-#   endif
-    }
-
     NIX_INLINE Vector Determinant() const
     {
         Vector result;

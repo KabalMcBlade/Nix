@@ -5,7 +5,7 @@
 #include "Types.h"
 #include "VectorHelper.h"
 
-
+#include "Operators.h"
 
 
 #define NIX_VALUE_DEGTORAD   0.017453292519943295769236907684886f    // Degrees to Radians (PI/180)
@@ -28,41 +28,86 @@ public:
     constexpr static const nixFloat kEpsilon = std::numeric_limits<nixFloat>::epsilon();
 
 public:
-    static NIX_INLINE __nixFloat4 Cos(__nixFloat4 _angle)
+    static NIX_INLINE __nixFloat4 Cos(const __nixFloat4& _x)
     {
-        __nixFloat4 flr = VectorHelper::Floor(VectorHelper::Mul(_angle, VectorHelper::Splat(kInv2PI)));
-        _angle = VectorHelper::Sub(_angle, VectorHelper::Mul(flr, VectorHelper::Splat(k2PI)));
-
-        _angle = VectorHelper::Abs(_angle);
-
-        __nixFloat4 cosangle = _angle;
-        cosangle = _mm_xor_ps(cosangle, _mm_and_ps(_mm_cmpge_ps(_angle, VectorHelper::Splat(kHalfPI)), _mm_xor_ps(cosangle, VectorHelper::Sub(VectorHelper::Splat(kPI), _angle))));
-        cosangle = _mm_xor_ps(cosangle, _mm_and_ps(_mm_cmpge_ps(_angle, VectorHelper::Splat(kPI)), VectorHelper::GetSignMask()));
-        cosangle = _mm_xor_ps(cosangle, _mm_and_ps(_mm_cmpge_ps(_angle, VectorHelper::Splat(k3halfPI)), _mm_xor_ps(cosangle, VectorHelper::Sub(VectorHelper::Splat(k2PI), _angle))));
-
-        __nixFloat4 result = MathHelper::Cos52s(cosangle);
-
-        result = _mm_xor_ps(result, _mm_and_ps(_mm_and_ps(_mm_cmpge_ps(_angle, VectorHelper::Splat(kHalfPI)), _mm_cmplt_ps(_angle, VectorHelper::Splat(k3halfPI))), VectorHelper::GetSignMask()));
-
-        return result;
+        return cos_ps(_x);
     }
 
-    static NIX_INLINE __nixFloat4 Sin(__nixFloat4 _angle)
+    static NIX_INLINE __nixFloat4 Sin(const __nixFloat4& _x)
     {
-        return MathHelper::Cos(VectorHelper::Sub(VectorHelper::Splat(kHalfPI), _angle));
+        return sin_ps(_x);
+    }
+
+    static NIX_INLINE __nixFloat4 Exp(const __nixFloat4& _x)
+    {
+        return exp_ps(_x);
+    }
+
+    static NIX_INLINE __nixFloat4 Log(const __nixFloat4& _x)
+    {
+        return log_ps(_x);
     }
     
-    static NIX_INLINE void SinCos(__nixFloat4 _angle, __nixFloat4* _sin, __nixFloat4* _cos)
+    static NIX_INLINE void SinCos(const __nixFloat4& _x, __nixFloat4* _sin, __nixFloat4* _cos)
     {
-        *_cos = Cos(_angle);
-
-        __nixFloat4 flr = VectorHelper::Floor(VectorHelper::Mul(_angle, VectorHelper::Splat(kInv2PI)));
-        _angle = VectorHelper::Sub(_angle, VectorHelper::Mul(flr, VectorHelper::Splat(k2PI)));
-
-        __nixFloat4 sinmultiplier = _mm_xor_ps(VectorHelper::GetOne(), _mm_and_ps(_mm_cmplt_ps(_angle, VectorHelper::GetZero()), _mm_and_ps(_mm_cmpge_ps(_angle, VectorHelper::Splat(-kPI)), VectorHelper::GetSignMask())));
-        *_sin = VectorHelper::Mul(sinmultiplier, VectorHelper::Sqrt(VectorHelper::Sub(VectorHelper::GetOne(), VectorHelper::Mul(*_cos, *_cos))));
+        return sincos_ps(_x, _sin, _cos);
     }
     
+    static NIX_INLINE __nixFloat4 Tan(const __nixFloat4& _x)
+    {
+        const __nixFloat4 signs(VectorHelper::GetSignMask()), ones(VectorHelper::GetOne()), signsres(_x & signs), fopi(VectorHelper::GetOPI()), tanp1(VectorHelper::GetTanCP1()), tanp2(VectorHelper::GetTanCP2()), tanp3(VectorHelper::GetTanCP3()), tanp4(VectorHelper::GetTanCP4()), tanp5(VectorHelper::GetTanCP5());
+        const __nixInt4 iones(VectorHelper::GetOneI()), ionesn(VectorHelper::GetOneNegI()), twos(VectorHelper::GetTwoI()), nzeros(VectorHelper::GetZeroI());
+
+        __nixFloat4 ax(abs(_x));
+        // store the integer part of y in mm0 
+        __nixInt4 emm2 = (_mm_cvttps_epi32(ax * fopi) + iones) & ionesn;
+        __nixFloat4 y = _mm_cvtepi32_ps(emm2);
+        emm2 = cmpeq(emm2 & twos, nzeros);
+        const __nixFloat4 polymsk(_mm_castsi128_ps(emm2)), polymskn(~polymsk);
+
+        __nixFloat4 z = ((ax + y * __nixFloat4(VectorHelper::GetNegDP1())) + y * __nixFloat4(VectorHelper::GetNegDP2())) + y * __nixFloat4(VectorHelper::GetNegDP3()), zz(z * z), poly(VectorHelper::GetTanCP0());
+        poly = poly * zz + tanp1;
+        poly = poly * zz + tanp2;
+        poly = poly * zz + tanp3;
+        poly = poly * zz + tanp4;
+        poly = poly * zz + tanp5;
+        poly = poly * zz * z + z;
+
+        __nixFloat4 polyinv = ones / poly;
+        poly = (poly & polymsk) | (-polyinv & polymskn);
+        return poly ^ signsres;
+    }
+    
+    static NIX_INLINE __nixFloat4 ATan(const __nixFloat4& _x)
+    {
+        const __nixFloat4 signsn(VectorHelper::GetSignMaskNeg()), signs(VectorHelper::GetSignMask()), ones(VectorHelper::GetOne()), atanhi(VectorHelper::GetTanHI()), atanlo(VectorHelper::GetTanLO()), pih(VectorHelper::GetPIH()), piq(VectorHelper::GetPIQ()), atanp0(VectorHelper::GetTanP0()), atanp1(VectorHelper::GetTanP1()), atanp2(VectorHelper::GetTanP2()), atanp3(VectorHelper::GetTanP3());
+        __nixFloat4 ax = abs(_x), r = ax - ones, r0 = _mm_rcp_ps(ax + ones), r1 = -_mm_rcp_ps(ax);
+        __nixFloat4 cmp0 = cmpgt(ax, atanhi), cmp1 = cmpgt(ax, atanlo), cmp2 = ~cmp0 & cmp1, cmp = cmp0 | cmp1;
+        __nixFloat4 x2 = (cmp2 & (r * r0)) | (cmp0 & r1);
+        ax = (cmp & x2) | (~cmp & ax);
+
+        __nixFloat4 zz = ax * ax, acc = atanp0;
+        acc = acc * zz - atanp1;
+        acc = acc * zz + atanp2;
+        acc = acc * zz - atanp3;
+        acc = acc * zz * ax + ax + ((cmp0 & pih) | (cmp2 & piq));
+        return acc ^ (_x & signs);
+    }
+
+    static NIX_INLINE __nixFloat4 ATan2(const __nixFloat4& _x, const __nixFloat4& _y)
+    {
+        const __nixFloat4 zeros(VectorHelper::GetZero()), signs(VectorHelper::GetSignMask()), pi(VectorHelper::GetPIF()), pih(VectorHelper::GetPIH());
+        __nixFloat4 xeq = cmpeq(_x, zeros), xgt = cmpgt(_x, zeros), xle = cmple(_x, zeros), xlt = cmplt(_x, zeros), yeq = cmpeq(_y, zeros), ylt = cmplt(_y, zeros);
+        __nixFloat4 zero_mask = (xeq & yeq) | (xgt & yeq), pio2_mask = ~yeq &  xeq;
+        __nixFloat4 pio2_result = (pih ^ (ylt & signs)) & pio2_mask;
+        __nixFloat4 atan_result = ATan(_y / _x) + (xlt & (pi ^ (xlt & ylt & signs)));
+
+        return (~zero_mask & pio2_result) | (~pio2_mask & atan_result) | (pi & xle & yeq);
+    }
+    
+    //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+
     // If a converted result is negative the value (0) is returned and if the
     // converted result is larger than the maximum byte the value (255) is returned.
     static NIX_INLINE nixU8 FloatToByte(nixFloat _value)
@@ -113,19 +158,6 @@ public:
         _out[0] = (nixU8)_mm_extract_epi16(xyz16, 0);    // cannot use _mm_extract_epi8 because it is an SSE4 instruction
         _out[1] = (nixU8)_mm_extract_epi16(xyz16, 1);
         _out[2] = (nixU8)_mm_extract_epi16(xyz16, 2);
-    }
-
-private:
-
-    // Look at: http://www.ganssle.com/approx.htm for more details
-    static NIX_INLINE __nixFloat4 Cos52s(const __nixFloat4& _v)
-    {
-        const __nixFloat4 c1 = VectorHelper::Splat(0.9999932946f);
-        const __nixFloat4 c2 = VectorHelper::Splat(-0.4999124376f);
-        const __nixFloat4 c3 = VectorHelper::Splat(0.0414877472f);
-        const __nixFloat4 c4 = VectorHelper::Splat(-0.0012712095f);
-        const __nixFloat4 x = VectorHelper::Mul(_v, _v);
-        return VectorHelper::Add(c1, VectorHelper::Mul(x, VectorHelper::Add(c2, VectorHelper::Mul(x, VectorHelper::Add(c3, VectorHelper::Mul(c4, x))))));
     }
 };
 

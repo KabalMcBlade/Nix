@@ -22,6 +22,7 @@ public:
     NIX_INLINE Quaternion(__nixFloat4&& _copy) noexcept : m_quat(std::move(_copy)) {}
     NIX_INLINE Quaternion(nixFloat _x, nixFloat _y, nixFloat _z, nixFloat _w) : m_quat(VectorHelper::Set(_x, _y, _z, _w)) {}
     NIX_INLINE Quaternion(const nixFloat& _radians, const Vector& _axis) { SetFromAngleAxis(_radians, _axis); }
+    NIX_INLINE Quaternion(const nixFloat& _pitch, const nixFloat& _yaw, const nixFloat& _roll) { SetFromPitchYawRoll(_pitch, _yaw, _roll); }
 
     //////////////////////////////////////////////////////////////////////////
     // Print function for debug purpose only
@@ -65,9 +66,29 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
     // Functions
+    NIX_INLINE void SetFromPitchYawRoll(const nixFloat& _pitch, const nixFloat& _yaw, const nixFloat& _roll)
+    {
+        __nixFloat4 angles = VectorHelper::Set(_pitch, _pitch, _yaw, _roll);
+
+        __nixFloat4 sin, cos;
+        MathHelper::SinCos(VectorHelper::Mul(angles, VectorHelper::Splat(0.5f)), &sin, &cos);
+
+        __nixFloat4 cxxyz = VectorHelper::BX_AY_AZ_AW(sin, cos);
+        __nixFloat4 sxxyz = VectorHelper::BX_AY_AZ_AW(cos, sin);
+
+        __nixFloat4 left = cxxyz * VectorHelper::ZZYZ(cos) * VectorHelper::WWWY(cos);
+        __nixFloat4 right = sxxyz * VectorHelper::ZZYZ(sin) * VectorHelper::WWWY(sin);
+        __nixFloat4 op = VectorHelper::GetMaskSignZeroSignZero();
+        __nixFloat4 xor = right ^ op;
+        __nixFloat4 rot = left + xor;
+
+        m_quat = VectorHelper::YZWX(rot);
+    }
+
     NIX_INLINE void SetFromAngleAxis(const nixFloat& _radians, const Vector& _axis)
     {
         __nixFloat4 sin, cos;
+
         MathHelper::SinCos(VectorHelper::Mul(VectorHelper::Splat(_radians), VectorHelper::Splat(0.5f)), &sin, &cos);
 
         const __nixFloat4 quat = VectorHelper::Mul(_axis.m_vec, sin);
@@ -264,18 +285,27 @@ public:
 
     NIX_INLINE Matrix ToMatrix() const
     {
-        nixFloat qX = VectorHelper::ExtractElement_0(m_quat);
-        nixFloat qY = VectorHelper::ExtractElement_1(m_quat);
-        nixFloat qZ = VectorHelper::ExtractElement_2(m_quat);
-        nixFloat qW = VectorHelper::ExtractElement_3(m_quat);
+        nixFloat qX = VectorHelper::ExtractX(m_quat);
+        nixFloat qY = VectorHelper::ExtractY(m_quat);
+        nixFloat qZ = VectorHelper::ExtractZ(m_quat);
+        nixFloat qW = VectorHelper::ExtractW(m_quat);
 
+        /*
         Matrix rotation(
             1.f - 2.f * (qY * qY + qZ * qZ),    2.f * (qX * qY + qW * qZ),          2.f * (qX * qZ - qW * qY),          0.f,
             2.f * (qX * qY - qW * qZ),          1.f - 2.f * (qX * qX + qZ * qZ),    2.f * (qY * qZ + qW * qX),          0.f,
             2.f * (qX * qZ + qW * qY),          2.f * (qY * qZ - qW * qX),          1.f - 2.f * (qX * qX + qY * qY),    0.f,
             0.f,                                0.f,                                0.f,                                1.f
         );
-        
+        */
+
+        Matrix rotation(
+            1.f - 2.f * (qY * qY + qZ * qZ),    2.f * (qX * qY - qW * qZ),          2.f * (qX * qZ + qW * qY),          0.f,
+            2.f * (qX * qY + qW * qZ),          1.f - 2.f * (qX * qX + qZ * qZ),    2.f * (qY * qZ - qW * qX),          0.f,
+            2.f * (qX * qZ - qW * qY),          2.f * (qY * qZ + qW * qX),          1.f - 2.f * (qX * qX + qY * qY),    0.f,
+            0.f,                                0.f,                                0.f,                                1.f
+        );
+
         return rotation;
     }
 
