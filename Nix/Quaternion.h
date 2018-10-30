@@ -180,14 +180,25 @@ public:
 
     NIX_INLINE Vector Length() const
     {
-        return VectorHelper::FastSqrt(VectorHelper::Dot(m_quat, m_quat));
+        return VectorHelper::Sqrt(VectorHelper::Dot(m_quat, m_quat));
     }
 
     NIX_INLINE Quaternion Normalize() const
     {
-        Vector v = 1.0f / Length();
-        Quaternion q(v);
-        return VectorHelper::Mul(m_quat, q.m_quat);
+        const Vector vLen = Length();
+
+        nixFloat len = 0;
+        _mm_store_ss(&len, vLen.m_vec);
+
+        if (len <= 0.0f)
+        {
+            return Quaternion();
+        }
+        else
+        {
+            const Vector oneOverLen(1.0f / len);
+            return VectorHelper::Mul(oneOverLen, m_quat);
+        }
     }
 
     NIX_INLINE Vector Dot(const Quaternion& _other) const
@@ -245,6 +256,8 @@ public:
 
     NIX_INLINE Quaternion Slerp(const Quaternion& _other, const nixFloat& _time) const
     {
+        Quaternion other = _other;
+
         Vector vCosTheta = Dot(_other);
 
         nixFloat cosTheta = 0;
@@ -252,21 +265,27 @@ public:
 
         if (cosTheta < 0.0f)
         {
+            other = -_other;
             cosTheta = -cosTheta;
         }
 
         if (cosTheta > 1.0f - MathHelper::kEpsilon)
         {
-            return VectorHelper::Add(m_quat, VectorHelper::Mul(VectorHelper::Splat(_time), VectorHelper::Sub(_other.m_quat, m_quat)));
+            return LerpTo(other, _time);
         }
         else
         {
             nixFloat angle = std::acos(cosTheta);
 
-            const __nixFloat4 sin = MathHelper::Sin(VectorHelper::Set(0.0f, angle, _time * angle,  (1.0f - _time) * angle));
-            const __nixFloat4 div = VectorHelper::Div(VectorHelper::GetOne(), _mm_shuffle_ps(sin, sin, _MM_SHUFFLE(1, 1, 1, 1)));
+            nixFloat a = std::sinf((1.0f - _time) * angle);
+            nixFloat b = std::sinf(_time * angle);
+            nixFloat c = std::sinf(angle);
 
-            return VectorHelper::Mul(VectorHelper::Add(VectorHelper::Mul(_mm_shuffle_ps(sin, sin, _MM_SHUFFLE(3, 3, 3, 3)), m_quat), VectorHelper::Mul(_mm_shuffle_ps(sin, sin, _MM_SHUFFLE(2, 2, 2, 2)), _other.m_quat)), div);
+            const __nixFloat4 ax = a * m_quat;
+            const __nixFloat4 by = b * other;
+
+            const __nixFloat4 q = (ax + by) / c;
+            return q;
         }
     }
 
