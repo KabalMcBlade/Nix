@@ -304,28 +304,79 @@ public:
 
     NIX_INLINE Matrix ToMatrix() const
     {
-        nixFloat qX = VectorHelper::ExtractX(m_quat);
-        nixFloat qY = VectorHelper::ExtractY(m_quat);
-        nixFloat qZ = VectorHelper::ExtractZ(m_quat);
-        nixFloat qW = VectorHelper::ExtractW(m_quat);
+        const nixFloat qX = VectorHelper::ExtractX(m_quat);
+        const nixFloat qY = VectorHelper::ExtractY(m_quat);
+        const nixFloat qZ = VectorHelper::ExtractZ(m_quat);
+        const nixFloat qW = VectorHelper::ExtractW(m_quat);
 
-        /*
+        const nixFloat XX = qX * qX;
+        const nixFloat YY = qY * qY;
+        const nixFloat ZZ = qZ * qZ;
+        const nixFloat XY = qX * qY;
+        const nixFloat XZ = qX * qZ;
+        const nixFloat YZ = qY * qZ;
+        const nixFloat WX = qW * qX;
+        const nixFloat WY = qW * qY;
+        const nixFloat Wz = qW * qZ;
+
+        /*  
         Matrix rotation(
-            1.f - 2.f * (qY * qY + qZ * qZ),    2.f * (qX * qY + qW * qZ),          2.f * (qX * qZ - qW * qY),          0.f,
-            2.f * (qX * qY - qW * qZ),          1.f - 2.f * (qX * qX + qZ * qZ),    2.f * (qY * qZ + qW * qX),          0.f,
-            2.f * (qX * qZ + qW * qY),          2.f * (qY * qZ - qW * qX),          1.f - 2.f * (qX * qX + qY * qY),    0.f,
-            0.f,                                0.f,                                0.f,                                1.f
+            1.f - (YY + ZZ) * 2.0f,     (XY - Wz) * 2.0f,           (XZ + WY) * 2.0f,           0.f,
+            (XY + Wz) * 2.0f,           1.f - (XX + ZZ) * 2.0f,     (YZ - WX) * 2.0f,           0.f,
+            (XZ - WY) * 2.0f,           (YZ + WX) * 2.0f,           1.f - (XX + YY) * 2.0f,     0.f,
+            0.f,                        0.f,                        0.f,                        1.f
         );
         */
 
         Matrix rotation(
-            1.f - 2.f * (qY * qY + qZ * qZ),    2.f * (qX * qY - qW * qZ),          2.f * (qX * qZ + qW * qY),          0.f,
-            2.f * (qX * qY + qW * qZ),          1.f - 2.f * (qX * qX + qZ * qZ),    2.f * (qY * qZ - qW * qX),          0.f,
-            2.f * (qX * qZ - qW * qY),          2.f * (qY * qZ + qW * qX),          1.f - 2.f * (qX * qX + qY * qY),    0.f,
-            0.f,                                0.f,                                0.f,                                1.f
+            1.f - (YY + ZZ) * 2.0f,     (XY + Wz) * 2.0f,           (XZ - WY) * 2.0f,           0.f,
+            (XY - Wz) * 2.0f,           1.f - (XX + ZZ) * 2.0f,     (YZ + WX) * 2.0f,           0.f,
+            (XZ + WY) * 2.0f,           (YZ - WX) * 2.0f,           1.f - (XX + YY) * 2.0f,     0.f,
+            0.f,                        0.f,                        0.f,                        1.f
         );
 
         return rotation;
+    }
+
+    NIX_INLINE Matrix ToMatrix(const Vector& _translation) const
+    {
+        const nixFloat vX = VectorHelper::ExtractX(_translation);
+        const nixFloat vY = VectorHelper::ExtractY(_translation);
+        const nixFloat vZ = VectorHelper::ExtractZ(_translation);
+
+        const nixFloat qX = VectorHelper::ExtractX(m_quat);
+        const nixFloat qY = VectorHelper::ExtractY(m_quat);
+        const nixFloat qZ = VectorHelper::ExtractZ(m_quat);
+        const nixFloat qW = VectorHelper::ExtractW(m_quat);
+
+        const nixFloat XX = qX * qX;
+        const nixFloat YY = qY * qY;
+        const nixFloat ZZ = qZ * qZ;
+        const nixFloat XY = qX * qY;
+        const nixFloat XZ = qX * qZ;
+        const nixFloat YZ = qY * qZ;
+        const nixFloat WX = qW * qX;
+        const nixFloat WY = qW * qY;
+        const nixFloat Wz = qW * qZ;
+
+        /*
+        Matrix rt(
+            1.f - (YY + ZZ) * 2.0f,     (XY - Wz) * 2.0f,           (XZ + WY) * 2.0f,           vX,
+            (XY + Wz) * 2.0f,           1.f - (XX + ZZ) * 2.0f,     (YZ - WX) * 2.0f,           vY,
+            (XZ - WY) * 2.0f,           (YZ + WX) * 2.0f,           1.f - (XX + YY) * 2.0f,     vZ,
+            0.f,                        0.f,                        0.f,                        1.f
+        );
+        */
+
+        Matrix rt(
+            1.f - (YY + ZZ) * 2.0f,     (XY + Wz) * 2.0f,           (XZ - WY) * 2.0f,           0.f,
+            (XY - Wz) * 2.0f,           1.f - (XX + ZZ) * 2.0f,     (YZ + WX) * 2.0f,           0.f,
+            (XZ + WY) * 2.0f,           (YZ - WX) * 2.0f,           1.f - (XX + YY) * 2.0f,     0.f,
+            vX,                         vY,                         vZ,                         1.f
+        );
+
+
+        return rt;
     }
 
 private:
