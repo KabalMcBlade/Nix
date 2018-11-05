@@ -5,6 +5,14 @@
 
 NIX_NAMESPACE_BEGIN
 
+#ifdef max
+#undef max
+#endif //
+
+#ifdef min
+#undef min
+#endif //
+
 
 #define NIX_VALUE_DEGTORAD  0.017453292519943295769236907684886f    // Degrees to Radians (PI/180)
 #define NIX_VALUE_RADTODEG  57.295779513082320876798154814105f      // Radians to Degrees (180/PI)
