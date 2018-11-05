@@ -2,107 +2,32 @@
 
 #include "CoreDefs.h"
 #include "Architecture.h"
-#include "Types.h"
-#include "VectorHelper.h"
-#include "MathHelper.h"
+#include "Helper.h"
+#include "Trigonometry.h"
 #include "Vector.h"
-#include "MatrixHelper.h"
 
 NIX_NAMESPACE_BEGIN
 
 
-
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-NIX_SIMD_ALIGN_32 class Matrix
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-NIX_SIMD_ALIGN_32 class Matrix
-#   else 
 NIX_SIMD_ALIGN_16 class Matrix
-#   endif
 {
-private:
-    //////////////////////////////////////////////////////////////////////////
-    friend class VectorHelper;
-    friend class MatrixHelper;
-
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-    __nixFloat16 m_rows;
-#   define ROWS_REF_T           this->m_rows
-#   define ROWS_REF_P(owner)    owner->m_rows
-#   define ROWS_REF_R(owner)    owner.m_rows
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-    __nixFloat8 m_rows[2];
-#   define ROWS_REF_T        &this->m_rows[0]
-#   define ROWS_REF_P(owner) &owner->m_rows[0]
-#   define ROWS_REF_R(owner) &owner.m_rows[0]
-#   else 
-    __nixFloat4 m_rows[4];
-#   define ROWS_REF_T        &this->m_rows[0]
-#   define ROWS_REF_P(owner) &owner->m_rows[0]
-#   define ROWS_REF_R(owner) &owner.m_rows[0]
-#   endif
-
-
 public:
     //////////////////////////////////////////////////////////////////////////
     NIX_INLINE Matrix()
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        this->m_rows = VectorHelper::Set(
-            1.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        this->m_rows[0] = VectorHelper::Set(
-            1.0f, 0.0f, 0.0f, 0.0f,
-            0.0f, 1.0f, 0.0f, 0.0f);
-
-        this->m_rows[1] = VectorHelper::Set(
-            0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f);
-
-#   else 
-
-        this->m_rows[0] = VectorHelper::Set(1.0f, 0.0f, 0.0f, 0.0f);
-        this->m_rows[1] = VectorHelper::Set(0.0f, 1.0f, 0.0f, 0.0f);
-        this->m_rows[2] = VectorHelper::Set(0.0f, 0.0f, 1.0f, 0.0f);
-        this->m_rows[3] = VectorHelper::Set(0.0f, 0.0f, 0.0f, 1.0f);
-
-#   endif
+        this->m_rows[0] = Helper::Set(1.0f, 0.0f, 0.0f, 0.0f);
+        this->m_rows[1] = Helper::Set(0.0f, 1.0f, 0.0f, 0.0f);
+        this->m_rows[2] = Helper::Set(0.0f, 0.0f, 1.0f, 0.0f);
+        this->m_rows[3] = Helper::Set(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
     NIX_INLINE Matrix(const nixFloat& _s)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
+        this->m_rows[0] = Helper::Set(_s, 0.0f, 0.0f, 0.0f);
+        this->m_rows[1] = Helper::Set(0.0f, _s, 0.0f, 0.0f);
+        this->m_rows[2] = Helper::Set(0.0f, 0.0f, _s, 0.0f);
+        this->m_rows[3] = Helper::Set(0.0f, 0.0f, 0.0f, _s);
 
-        this->m_rows = VectorHelper::Set(
-            _s, 0.0f, 0.0f, 0.0f,
-            0.0f, _s, 0.0f, 0.0f,
-            0.0f, 0.0f, _s, 0.0f,
-            0.0f, 0.0f, 0.0f, _s);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        this->m_rows[0] = VectorHelper::Set(
-            _s, 0.0f, 0.0f, 0.0f,
-            0.0f, _s, 0.0f, 0.0f);
-
-        this->m_rows[1] = VectorHelper::Set(
-            0.0f, 0.0f, _s, 0.0f,
-            0.0f, 0.0f, 0.0f, _s);
-
-#   else 
-
-        this->m_rows[0] = VectorHelper::Set(_s, 0.0f, 0.0f, 0.0f);
-        this->m_rows[1] = VectorHelper::Set(0.0f, _s, 0.0f, 0.0f);
-        this->m_rows[2] = VectorHelper::Set(0.0f, 0.0f, _s, 0.0f);
-        this->m_rows[3] = VectorHelper::Set(0.0f, 0.0f, 0.0f, _s);
-
-#   endif
     }
 
     NIX_INLINE Matrix(
@@ -111,32 +36,10 @@ public:
         const nixFloat& _x2, const nixFloat& _y2, const nixFloat& _z2, const nixFloat& _w2,
         const nixFloat& _x3, const nixFloat& _y3, const nixFloat& _z3, const nixFloat& _w3)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        this->m_rows = VectorHelper::Set(
-            _x0, _y0, _z0, _w0,
-            _x1, _y1, _z1, _w1,
-            _x2, _y2, _z2, _w2,
-            _x3, _y3, _z3, _w3);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        this->m_rows[0] = VectorHelper::Set(
-            _x0, _y0, _z0, _w0,
-            _x1, _y1, _z1, _w1);
-
-        this->m_rows[1] = VectorHelper::Set(
-            _x2, _y2, _z2, _w2,
-            _x3, _y3, _z3, _w3);
-
-#   else 
-
-        this->m_rows[0] = VectorHelper::Set(_x0, _y0, _z0, _w0);
-        this->m_rows[1] = VectorHelper::Set(_x1, _y1, _z1, _w1);
-        this->m_rows[2] = VectorHelper::Set(_x2, _y2, _z2, _w2);
-        this->m_rows[3] = VectorHelper::Set(_x3, _y3, _z3, _w3);
-
-#   endif
+        this->m_rows[0] = Helper::Set(_x0, _y0, _z0, _w0);
+        this->m_rows[1] = Helper::Set(_x1, _y1, _z1, _w1);
+        this->m_rows[2] = Helper::Set(_x2, _y2, _z2, _w2);
+        this->m_rows[3] = Helper::Set(_x3, _y3, _z3, _w3);
     }
 
     NIX_INLINE Matrix(
@@ -145,71 +48,26 @@ public:
         const Vector& _v2,
         const Vector& _v3)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        this->m_rows = _mm512_insertf32x4(_mm512_insertf32x4(_mm512_insertf32x4(_mm512_castps128_ps512(_v0.m_vec), _v1.m_vec, 1), _v2.m_vec, 2), _v3.m_vec, 3);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        this->m_rows[0] = _mm256_castps128_ps256(_v0.m_vec);
-        this->m_rows[0] = _mm256_insertf128_ps(this->m_rows[0], _v1.m_vec, 1);
-
-        this->m_rows[1] = _mm256_castps128_ps256(_v2.m_vec);
-        this->m_rows[1] = _mm256_insertf128_ps(this->m_rows[1], _v3.m_vec, 1);
-
-#   else 
-
         this->m_rows[0] = _v0.m_vec;
         this->m_rows[1] = _v1.m_vec;
         this->m_rows[2] = _v2.m_vec;
         this->m_rows[3] = _v3.m_vec;
-
-#   endif
     }
 
     NIX_INLINE Matrix(const Matrix& _m)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        this->m_rows = _m.m_rows;
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        this->m_rows[0] = _m.m_rows[0];
-        this->m_rows[1] = _m.m_rows[1];
-
-#   else 
-
         this->m_rows[0] = _m.m_rows[0];
         this->m_rows[1] = _m.m_rows[1];
         this->m_rows[2] = _m.m_rows[2];
         this->m_rows[3] = _m.m_rows[3];
-
-#   endif
     }
 
     NIX_INLINE Matrix(const Vector _v[4])
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        this->m_rows = _mm512_insertf32x4(_mm512_insertf32x4(_mm512_insertf32x4(_mm512_castps128_ps512(_v[0].m_vec), _v[1].m_vec, 1), _v[2].m_vec, 2), _v[3].m_vec, 3);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        this->m_rows[0] = _mm256_castps128_ps256(_v[0].m_vec);
-        this->m_rows[0] = _mm256_insertf128_ps(this->m_rows[0], _v[1].m_vec, 1);
-
-        this->m_rows[1] = _mm256_castps128_ps256(_v[2].m_vec);
-        this->m_rows[1] = _mm256_insertf128_ps(this->m_rows[1], _v[3].m_vec, 1);
-
-#   else 
-
         this->m_rows[0] = _v[0].m_vec;
         this->m_rows[1] = _v[1].m_vec;
         this->m_rows[2] = _v[2].m_vec;
         this->m_rows[3] = _v[3].m_vec;
-
-#   endif
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -218,19 +76,6 @@ public:
 #ifdef _DEBUG
     NIX_INLINE void Print() const
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-        nixFloat *val = (nixFloat*)&(this->m_rows);
-
-        printf("matrix{\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n}\n",
-            val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15]);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-        nixFloat *val0 = (nixFloat*)&(this->m_rows[0]);
-        nixFloat *val1 = (nixFloat*)&(this->m_rows[1]);
-
-        printf("matrix{\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n}\n",
-            val0[0], val0[1], val0[2], val0[3], val0[4], val0[5], val0[6], val0[7], val1[0], val1[1], val1[2], val1[3], val1[4], val1[5], val1[6], val1[7]);
-#   else
         nixFloat *val0 = (nixFloat*)&(this->m_rows[0]);
         nixFloat *val1 = (nixFloat*)&(this->m_rows[1]);
         nixFloat *val2 = (nixFloat*)&(this->m_rows[2]);
@@ -238,7 +83,6 @@ public:
 
         printf("matrix{\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n}\n", 
             val0[0], val0[1], val0[2], val0[3], val1[0], val1[1], val1[2], val1[3], val2[0], val2[1], val2[2], val2[3], val3[0], val3[1], val3[2], val3[3]);
-#   endif
     }
 #endif
 
@@ -246,236 +90,445 @@ public:
     //////////////////////////////////////////////////////////////////////////
     // Accesses
 
-    NIX_INLINE __nixFloat4& operator[](nixU8 _i)
+    NIX_INLINE nixFloat4& operator[](nixU8 _i)
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        return _mm512_extractf32x4_ps(this->m_rows, _i);
-        
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        switch(_i)
-        {
-        case 0: return _mm256_extractf128_ps(this->m_rows[0], 0); break;
-        case 1: return _mm256_extractf128_ps(this->m_rows[0], 1); break;
-        case 2: return _mm256_extractf128_ps(this->m_rows[1], 0); break;
-        case 3: return _mm256_extractf128_ps(this->m_rows[1], 1); break;
-        }
-
-#   else 
-
         return this->m_rows[_i];
-
-#   endif
     }
 
 
-    NIX_INLINE const __nixFloat4& operator[](nixU8 _i) const
+    NIX_INLINE const nixFloat4& operator[](nixU8 _i) const
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        return _mm512_extractf32x4_ps(this->m_rows, _i);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        switch (_i)
-        {
-        case 0: return _mm256_extractf128_ps(this->m_rows[0], 0); break;
-        case 1: return _mm256_extractf128_ps(this->m_rows[0], 1); break;
-        case 2: return _mm256_extractf128_ps(this->m_rows[1], 0); break;
-        case 3: return _mm256_extractf128_ps(this->m_rows[1], 1); break;
-        }
-
-#   else 
-
         return this->m_rows[_i];
-
-#   endif
     }
 
-    NIX_INLINE const __nixFloat4& GetOrtX() const
+    NIX_INLINE const nixFloat4& GetOrtX() const
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        return _mm512_extractf32x4_ps(this->m_rows, 0);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        return _mm256_extractf128_ps(this->m_rows[0], 0);
-
-#   else 
-
         return this->m_rows[0];
-
-#   endif
     }
 
-    NIX_INLINE const __nixFloat4& GetOrtY() const
+    NIX_INLINE const nixFloat4& GetOrtY() const
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        return _mm512_extractf32x4_ps(this->m_rows, 1);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        return _mm256_extractf128_ps(this->m_rows[0], 1);
-
-#   else 
-
         return this->m_rows[1];
-
-#   endif
     }
 
-    NIX_INLINE const __nixFloat4& GetOrtZ() const
+    NIX_INLINE const nixFloat4& GetOrtZ() const
     {
-#   if NIX_ARCH & NIX_ARCH_AVX512_FLAG
-
-        return _mm512_extractf32x4_ps(this->m_rows, 2);
-
-#   elif NIX_ARCH & NIX_ARCH_AVX_FLAG
-
-        return _mm256_extractf128_ps(this->m_rows[1], 0);
-
-#   else 
-
         return this->m_rows[2];
-
-#   endif
     }
 
     //////////////////////////////////////////////////////////////////////////
     // Operators
     NIX_INLINE Matrix& operator=(const Matrix& _m)
     {
-        MatrixHelper::Set(ROWS_REF_R(_m), ROWS_REF_T);
+        m_rows[0] = _m[0];
+        m_rows[1] = _m[1];
+        m_rows[2] = _m[2];
+        m_rows[3] = _m[3];
         return *this;
     }
 
     NIX_INLINE Matrix& operator+=(const Matrix& _m)
     {
-        MatrixHelper::Add(ROWS_REF_T, ROWS_REF_R(_m), ROWS_REF_T);
+        *this = Add(_m);
         return *this;
     }
 
     NIX_INLINE Matrix& operator-=(const Matrix& _m)
     {
-        MatrixHelper::Sub(ROWS_REF_T, ROWS_REF_R(_m), ROWS_REF_T);
+        *this = Sub(_m);
         return *this;
     }
 
     NIX_INLINE Matrix& operator*=(const Matrix& _m)
     {
-        MatrixHelper::Mul(ROWS_REF_T, ROWS_REF_R(_m), ROWS_REF_T);
+        *this = Mul(_m);
         return *this;
     }
 
     NIX_INLINE Matrix& operator/=(const Matrix& _m)
     {
-        Matrix inv;
-        MatrixHelper::Inverse(ROWS_REF_R(_m), ROWS_REF_R(inv));
-        MatrixHelper::Mul(ROWS_REF_T, ROWS_REF_R(inv), ROWS_REF_T);
+        Matrix inv = Inverse();
+        *this = inv.Mul(_m);
         return *this;
     }
 
     NIX_INLINE Matrix& operator+=(const nixFloat& _s)
     {
-        MatrixHelper::Add(ROWS_REF_T, _s, ROWS_REF_T);
+        *this = Add(_s);
         return *this;
     }
 
     NIX_INLINE Matrix& operator-=(const nixFloat& _s)
     {
-        MatrixHelper::Sub(ROWS_REF_T, _s, ROWS_REF_T);
+        *this = Sub(_s);
         return *this;
     }
 
     NIX_INLINE Matrix& operator*=(const nixFloat& _s)
     {
-        MatrixHelper::Mul(ROWS_REF_T, _s, ROWS_REF_T);
+        *this = Mul(_s);
         return *this;
     }
 
     NIX_INLINE Matrix& operator/=(const nixFloat& _s)
     {
-        MatrixHelper::Div(ROWS_REF_T, _s, ROWS_REF_T);
+        *this = Div(_s);
         return *this;
     }
 
-    NIX_INLINE Matrix& operator++()
-    {
-        MatrixHelper::Increment(ROWS_REF_T, ROWS_REF_T);
-        return *this;
-    }
-
-    NIX_INLINE Matrix& operator--()
-    {
-        MatrixHelper::Decrement(ROWS_REF_T, ROWS_REF_T);
-        return *this;
-    }
-
+    //////////////////////////////////////////////////////////////////////////
+    // Functions
     NIX_INLINE Vector Determinant() const
     {
-        Vector result;
-        MatrixHelper::Determinant(ROWS_REF_T, &result.m_vec);
-        return result;
+        const nixFloat4 swp0 = Swizzle::ZYYX(m_rows[2]);
+        const nixFloat4 swp1 = Swizzle::WWZW(m_rows[3]);
+        const nixFloat4 mul0 = Helper::Mul(swp0, swp1);
+
+        const nixFloat4 swp2 = Swizzle::WWZW(m_rows[2]);
+        const nixFloat4 swp3 = Swizzle::ZYYX(m_rows[3]);
+        const nixFloat4 mul1 = Helper::Mul(swp2, swp3);
+
+        const nixFloat4 sub0 = Helper::Sub(mul0, mul1);
+
+        const nixFloat4 xxyz = Swizzle::ZYXX(m_rows[2]);
+        const nixFloat4 swp5 = Swizzle::XXZY(m_rows[3]);
+        const nixFloat4 mul2 = Helper::Mul(xxyz, swp5);
+        const nixFloat4 sub1 = Helper::Sub(_mm_movehl_ps(mul2, mul2), mul2);
+
+        const nixFloat4 sbf0 = Swizzle::XXYZ(sub0);
+        const nixFloat4 xxxy = Swizzle::YXXX(m_rows[1]);
+        const nixFloat4 mlf0 = Helper::Mul(xxxy, sbf0);
+
+        const nixFloat4 sbft = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(0, 0, 3, 1));
+        const nixFloat4 sbf1 = Swizzle::XYYW(sbft);
+        const nixFloat4 swf1 = Swizzle::ZZYY(m_rows[1]);
+        const nixFloat4 mlf1 = Helper::Mul(swf1, sbf1);
+
+        const nixFloat4 subr = Helper::Sub(mlf0, mlf1);
+
+        const nixFloat4 sbt0 = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(1, 0, 2, 2));
+        const nixFloat4 sbt1 = Swizzle::XZWW(sbt0);
+        const nixFloat4 swft = Swizzle::WWWZ(m_rows[1]);
+        const nixFloat4 mlfc = Helper::Mul(swft, sbt1);
+
+        const nixFloat4 addr = Helper::Add(subr, mlfc);
+        const nixFloat4 detc = Helper::Mul(addr, _mm_setr_ps(1.0f, -1.0f, 1.0f, -1.0f));
+
+        return Helper::Dot(m_rows[0], detc);
     }
 
     NIX_INLINE Matrix Transpose() const
     {
         Matrix result;
-        MatrixHelper::Transpose(ROWS_REF_T, ROWS_REF_R(result));
+        const nixFloat4 swp0 = _mm_shuffle_ps(m_rows[0], m_rows[1], 0x44);
+        const nixFloat4 swp1 = _mm_shuffle_ps(m_rows[2], m_rows[3], 0x44);
+        const nixFloat4 swp2 = _mm_shuffle_ps(m_rows[0], m_rows[1], 0xEE);
+        const nixFloat4 swp3 = _mm_shuffle_ps(m_rows[2], m_rows[3], 0xEE);
+        result[0] = _mm_shuffle_ps(swp0, swp1, 0x88);
+        result[1] = _mm_shuffle_ps(swp0, swp1, 0xDD);
+        result[2] = _mm_shuffle_ps(swp2, swp3, 0x88);
+        result[3] = _mm_shuffle_ps(swp2, swp3, 0xDD);
         return result;
     }
 
+    // It works ONLY with transform matrix, not for generic matrix purpose
+    // Moreover this not take into consider the scale, so this matrix is treated is of scale 1
     NIX_INLINE Matrix InverseNoScale() const
     {
         Matrix result;
-        MatrixHelper::InverseNoScale(ROWS_REF_T, ROWS_REF_R(result));
+        // transpose the 3x3 part, so m03 = m13 = m23 = 0
+        const nixFloat4 lh = _mm_movelh_ps(m_rows[0], m_rows[1]);
+        const nixFloat4 hl = _mm_movehl_ps(m_rows[1], m_rows[0]);
+        result[0] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 0, 2, 0));
+        result[1] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 1, 3, 1));
+        result[2] = _mm_shuffle_ps(hl, m_rows[2], _MM_SHUFFLE(3, 2, 2, 0));
+
+        // the forth line
+        result[3] = Helper::Mul(result[0], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x00));
+        result[3] = Helper::Add(result[3], Helper::Mul(result[1], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x55)));
+        result[3] = Helper::Add(result[3], Helper::Mul(result[2], _mm_shuffle_ps(m_rows[3], m_rows[3], 0xAA)));
+        result[3] = Helper::Sub(Helper::Set(0.f, 0.f, 0.f, 1.f), result[3]);
         return result;
     }
 
+    // It works ONLY with transform matrix, not for generic matrix purpose
     NIX_INLINE Matrix Inverse() const
     {
         Matrix result;
-        MatrixHelper::Inverse(ROWS_REF_T, ROWS_REF_R(result));
+        // transpose the 3x3 part, so m03 = m13 = m23 = 0
+        const nixFloat4 lh = _mm_movelh_ps(m_rows[0], m_rows[1]);
+        const nixFloat4 hl = _mm_movehl_ps(m_rows[1], m_rows[0]);
+        result[0] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 0, 2, 0));
+        result[1] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 1, 3, 1));
+        result[2] = _mm_shuffle_ps(hl, m_rows[2], _MM_SHUFFLE(3, 2, 2, 0));
+
+        nixFloat4 sqr = Helper::Mul(result[0], result[0]);
+        sqr = Helper::Add(sqr, Helper::Mul(result[1], result[1]));
+        sqr = Helper::Add(sqr, Helper::Mul(result[2], result[2]));
+
+        const nixFloat4 msk = _mm_cmplt_ps(sqr, kSmallNumber);
+
+#   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
+
+        const nixFloat4 rsqr = _mm_blendv_ps(Helper::Div(kOne, sqr), kOne, msk);
+
+#   else
+
+        nixFloat4 one = kOne;
+        nixFloat4 dva = Helper::Div(one, sqr);
+
+        one = _mm_and_ps(msk, one);
+        dva = _mm_andnot_ps(msk, dva);
+
+        const nixFloat4 rsqr = _mm_or_ps(dva, one);
+
+#   endif
+
+        result[0] = Helper::Mul(result[0], rsqr);
+        result[1] = Helper::Mul(result[1], rsqr);
+        result[2] = Helper::Mul(result[2], rsqr);
+
+        // the forth line
+        result[3] = Helper::Mul(result[0], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x00));
+        result[3] = Helper::Add(result[3], Helper::Mul(result[1], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x55)));
+        result[3] = Helper::Add(result[3], Helper::Mul(result[2], _mm_shuffle_ps(m_rows[3], m_rows[3], 0xAA)));
+        result[3] = Helper::Sub(Helper::Set(0.f, 0.f, 0.f, 1.f), result[3]);
         return result;
     }
 
     NIX_INLINE Matrix Translate(const Vector& _v) const
     {
         Matrix result;
-        MatrixHelper::Translate(ROWS_REF_T, _v.m_vec, ROWS_REF_R(result));
+        const nixFloat4& xxxx = Swizzle::XXXX(_v);
+        const nixFloat4& yyyy = Swizzle::YYYY(_v);
+        const nixFloat4& zzzz = Swizzle::ZZZZ(_v);
+
+        const nixFloat4& v0 = Helper::Mul(m_rows[0], xxxx);
+        const nixFloat4& v1 = Helper::Mul(m_rows[1], yyyy);
+        const nixFloat4& v2 = Helper::Mul(m_rows[2], zzzz);
+
+        const nixFloat4& row3 = Helper::Add(Helper::Add(v0, v1), v2);
+        result[0] = m_rows[0];
+        result[1] = m_rows[1];
+        result[2] = m_rows[2];
+        result[3] = Helper::Add(row3, m_rows[3]);
         return result;
     }
 
     NIX_INLINE Matrix Scale(const Vector& _s) const
     {
         Matrix result;
-        MatrixHelper::Scale(ROWS_REF_T, _s.m_vec, ROWS_REF_R(result));
+        const nixFloat4& xxxx = Swizzle::XXXX(_s);
+        const nixFloat4& yyyy = Swizzle::YYYY(_s);
+        const nixFloat4& zzzz = Swizzle::ZZZZ(_s);
+
+        result[0] = Helper::Mul(m_rows[0], xxxx);
+        result[1] = Helper::Mul(m_rows[1], yyyy);
+        result[2] = Helper::Mul(m_rows[2], zzzz);
+        result[3] = m_rows[3];
         return result;
     }
 
-    private:
-        friend class Vector;
+    NIX_INLINE Matrix Mul(const Matrix& _other) const
+    {
+        Matrix result;
+        {
+            const nixFloat4 xxxx = Swizzle::XXXX(m_rows[0]);
+            const nixFloat4 yyyy = Swizzle::YYYY(m_rows[0]);
+            const nixFloat4 zzzz = Swizzle::ZZZZ(m_rows[0]);
+            const nixFloat4 wwww = Swizzle::WWWW(m_rows[0]);
 
-        // for global operators
-        friend NIX_INLINE Matrix operator+(const Matrix& _m, const nixFloat& _s);
-        friend NIX_INLINE Matrix operator+(const nixFloat& _s, const Matrix& _m);
-        friend NIX_INLINE Matrix operator+(const Matrix& _a, const Matrix& _b);
-        friend NIX_INLINE Matrix operator-(const Matrix& _m, const nixFloat& _s);
-        friend NIX_INLINE Matrix operator-(const nixFloat& _s, const Matrix& _m);
-        friend NIX_INLINE Matrix operator-(const Matrix& _a, const Matrix& _b);
-        friend NIX_INLINE Matrix operator*(const Matrix& _m, const nixFloat& _s);
-        friend NIX_INLINE Matrix operator*(const nixFloat& _s, const Matrix& _m);
-        friend NIX_INLINE Vector operator*(const Matrix& _m, const Vector& _v);
-        friend NIX_INLINE Vector operator*(const Vector& _v, const Matrix& _m);
-        friend NIX_INLINE Matrix operator*(const Matrix& _a, const Matrix& _b);
-        friend NIX_INLINE Matrix operator/(const Matrix& _m, const nixFloat& _s);
-        friend NIX_INLINE Matrix operator/(const nixFloat& _s, const Matrix& _m);
-        friend NIX_INLINE Matrix const operator-(const Matrix& _m);
-        friend NIX_INLINE Matrix const operator--(const Matrix& _m, nixS32);
-        friend NIX_INLINE Matrix const operator++(const Matrix& _m, nixS32);
+            const nixFloat4 mul0 = Helper::Mul(_other[0], xxxx);
+            const nixFloat4 mul1 = Helper::Mul(_other[1], yyyy);
+            const nixFloat4 mul2 = Helper::Mul(_other[2], zzzz);
+            const nixFloat4 mul3 = Helper::Mul(_other[3], wwww);
+
+            const nixFloat4 add0 = Helper::Add(mul0, mul1);
+            const nixFloat4 add1 = Helper::Add(mul2, mul3);
+            const nixFloat4 add2 = Helper::Add(add0, add1);
+
+            result[0] = add2;
+        }
+
+        {
+            const nixFloat4 xxxx = Swizzle::XXXX(m_rows[1]);
+            const nixFloat4 yyyy = Swizzle::YYYY(m_rows[1]);
+            const nixFloat4 zzzz = Swizzle::ZZZZ(m_rows[1]);
+            const nixFloat4 wwww = Swizzle::WWWW(m_rows[1]);
+
+            const nixFloat4 mul0 = Helper::Mul(_other[0], xxxx);
+            const nixFloat4 mul1 = Helper::Mul(_other[1], yyyy);
+            const nixFloat4 mul2 = Helper::Mul(_other[2], zzzz);
+            const nixFloat4 mul3 = Helper::Mul(_other[3], wwww);
+
+            const nixFloat4 add0 = Helper::Add(mul0, mul1);
+            const nixFloat4 add1 = Helper::Add(mul2, mul3);
+            const nixFloat4 add2 = Helper::Add(add0, add1);
+
+            result[1] = add2;
+        }
+
+        {
+            const nixFloat4 xxxx = Swizzle::XXXX(m_rows[2]);
+            const nixFloat4 yyyy = Swizzle::YYYY(m_rows[2]);
+            const nixFloat4 zzzz = Swizzle::ZZZZ(m_rows[2]);
+            const nixFloat4 wwww = Swizzle::WWWW(m_rows[2]);
+
+            const nixFloat4 mul0 = Helper::Mul(_other[0], xxxx);
+            const nixFloat4 mul1 = Helper::Mul(_other[1], yyyy);
+            const nixFloat4 mul2 = Helper::Mul(_other[2], zzzz);
+            const nixFloat4 mul3 = Helper::Mul(_other[3], wwww);
+
+            const nixFloat4 add0 = Helper::Add(mul0, mul1);
+            const nixFloat4 add1 = Helper::Add(mul2, mul3);
+            const nixFloat4 add2 = Helper::Add(add0, add1);
+
+            result[2] = add2;
+        }
+
+        {
+            const nixFloat4 xxxx = Swizzle::XXXX(m_rows[3]);
+            const nixFloat4 yyyy = Swizzle::YYYY(m_rows[3]);
+            const nixFloat4 zzzz = Swizzle::ZZZZ(m_rows[3]);
+            const nixFloat4 wwww = Swizzle::WWWW(m_rows[3]);
+
+            const nixFloat4 mul0 = Helper::Mul(_other[0], xxxx);
+            const nixFloat4 mul1 = Helper::Mul(_other[1], yyyy);
+            const nixFloat4 mul2 = Helper::Mul(_other[2], zzzz);
+            const nixFloat4 mul3 = Helper::Mul(_other[3], wwww);
+
+            const nixFloat4 add0 = Helper::Add(mul0, mul1);
+            const nixFloat4 add1 = Helper::Add(mul2, mul3);
+            const nixFloat4 add2 = Helper::Add(add0, add1);
+
+            result[3] = add2;
+        }
+        return result;
+    }
+
+    NIX_INLINE Matrix Add(const Matrix& _other) const
+    {
+        Matrix result;
+        result[0] = Helper::Add(m_rows[0], _other[0]);
+        result[1] = Helper::Add(m_rows[1], _other[1]);
+        result[2] = Helper::Add(m_rows[2], _other[2]);
+        result[3] = Helper::Add(m_rows[3], _other[3]);
+        return result;
+    }
+
+    NIX_INLINE Matrix Sub(const Matrix& _other) const
+    {
+        Matrix result;
+        result[0] = Helper::Sub(m_rows[0], _other[0]);
+        result[1] = Helper::Sub(m_rows[1], _other[1]);
+        result[2] = Helper::Sub(m_rows[2], _other[2]);
+        result[3] = Helper::Sub(m_rows[3], _other[3]);
+        return result;
+    }
+
+    NIX_INLINE Matrix Add(nixFloat _s) const
+    {
+        Matrix result;
+        const nixFloat4 opv = Helper::Splat(_s);
+        result[0] = Helper::Add(m_rows[0], opv);
+        result[1] = Helper::Add(m_rows[1], opv);
+        result[2] = Helper::Add(m_rows[2], opv);
+        result[3] = Helper::Add(m_rows[3], opv);
+        return result;
+    }
+
+    NIX_INLINE Matrix Sub(nixFloat _s) const
+    {
+        Matrix result;
+        const nixFloat4 opv = Helper::Splat(_s);
+        result[0] = Helper::Sub(m_rows[0], opv);
+        result[1] = Helper::Sub(m_rows[1], opv);
+        result[2] = Helper::Sub(m_rows[2], opv);
+        result[3] = Helper::Sub(m_rows[3], opv);
+        return result;
+    }
+
+    NIX_INLINE Matrix Mul(nixFloat _s) const
+    {
+        Matrix result;
+        const nixFloat4 opv = Helper::Splat(_s);
+        result[0] = Helper::Mul(m_rows[0], opv);
+        result[1] = Helper::Mul(m_rows[1], opv);
+        result[2] = Helper::Mul(m_rows[2], opv);
+        result[3] = Helper::Mul(m_rows[3], opv);
+        return result;
+    }
+
+    NIX_INLINE Matrix Div(nixFloat _s) const
+    {
+        Matrix result;
+        const nixFloat4 opv = Helper::Div(kOne, Helper::Splat(_s));
+        result[0] = Helper::Mul(m_rows[0], opv);
+        result[1] = Helper::Mul(m_rows[1], opv);
+        result[2] = Helper::Mul(m_rows[2], opv);
+        result[3] = Helper::Mul(m_rows[3], opv);
+        return result;
+    }
+
+    NIX_INLINE Vector MulMatrixVector(const Vector& _v) const
+    {
+        const nixFloat4 xxxx = Swizzle::XXXX(_v);
+        const nixFloat4 yyyy = Swizzle::YYYY(_v);
+        const nixFloat4 zzzz = Swizzle::ZZZZ(_v);
+        const nixFloat4 wwww = Swizzle::WWWW(_v);
+
+        const nixFloat4 mul0 = Helper::Mul(m_rows[0], xxxx);
+        const nixFloat4 mul1 = Helper::Mul(m_rows[1], yyyy);
+        const nixFloat4 mul2 = Helper::Mul(m_rows[2], zzzz);
+        const nixFloat4 mul3 = Helper::Mul(m_rows[3], wwww);
+
+        const nixFloat4 add0 = Helper::Add(mul0, mul1);
+        const nixFloat4 add1 = Helper::Add(mul2, mul3);
+
+        return Helper::Add(add0, add1);
+    }
+
+    NIX_INLINE Vector MulVectorMatrix(const Vector& _v) const
+    {
+        const nixFloat4 mul0 = Helper::Mul(_v, m_rows[0]);
+        const nixFloat4 mul1 = Helper::Mul(_v, m_rows[1]);
+        const nixFloat4 mul2 = Helper::Mul(_v, m_rows[2]);
+        const nixFloat4 mul3 = Helper::Mul(_v, m_rows[3]);
+
+        const nixFloat4 lo0 = _mm_unpacklo_ps(mul0, mul1);
+        const nixFloat4 hi0 = _mm_unpackhi_ps(mul0, mul1);
+        const nixFloat4 add0 = Helper::Add(lo0, hi0);
+
+        const nixFloat4 lo1 = _mm_unpacklo_ps(mul2, mul3);
+        const nixFloat4 hi1 = _mm_unpackhi_ps(mul2, mul3);
+        const nixFloat4 add1 = Helper::Add(lo1, hi1);
+
+        const nixFloat4 mlh = _mm_movelh_ps(add0, add1);
+        const nixFloat4 mhl = _mm_movehl_ps(add1, add0);
+
+        return Helper::Add(mlh, mhl);
+    }
+
+private:
+    friend class Vector;
+
+    // for global operators
+    friend NIX_INLINE Matrix operator+(const Matrix& _m, const nixFloat& _s);
+    friend NIX_INLINE Matrix operator+(const nixFloat& _s, const Matrix& _m);
+    friend NIX_INLINE Matrix operator+(const Matrix& _a, const Matrix& _b);
+    friend NIX_INLINE Matrix operator-(const Matrix& _m, const nixFloat& _s);
+    friend NIX_INLINE Matrix operator-(const nixFloat& _s, const Matrix& _m);
+    friend NIX_INLINE Matrix operator-(const Matrix& _a, const Matrix& _b);
+    friend NIX_INLINE Matrix operator*(const Matrix& _m, const nixFloat& _s);
+    friend NIX_INLINE Matrix operator*(const nixFloat& _s, const Matrix& _m);
+    friend NIX_INLINE Vector operator*(const Matrix& _m, const Vector& _v);
+    friend NIX_INLINE Vector operator*(const Vector& _v, const Matrix& _m);
+    friend NIX_INLINE Matrix operator*(const Matrix& _a, const Matrix& _b);
+    friend NIX_INLINE Matrix operator/(const Matrix& _m, const nixFloat& _s);
+    friend NIX_INLINE Matrix operator/(const nixFloat& _s, const Matrix& _m);
+
+private:
+    nixFloat4 m_rows[4];
 };
 
 
@@ -484,116 +537,68 @@ public:
 
 NIX_INLINE Matrix operator+(const Matrix& _m, const nixFloat& _s)
 {
-    Matrix result;
-    MatrixHelper::Add(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
-    return result;
+    return _m.Add(_s);
 }
 
 NIX_INLINE Matrix operator+(const nixFloat& _s, const Matrix& _m)
 {
-    Matrix result;
-    MatrixHelper::Add(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
-    return result;
+    return _m.Add(_s);
 }
 
 NIX_INLINE Matrix operator+(const Matrix& _a, const Matrix& _b)
 {
-    Matrix result;
-    MatrixHelper::Add(ROWS_REF_R(_a), ROWS_REF_R(_b), ROWS_REF_R(result));
-    return result;
+    return _a.Add(_b);
 }
 
 NIX_INLINE Matrix operator-(const Matrix& _m, const nixFloat& _s)
 {
-    Matrix result;
-    MatrixHelper::Sub(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
-    return result;
+    return _m.Sub(_s);
 }
 
 NIX_INLINE Matrix operator-(const nixFloat& _s, const Matrix& _m)
 {
-    Matrix result;
-    MatrixHelper::Sub(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
-    return result;
+    return _m.Sub(_s);
 }
 
 NIX_INLINE Matrix operator-(const Matrix& _a, const Matrix& _b)
 {
-    Matrix result;
-    MatrixHelper::Sub(ROWS_REF_R(_a), ROWS_REF_R(_b), ROWS_REF_R(result));
-    return result;
+    return _a.Sub(_b);
 }
 
 NIX_INLINE Matrix operator*(const Matrix& _m, const nixFloat& _s)
 {
-    Matrix result;
-    MatrixHelper::Mul(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
-    return result;
+    return _m.Mul(_s);
 }
 
 NIX_INLINE Matrix operator*(const nixFloat& _s, const Matrix& _m)
 {
-    Matrix result;
-    MatrixHelper::Mul(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
-    return result;
+    return _m.Mul(_s);
 }
 
 NIX_INLINE Vector operator*(const Matrix& _m, const Vector& _v)
 {
-    Vector result;
-    MatrixHelper::MulMatrixVector(ROWS_REF_R(_m), _v.m_vec, &result.m_vec);
-    return result;
+    return _m.MulMatrixVector(_v);
 }
 
 NIX_INLINE Vector operator*(const Vector& _v, const Matrix& _m)
 {
-    Vector result;
-    MatrixHelper::MulVectorMatrix( _v.m_vec, ROWS_REF_R(_m), &result.m_vec);
-    return result;
+    return _m.MulVectorMatrix(_v);
 }
 
 NIX_INLINE Matrix operator*(const Matrix& _a, const Matrix& _b)
 {
-    Matrix result;
-    MatrixHelper::Mul(ROWS_REF_R(_a), ROWS_REF_R(_b), ROWS_REF_R(result));
-    return result;
+    return _a.Mul(_b);
 }
 
 NIX_INLINE Matrix operator/(const Matrix& _m, const nixFloat& _s)
 {
-    Matrix result;
-    MatrixHelper::Div(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
-    return result;
+    return _m.Div(_s);
 }
 
 NIX_INLINE Matrix operator/(const nixFloat& _s, const Matrix& _m)
 {
-    Matrix result;
-    MatrixHelper::Div(ROWS_REF_R(_m), _s, ROWS_REF_R(result));
-    return result;
+    return _m.Div(_s);
 }
-
-NIX_INLINE Matrix const operator-(const Matrix& _m)
-{
-    Matrix result;
-    MatrixHelper::Negate(ROWS_REF_R(_m), ROWS_REF_R(result));
-    return result;
-}
-
-NIX_INLINE Matrix const operator--(const Matrix& _m, nixS32)
-{
-    Matrix result;
-    MatrixHelper::Decrement(ROWS_REF_R(_m), ROWS_REF_R(result));
-    return result;
-}
-
-NIX_INLINE Matrix const operator++(const Matrix& _m, nixS32)
-{
-    Matrix result;
-    MatrixHelper::Increment(ROWS_REF_R(_m), ROWS_REF_R(result));
-    return result;
-}
-
 
 
 NIX_NAMESPACE_END

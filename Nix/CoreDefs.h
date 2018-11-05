@@ -25,7 +25,6 @@
 #define NIX_USING_NAMESPACE using namespace nix; 
 
 #define NIX_MEMORY_ALIGNMENT_SIZE_16 16
-#define NIX_MEMORY_ALIGNMENT_SIZE_32 32
 
 #define NIX_OPTIMIZATION_OFF __pragma(optimize("",off))
 #define NIX_OPTIMIZATION_ON __pragma(optimize("",on))
@@ -39,9 +38,10 @@
 // Memory alignment
 #define NIX_MEMORY_ALIGNMENT(x)     __declspec(align(x))
 
-
 #define NIX_SIMD_ALIGN_16   NIX_MEMORY_ALIGNMENT(NIX_MEMORY_ALIGNMENT_SIZE_16)
-#define NIX_SIMD_ALIGN_32   NIX_MEMORY_ALIGNMENT(NIX_MEMORY_ALIGNMENT_SIZE_32)
+
+
+#define NIX_CONST   extern const __declspec(selectany)
 
 //////////////////////////////////////////////////////////////////////////
 // TYPEDEFS
@@ -64,6 +64,8 @@ typedef int_fast64_t    nixS64;
 
 typedef std::size_t     nixSize;
 
+typedef __m128          nixFloat4;
+typedef __m128i         nixInt4;
 
 //////////////////////////////////////////////////////////////////////////
 // ASSERT

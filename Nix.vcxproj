@@ -154,15 +154,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Nix\Architecture.h" />
+    <ClInclude Include="Nix\Constants.h" />
     <ClInclude Include="Nix\CoreDefs.h" />
-    <ClInclude Include="Nix\MathHelper.h" />
+    <ClInclude Include="Nix\Swizzle.h" />
+    <ClInclude Include="Nix\Utilities.h" />
+    <ClInclude Include="Nix\Trigonometry.h" />
     <ClInclude Include="Nix\Matrix.h" />
-    <ClInclude Include="Nix\MatrixHelper.h" />
     <ClInclude Include="Nix\Nix.h" />
+    <ClInclude Include="Nix\Operators.h" />
     <ClInclude Include="Nix\Quaternion.h" />
-    <ClInclude Include="Nix\Types.h" />
+    <ClInclude Include="Nix\sse_mathfun.h" />
     <ClInclude Include="Nix\Vector.h" />
-    <ClInclude Include="Nix\VectorHelper.h" />
+    <ClInclude Include="Nix\Helper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

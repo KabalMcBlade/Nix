@@ -1,12 +1,12 @@
 #pragma once
 
-#include "CoreDefs.h"
 #include "Architecture.h"
-#include "Types.h"
-
-#include "VectorHelper.h"
-#include "MathHelper.h"
+#include "CoreDefs.h"
+#include "Constants.h"
+#include "Swizzle.h"
+#include "Helper.h"
+#include "Trigonometry.h"
 #include "Vector.h"
 #include "Quaternion.h"
 #include "Matrix.h"
-#include "MatrixHelper.h"
+#include "Utilities.h"
