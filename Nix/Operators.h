@@ -82,10 +82,15 @@ static NIX_INLINE nixFloat4   minv(nixFloat4 a, nixFloat4 b) { a = _mm_min_ps(a,
 static NIX_INLINE nixFloat4   maxv(nixFloat4 a, nixFloat4 b) { a = _mm_max_ps(a, b); return a; }
 static NIX_INLINE nixFloat4   clamp(nixFloat4 t, nixFloat4 a, nixFloat4 b) { return minv(maxv(t, a), b); }
 
-static NIX_INLINE nixU32    mask(nixInt4 v) { return 0x8888 & _mm_movemask_epi8(v); }
-static NIX_INLINE nixU32    any(nixInt4 v) { return mask(v); }
-static NIX_INLINE nixU32    none(nixInt4 v) { return !any(v); }
-static NIX_INLINE nixU32    all(nixInt4 v) { return 0x8888 == mask(v); }
+static NIX_INLINE nixU32  mask(nixInt4 v) { return 0x8888 & _mm_movemask_epi8(v); }
+static NIX_INLINE nixU8   any(nixInt4 v) { return mask(v); }
+static NIX_INLINE nixU8   none(nixInt4 v) { return !any(v); }
+static NIX_INLINE nixU8   all(nixInt4 v) { return 0x8888 == mask(v); }
+
+static NIX_INLINE nixU32  mask(nixFloat4 v) { return 0x8888 & _mm_movemask_epi8(_mm_castps_si128(v)); }
+static NIX_INLINE nixU8   any(nixFloat4 v) { return mask(v); }
+static NIX_INLINE nixU8   none(nixFloat4 v) { return !any(v); }
+static NIX_INLINE nixU8   all(nixFloat4 v) { return 0x8888 == mask(v); }
 
 static NIX_INLINE nixFloat4   operator+  (nixFloat4 a, nixFloat b) { return a + FloatToFloat4(b); }
 static NIX_INLINE nixFloat4&  operator+= (nixFloat4& a, nixFloat b) { return a += FloatToFloat4(b); }

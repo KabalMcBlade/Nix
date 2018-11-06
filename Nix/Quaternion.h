@@ -116,6 +116,7 @@ public:
                 {
                     const nixFloat s = std::sqrt(m0[0] - m1[1] - m2[2] + 1.0f) * 0.5f;
                     m_quat = Helper::Set(0.5f * s, (m0[1] + m1[0]) * s, (m2[0] + m0[2]) * s, (m1[2] - m2[1]) * s);
+                    return;
                 }
             }
             else
@@ -124,11 +125,13 @@ public:
                 {
                     const nixFloat s = std::sqrt(m1[1] - m0[0] - m2[2] + 1.0f) * 0.5f;
                     m_quat = Helper::Set((m0[1] + m1[0]) * s, 0.5f * s, (m1[2] + m2[1]) * s, (m2[0] - m0[2]) * s);
+                    return;
                 }
             }
 
             const nixFloat s = std::sqrt(m2[2] - m0[0] - m1[1] + 1.0f) * 0.5f;
             m_quat = Helper::Set((m2[0] + m0[2]) * s, (m1[2] + m2[1]) * s, 0.5f * s, (m0[1] - m1[0]) * s);
+            return;
         }
     }
 

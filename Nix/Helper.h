@@ -141,6 +141,20 @@ NIX_SIMD_ALIGN_16 struct Helper
 #   endif
     }
 
+    static NIX_INLINE nixFloat4 HorizontaSum(nixFloat4 _v)
+    {
+#   if NIX_ARCH & NIX_ARCH_SSE3_FLAG
+        return _mm_hadd_ps(_v, _v);
+#   else
+        nixFloat4 t;
+        t = _mm_movehl_ps(t, _v);
+        _v = _mm_add_ps(_v, t);
+        t = _mm_shuffle_ps(_v, _v, 0x55);
+        _v = _mm_add_ps(_v, t);
+        return _v;
+#   endif
+    }
+
     static NIX_INLINE nixFloat4 SquareLength(const nixFloat4& _v)
     {
         return Helper::Dot(_v, _v);
