@@ -19,7 +19,7 @@ public:
     NIX_INLINE Quaternion(nixFloat4&& _copy) noexcept : m_quat(std::move(_copy)) {}
     NIX_INLINE Quaternion(const Vector& _copy) : m_quat(_copy) {}
     NIX_INLINE Quaternion(Vector&& _copy) noexcept : m_quat(std::move(_copy)) {}
-    NIX_INLINE Quaternion(const nixFloat& _radians, nixFloat _x, nixFloat _y, nixFloat _z) { SetFromAngleAxis(_radians, _x, _y, _z); }
+    NIX_INLINE Quaternion(nixFloat _x, nixFloat _y, nixFloat _z, nixFloat _w) : m_quat(Helper::Set(_x, _y, _z, _w)) { }
     NIX_INLINE Quaternion(const nixFloat& _radians, const Vector& _axis) { SetFromAngleAxis(_radians, _axis); }
     NIX_INLINE Quaternion(const nixFloat& _pitch, const nixFloat& _yaw, const nixFloat& _roll) { SetFromPitchYawRoll(_pitch, _yaw, _roll); }
     NIX_INLINE Quaternion(const Matrix& _rotMatrix) { SetFromMatrix(_rotMatrix); }
