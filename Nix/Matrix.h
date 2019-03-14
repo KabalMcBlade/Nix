@@ -74,18 +74,8 @@ public:
     // Print function for debug purpose only
 
 #ifdef _DEBUG
-    NIX_INLINE void Print() const
-    {
-        nixFloat *val0 = (nixFloat*)&(this->m_rows[0]);
-        nixFloat *val1 = (nixFloat*)&(this->m_rows[1]);
-        nixFloat *val2 = (nixFloat*)&(this->m_rows[2]);
-        nixFloat *val3 = (nixFloat*)&(this->m_rows[3]);
-
-        printf("matrix{\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n[%.4f, %.4f, %.4f, %.4f]\n}\n", 
-            val0[0], val0[1], val0[2], val0[3], val1[0], val1[1], val1[2], val1[3], val2[0], val2[1], val2[2], val2[3], val3[0], val3[1], val3[2], val3[3]);
-    }
+    friend NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix& _mat);
 #endif
-
 
     //////////////////////////////////////////////////////////////////////////
     // Accesses
@@ -534,6 +524,22 @@ private:
 
 //////////////////////////////////////////////////////////////
 // Operators
+
+#ifdef _DEBUG
+NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix& _mat)
+{
+    nixFloat *val0 = (nixFloat*)&(_mat[0]);
+    nixFloat *val1 = (nixFloat*)&(_mat[1]);
+    nixFloat *val2 = (nixFloat*)&(_mat[2]);
+    nixFloat *val3 = (nixFloat*)&(_mat[3]);
+
+    _os << "(" << val0[0] << ", " << val0[1] << ", " << val0[2] << ", " << val0[3] << ")" << std::endl
+        << "(" << val1[0] << ", " << val1[1] << ", " << val1[2] << ", " << val1[3] << ")" << std::endl
+        << "(" << val2[0] << ", " << val2[1] << ", " << val2[2] << ", " << val2[3] << ")" << std::endl
+        << "(" << val3[0] << ", " << val3[1] << ", " << val3[2] << ", " << val3[3] << ")";
+    return _os;
+}
+#endif
 
 NIX_INLINE Matrix operator+(const Matrix& _m, const nixFloat& _s)
 {

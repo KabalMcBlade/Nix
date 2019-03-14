@@ -28,11 +28,7 @@ public:
     // Print function for debug purpose only
 
 #ifdef _DEBUG
-    NIX_INLINE void Print() const
-    {
-        nixFloat *val = (nixFloat*)&m_quat;
-        printf("quat[%.4f, %.4f, %.4f, %.4f]\n", val[0], val[1], val[2], val[3]);
-    }
+    friend NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Quaternion& _quat);
 #endif
 
     //////////////////////////////////////////////////////////////////////////
@@ -356,6 +352,16 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // Operators
+
+
+#ifdef _DEBUG
+NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Quaternion& _quat)
+{
+    nixFloat *val = (nixFloat*)&_quat.m_quat;
+    _os << "(" << val[0] << ", " << val[1] << ", " << val[2] << ", " << val[3] << ")";
+    return _os;
+}
+#endif
 
 // negate operator
 NIX_INLINE Quaternion operator- (const Quaternion& _q)

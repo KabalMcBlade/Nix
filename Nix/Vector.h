@@ -30,17 +30,7 @@ public:
     // Print function for debug purpose only
 
 #ifdef _DEBUG
-    NIX_INLINE void Print() const
-    {
-        nixFloat *val = (nixFloat*)&m_vec;
-        printf("vec[%.4f, %.4f, %.4f, %.4f]\n", val[0], val[1], val[2], val[3]);
-    }
-
-    NIX_INLINE void Print3() const
-    {
-        nixFloat *val = (nixFloat*)&m_vec;
-        printf("vec[%.4f, %.4f, %.4f]\n", val[0], val[1], val[2]);
-    }
+    friend NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Vector& _v);
 #endif
 
     //////////////////////////////////////////////////////////////////////////
@@ -335,6 +325,15 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 // Operators
+
+#ifdef _DEBUG
+NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Vector& _v)
+{
+    nixFloat *val = (nixFloat*)&_v.m_vec;
+    _os << "(" << val[0] << ", " << val[1] << ", " << val[2] << ", " << val[3] << ")";
+    return _os;
+}
+#endif
 
 // operator+
 NIX_INLINE Vector operator+ (const Vector& _v, nixFloat _s)

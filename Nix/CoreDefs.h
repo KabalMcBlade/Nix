@@ -13,6 +13,9 @@
 #include <limits>
 #include <utility>      // for move, etc...
 
+#ifdef _DEBUG
+#include <iostream>
+#endif
 
 //////////////////////////////////////////////////////////////////////////
 // DEFINES
