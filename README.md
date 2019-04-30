@@ -22,4 +22,4 @@ I skipped the AVX512 skylake subset because I don't have the proper CPU to test.
 
 | Platform | Build Status |
 |:--------:|:------------:|
-| Windows (Visual Studio 2015) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/kabalmcblade/Nix?branch=master&svg=true)](https://ci.appveyor.com/project/kabalmcblade/Nix) |
+| Windows (Visual Studio 2017) | [![Windows Build Status](https://ci.appveyor.com/api/projects/status/github/kabalmcblade/Nix?branch=master&svg=true)](https://ci.appveyor.com/project/kabalmcblade/Nix) |
