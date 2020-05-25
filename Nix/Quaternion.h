@@ -17,10 +17,10 @@ public:
     NIX_INLINE Quaternion(Quaternion&& _copy) noexcept : m_quat(std::move(_copy.m_quat)) {}
     NIX_INLINE Quaternion(const nixFloat4& _copy) : m_quat(_copy) {}
     NIX_INLINE Quaternion(nixFloat4&& _copy) noexcept : m_quat(std::move(_copy)) {}
-    NIX_INLINE Quaternion(const Vector& _copy) : m_quat(_copy) {}
-    NIX_INLINE Quaternion(Vector&& _copy) noexcept : m_quat(std::move(_copy)) {}
+    NIX_INLINE Quaternion(const Vector4& _copy) : m_quat(_copy) {}
+    NIX_INLINE Quaternion(Vector4&& _copy) noexcept : m_quat(std::move(_copy)) {}
     NIX_INLINE Quaternion(nixFloat _x, nixFloat _y, nixFloat _z, nixFloat _w) : m_quat(Helper::Set(_x, _y, _z, _w)) { }
-    NIX_INLINE Quaternion(const nixFloat& _radians, const Vector& _axis) { SetFromAngleAxis(_radians, _axis); }
+    NIX_INLINE Quaternion(const nixFloat& _radians, const Vector4& _axis) { SetFromAngleAxis(_radians, _axis); }
     NIX_INLINE Quaternion(const nixFloat& _pitch, const nixFloat& _yaw, const nixFloat& _roll) { SetFromPitchYawRoll(_pitch, _yaw, _roll); }
     NIX_INLINE Quaternion(const Matrix& _rotMatrix) { SetFromMatrix(_rotMatrix); }
 
@@ -73,7 +73,7 @@ public:
         m_quat = Swizzle::YZWX(rot);
     }
 
-    NIX_INLINE void SetFromAngleAxis(const nixFloat& _radians, const Vector& _axis)
+    NIX_INLINE void SetFromAngleAxis(const nixFloat& _radians, const Vector4& _axis)
     {
         nixFloat4 sin, cos;
 
@@ -86,7 +86,7 @@ public:
 
     NIX_INLINE void SetFromAngleAxis(const nixFloat& _radians, nixFloat _x, nixFloat _y, nixFloat _z)
     {
-        SetFromAngleAxis(_radians, Vector(_x, _y, _z));
+        SetFromAngleAxis(_radians, Vector4(_x, _y, _z));
     }
 
     NIX_INLINE void SetFromMatrix(const Matrix& _matrix)
@@ -132,14 +132,14 @@ public:
         }
     }
 
-    NIX_INLINE Vector Length() const
+    NIX_INLINE Vector4 Length() const
     {
         return Helper::Sqrt(Helper::Dot(m_quat, m_quat));
     }
 
     NIX_INLINE Quaternion Normalize() const
     {
-        const Vector vLen = Length();
+        const Vector4 vLen = Length();
 
         nixFloat len = 0;
         _mm_store_ss(&len, vLen.m_vec);
@@ -150,60 +150,60 @@ public:
         }
         else
         {
-            const Vector oneOverLen(1.0f / len);
+            const Vector4 oneOverLen(1.0f / len);
             return Helper::Mul(oneOverLen, m_quat);
         }
     }
 
-    NIX_INLINE Vector Dot(const Quaternion& _other) const
+    NIX_INLINE Vector4 Dot(const Quaternion& _other) const
     {
         return Helper::Dot(m_quat, _other.m_quat);
     }
 
     // It means go FROM *this* quaternion TO *other* quaternion in T
-    NIX_INLINE Vector LerpTo(const Quaternion& _to, const Vector& _time) const
+    NIX_INLINE Vector4 LerpTo(const Quaternion& _to, const Vector4& _time) const
     {
         return Helper::Lerp(m_quat, _to.m_quat, _time.m_vec);
     }
 
     // It means go FROM *other* quaternion TO *this* quaternion in T
-    NIX_INLINE Vector LerpFrom(const Quaternion& _from, const Vector& _time) const
+    NIX_INLINE Vector4 LerpFrom(const Quaternion& _from, const Vector4& _time) const
     {
         return Helper::Lerp(_from.m_quat, m_quat, _time.m_vec);
     }
 
     // It means go FROM *this* quaternion TO *other* quaternion in T
-    NIX_INLINE Vector LerpTo(const Quaternion& _to, const nixFloat& _time) const
+    NIX_INLINE Vector4 LerpTo(const Quaternion& _to, const nixFloat& _time) const
     {
         return LerpTo(_to, Helper::Splat(_time));
     }
 
     // It means go FROM *other* quaternion TO *this* quaternion in T
-    NIX_INLINE Vector LerpFrom(const Quaternion& _from, const nixFloat& _time) const
+    NIX_INLINE Vector4 LerpFrom(const Quaternion& _from, const nixFloat& _time) const
     {
         return LerpFrom(_from, Helper::Splat(_time));
     }
 
     // It means go FROM *this* quaternion TO *other* quaternion in T
-    NIX_INLINE Vector StepTo(const Quaternion& _to, const Vector& _time) const
+    NIX_INLINE Vector4 StepTo(const Quaternion& _to, const Vector4& _time) const
     {
         return Helper::Step(m_quat, _to.m_quat, _time.m_vec);
     }
 
     // It means go FROM *other* quaternion TO *this* quaternion in T
-    NIX_INLINE Vector StepFrom(const Quaternion& _from, const Vector& _time) const
+    NIX_INLINE Vector4 StepFrom(const Quaternion& _from, const Vector4& _time) const
     {
         return Helper::Step(_from.m_quat, m_quat, _time.m_vec);
     }
 
     // It means go FROM *this* quaternion TO *other* quaternion in T
-    NIX_INLINE Vector StepTo(const Quaternion& _to, const nixFloat& _time) const
+    NIX_INLINE Vector4 StepTo(const Quaternion& _to, const nixFloat& _time) const
     {
         return StepTo(_to, Helper::Splat(_time));
     }
 
     // It means go FROM *other* quaternion TO *this* quaternion in T
-    NIX_INLINE Vector StepFrom(const Quaternion& _from, const nixFloat& _time) const
+    NIX_INLINE Vector4 StepFrom(const Quaternion& _from, const nixFloat& _time) const
     {
         return StepFrom(_from, Helper::Splat(_time));
     }
@@ -212,7 +212,7 @@ public:
     {
         Quaternion other = _other;
 
-        Vector vCosTheta = Dot(_other);
+        Vector4 vCosTheta = Dot(_other);
 
         nixFloat cosTheta = 0;
         _mm_store_ss(&cosTheta, vCosTheta.m_vec);
@@ -250,7 +250,7 @@ public:
 
     NIX_INLINE Quaternion Inverse() const
     {
-        Vector dot = Dot(m_quat);
+        Vector4 dot = Dot(m_quat);
         nixFloat sDot = 0;
         _mm_store_ss(&sDot, dot.m_vec);
         return Conjugate() / sDot;
@@ -292,7 +292,7 @@ public:
         return rotation;
     }
 
-    NIX_INLINE Matrix ToMatrix(const Vector& _translation) const
+    NIX_INLINE Matrix ToMatrix(const Vector4& _translation) const
     {
         const nixFloat vX = Helper::ExtractX(_translation);
         const nixFloat vY = Helper::ExtractY(_translation);
@@ -335,14 +335,14 @@ public:
 
 private:
     friend struct Helper;
-    friend class Vector;
+    friend class Vector4;
 
     // for global operators
     friend NIX_INLINE Quaternion operator- (const Quaternion& _q);
     friend NIX_INLINE Quaternion operator+ (const Quaternion& _q1, const Quaternion& _q2);
     friend NIX_INLINE Quaternion operator* (const Quaternion& _q1, const Quaternion& _q2);
-    friend NIX_INLINE Vector operator* (const Quaternion& _q, const Vector& _v);
-    friend NIX_INLINE Vector operator* (const Vector& _v, const Quaternion& _q);
+    friend NIX_INLINE Vector4 operator* (const Quaternion& _q, const Vector4& _v);
+    friend NIX_INLINE Vector4 operator* (const Vector4& _v, const Quaternion& _q);
     friend NIX_INLINE Quaternion operator* (const Quaternion& _q, nixFloat _s);
     friend NIX_INLINE Quaternion operator* (nixFloat _s, const Quaternion& _q);
     friend NIX_INLINE Quaternion operator/ (const Quaternion& _q, nixFloat _s);
@@ -411,7 +411,7 @@ NIX_INLINE Quaternion operator* (const Quaternion& _q1, const Quaternion& _q2)
     return _mm_shuffle_ps(xxyy, zzww, _MM_SHUFFLE(2, 0, 2, 0));
 }
 
-NIX_INLINE Vector operator* (const Quaternion& _q, const Vector& _v)
+NIX_INLINE Vector4 operator* (const Quaternion& _q, const Vector4& _v)
 {
     static const nixFloat4 two = Helper::Splat(2.0f);
 
@@ -432,7 +432,7 @@ NIX_INLINE Vector operator* (const Quaternion& _q, const Vector& _v)
     return Helper::Add(_v.m_vec, Helper::Add(mul0, mul1));
 }
 
-NIX_INLINE Vector operator* (const Vector& _v, const Quaternion& _q)
+NIX_INLINE Vector4 operator* (const Vector4& _v, const Quaternion& _q)
 {
     Quaternion inv = _q.Inverse();
     return inv * _v;

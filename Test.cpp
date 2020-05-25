@@ -28,10 +28,10 @@ Enables the use of SSE instructions.
 Enables the use of SSE2 instructions. This is the default instruction on x86 platforms if no /arch option is specified.
 
 /arch:AVX
-Enables the use of Intel Advanced Vector Extensions instructions.
+Enables the use of Intel Advanced Vector4 Extensions instructions.
 
 /arch:AVX2
-Enables the use of Intel Advanced Vector Extensions 2 instructions.
+Enables the use of Intel Advanced Vector4 Extensions 2 instructions.
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -46,26 +46,26 @@ NIX_USING_NAMESPACE
 
 int main()
 {
-    Vector a(4.0f, 2.0f, 7.0f);
-    Vector b(15.0f, 3.0f, 9.0f);
+    Vector4 a(4.0f, 2.0f, 7.0f);
+	Vector4 b(15.0f, 3.0f, 9.0f);
 
-    Vector d = a.Dot3(b);
+	Vector4 d = a.Dot3(b);
 
     //////////////////////////////////////////////////////////////////////////
-    Vector forward(0.0f, 0.0f, 1.0f);
+	Vector4 forward(0.0f, 0.0f, 1.0f);
     Quaternion rotPitch(NIX_DEG_TO_RAD(90.0f), 0.0f, 0.0f);
 
     Matrix qTOm = rotPitch.ToMatrix();
 
     Quaternion mTOq(qTOm);
 
-    Vector newDir1 = rotPitch * forward;
-    Vector newDir2 = forward * rotPitch;
+	Vector4 newDir1 = rotPitch * forward;
+	Vector4 newDir2 = forward * rotPitch;
     
     //////////////////////////////////////////////////////////////////////////
-    Vector pos(5.0f, 3.0f, 1.0f);
+	Vector4 pos(5.0f, 3.0f, 1.0f);
     Quaternion rotYaw(0.0f, NIX_DEG_TO_RAD(90.0f), 0.0f);
-    Vector scl(2.0f);
+	Vector4 scl(2.0f);
 
     static const Matrix identity;
 

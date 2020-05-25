@@ -43,10 +43,10 @@ public:
     }
 
     NIX_INLINE Matrix(
-        const Vector& _v0,
-        const Vector& _v1,
-        const Vector& _v2,
-        const Vector& _v3)
+        const Vector4& _v0,
+        const Vector4& _v1,
+        const Vector4& _v2,
+        const Vector4& _v3)
     {
         this->m_rows[0] = _v0.m_vec;
         this->m_rows[1] = _v1.m_vec;
@@ -62,7 +62,7 @@ public:
         this->m_rows[3] = _m.m_rows[3];
     }
 
-    NIX_INLINE Matrix(const Vector _v[4])
+    NIX_INLINE Matrix(const Vector4 _v[4])
     {
         this->m_rows[0] = _v[0].m_vec;
         this->m_rows[1] = _v[1].m_vec;
@@ -168,7 +168,7 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
     // Functions
-    NIX_INLINE Vector Determinant() const
+    NIX_INLINE Vector4 Determinant() const
     {
         const nixFloat4 swp0 = Swizzle::ZYYX(m_rows[2]);
         const nixFloat4 swp1 = Swizzle::WWZW(m_rows[3]);
@@ -286,7 +286,7 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Translate(const Vector& _v) const
+    NIX_INLINE Matrix Translate(const Vector4& _v) const
     {
         Matrix result;
         const nixFloat4& xxxx = Swizzle::XXXX(_v);
@@ -305,7 +305,7 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Scale(const Vector& _s) const
+    NIX_INLINE Matrix Scale(const Vector4& _s) const
     {
         Matrix result;
         const nixFloat4& xxxx = Swizzle::XXXX(_s);
@@ -460,7 +460,7 @@ public:
         return result;
     }
 
-    NIX_INLINE Vector MulMatrixVector(const Vector& _v) const
+    NIX_INLINE Vector4 MulMatrixVector(const Vector4& _v) const
     {
         const nixFloat4 xxxx = Swizzle::XXXX(_v);
         const nixFloat4 yyyy = Swizzle::YYYY(_v);
@@ -478,7 +478,7 @@ public:
         return Helper::Add(add0, add1);
     }
 
-    NIX_INLINE Vector MulVectorMatrix(const Vector& _v) const
+    NIX_INLINE Vector4 MulVectorMatrix(const Vector4& _v) const
     {
         const nixFloat4 mul0 = Helper::Mul(_v, m_rows[0]);
         const nixFloat4 mul1 = Helper::Mul(_v, m_rows[1]);
@@ -500,7 +500,7 @@ public:
     }
 
 private:
-    friend class Vector;
+    friend class Vector4;
 
     // for global operators
     friend NIX_INLINE Matrix operator+(const Matrix& _m, const nixFloat& _s);
@@ -511,8 +511,8 @@ private:
     friend NIX_INLINE Matrix operator-(const Matrix& _a, const Matrix& _b);
     friend NIX_INLINE Matrix operator*(const Matrix& _m, const nixFloat& _s);
     friend NIX_INLINE Matrix operator*(const nixFloat& _s, const Matrix& _m);
-    friend NIX_INLINE Vector operator*(const Matrix& _m, const Vector& _v);
-    friend NIX_INLINE Vector operator*(const Vector& _v, const Matrix& _m);
+    friend NIX_INLINE Vector4 operator*(const Matrix& _m, const Vector4& _v);
+    friend NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix& _m);
     friend NIX_INLINE Matrix operator*(const Matrix& _a, const Matrix& _b);
     friend NIX_INLINE Matrix operator/(const Matrix& _m, const nixFloat& _s);
     friend NIX_INLINE Matrix operator/(const nixFloat& _s, const Matrix& _m);
@@ -581,12 +581,12 @@ NIX_INLINE Matrix operator*(const nixFloat& _s, const Matrix& _m)
     return _m.Mul(_s);
 }
 
-NIX_INLINE Vector operator*(const Matrix& _m, const Vector& _v)
+NIX_INLINE Vector4 operator*(const Matrix& _m, const Vector4& _v)
 {
     return _m.MulMatrixVector(_v);
 }
 
-NIX_INLINE Vector operator*(const Vector& _v, const Matrix& _m)
+NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix& _m)
 {
     return _m.MulVectorMatrix(_v);
 }
