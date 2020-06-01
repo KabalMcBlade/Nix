@@ -30,12 +30,18 @@
 */
 
 /*
-Changes made by me: Michele
-1. suppressing warning for truncation between float and double set all floating variable as float
-2. add inline to each call
+	NOTE: 
+		- Added the __forceinline  to avoid linking issue
+		- changed all double to float
 */
 
+//#pragma once
+
 #include <xmmintrin.h>
+
+// #pragma warning(disable: 4305)
+// 
+// #define USE_SSE2
 
 /* yes I know, the top of this file is quite ugly */
 
@@ -115,7 +121,7 @@ typedef union xmm_mm_union {
 /* natural logarithm computed for 4 simultaneous float 
    return NaN for x <= 0
 */
-inline v4sf log_ps(v4sf x) {
+__forceinline v4sf log_ps(v4sf x) {
 #ifdef USE_SSE2
   v4si emm0;
 #else
@@ -217,7 +223,7 @@ _PS_CONST(cephes_exp_p3, 4.1665795894E-2f);
 _PS_CONST(cephes_exp_p4, 1.6666665459E-1f);
 _PS_CONST(cephes_exp_p5, 5.0000001201E-1f);
 
-inline v4sf exp_ps(v4sf x) {
+__forceinline v4sf exp_ps(v4sf x) {
   v4sf tmp = _mm_setzero_ps(), fx;
 #ifdef USE_SSE2
   v4si emm0;
@@ -335,7 +341,7 @@ _PS_CONST(cephes_FOPI, 1.27323954473516f); // 4 / M_PI
    Since it is based on SSE intrinsics, it has to be compiled at -O2 to
    deliver full speed.
 */
-inline v4sf sin_ps(v4sf x) { // any x
+__forceinline v4sf sin_ps(v4sf x) { // any x
   v4sf xmm1, xmm2 = _mm_setzero_ps(), xmm3, sign_bit, y;
 
 #ifdef USE_SSE2
@@ -452,7 +458,7 @@ inline v4sf sin_ps(v4sf x) { // any x
 }
 
 /* almost the same as sin_ps */
-inline v4sf cos_ps(v4sf x) { // any x
+__forceinline v4sf cos_ps(v4sf x) { // any x
   v4sf xmm1, xmm2 = _mm_setzero_ps(), xmm3, y;
 #ifdef USE_SSE2
   v4si emm0, emm2;
@@ -571,7 +577,7 @@ inline v4sf cos_ps(v4sf x) { // any x
 
 /* since sin_ps and cos_ps are almost identical, sincos_ps could replace both of them..
    it is almost as fast, and gives you a free cosine with your sine */
-inline void sincos_ps(v4sf x, v4sf *s, v4sf *c) {
+__forceinline void sincos_ps(v4sf x, v4sf *s, v4sf *c) {
   v4sf xmm1, xmm2, xmm3 = _mm_setzero_ps(), sign_bit_sin, y;
 #ifdef USE_SSE2
   v4si emm0, emm2, emm4;

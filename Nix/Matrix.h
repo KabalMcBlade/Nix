@@ -1,15 +1,18 @@
 #pragma once
 
-#include "CoreDefs.h"
-#include "Architecture.h"
+#include "Core/Architecture.h"
+#include "Core/BasicDefines.h"
+#include "Core/Assertions.h"
+#include "Core/BasicTypes.h"
+
 #include "Helper.h"
 #include "Trigonometry.h"
-#include "Vector.h"
+#include "Vector4.h"
 
 NIX_NAMESPACE_BEGIN
 
 
-NIX_SIMD_ALIGN_16 class Matrix
+NIX_ALIGN_16 class Matrix
 {
 public:
     //////////////////////////////////////////////////////////////////////////
@@ -21,7 +24,7 @@ public:
         this->m_rows[3] = Helper::Set(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
-    NIX_INLINE Matrix(const nixFloat& _s)
+    NIX_INLINE Matrix(const float& _s)
     {
         this->m_rows[0] = Helper::Set(_s, 0.0f, 0.0f, 0.0f);
         this->m_rows[1] = Helper::Set(0.0f, _s, 0.0f, 0.0f);
@@ -31,10 +34,10 @@ public:
     }
 
     NIX_INLINE Matrix(
-        const nixFloat& _x0, const nixFloat& _y0, const nixFloat& _z0, const nixFloat& _w0,
-        const nixFloat& _x1, const nixFloat& _y1, const nixFloat& _z1, const nixFloat& _w1,
-        const nixFloat& _x2, const nixFloat& _y2, const nixFloat& _z2, const nixFloat& _w2,
-        const nixFloat& _x3, const nixFloat& _y3, const nixFloat& _z3, const nixFloat& _w3)
+        const float& _x0, const float& _y0, const float& _z0, const float& _w0,
+        const float& _x1, const float& _y1, const float& _z1, const float& _w1,
+        const float& _x2, const float& _y2, const float& _z2, const float& _w2,
+        const float& _x3, const float& _y3, const float& _z3, const float& _w3)
     {
         this->m_rows[0] = Helper::Set(_x0, _y0, _z0, _w0);
         this->m_rows[1] = Helper::Set(_x1, _y1, _z1, _w1);
@@ -80,28 +83,28 @@ public:
     //////////////////////////////////////////////////////////////////////////
     // Accesses
 
-    NIX_INLINE nixFloat4& operator[](nixU8 _i)
+    NIX_INLINE float128& operator[](uint8 _i)
     {
         return this->m_rows[_i];
     }
 
 
-    NIX_INLINE const nixFloat4& operator[](nixU8 _i) const
+    NIX_INLINE const float128& operator[](uint8 _i) const
     {
         return this->m_rows[_i];
     }
 
-    NIX_INLINE const nixFloat4& GetOrtX() const
+    NIX_INLINE const float128& GetOrtX() const
     {
         return this->m_rows[0];
     }
 
-    NIX_INLINE const nixFloat4& GetOrtY() const
+    NIX_INLINE const float128& GetOrtY() const
     {
         return this->m_rows[1];
     }
 
-    NIX_INLINE const nixFloat4& GetOrtZ() const
+    NIX_INLINE const float128& GetOrtZ() const
     {
         return this->m_rows[2];
     }
@@ -142,25 +145,25 @@ public:
         return *this;
     }
 
-    NIX_INLINE Matrix& operator+=(const nixFloat& _s)
+    NIX_INLINE Matrix& operator+=(const float& _s)
     {
         *this = Add(_s);
         return *this;
     }
 
-    NIX_INLINE Matrix& operator-=(const nixFloat& _s)
+    NIX_INLINE Matrix& operator-=(const float& _s)
     {
         *this = Sub(_s);
         return *this;
     }
 
-    NIX_INLINE Matrix& operator*=(const nixFloat& _s)
+    NIX_INLINE Matrix& operator*=(const float& _s)
     {
         *this = Mul(_s);
         return *this;
     }
 
-    NIX_INLINE Matrix& operator/=(const nixFloat& _s)
+    NIX_INLINE Matrix& operator/=(const float& _s)
     {
         *this = Div(_s);
         return *this;
@@ -170,39 +173,39 @@ public:
     // Functions
     NIX_INLINE Vector4 Determinant() const
     {
-        const nixFloat4 swp0 = Swizzle::ZYYX(m_rows[2]);
-        const nixFloat4 swp1 = Swizzle::WWZW(m_rows[3]);
-        const nixFloat4 mul0 = Helper::Mul(swp0, swp1);
+        const float128 swp0 = Swizzle::ZYYX(m_rows[2]);
+        const float128 swp1 = Swizzle::WWZW(m_rows[3]);
+        const float128 mul0 = Helper::Mul(swp0, swp1);
 
-        const nixFloat4 swp2 = Swizzle::WWZW(m_rows[2]);
-        const nixFloat4 swp3 = Swizzle::ZYYX(m_rows[3]);
-        const nixFloat4 mul1 = Helper::Mul(swp2, swp3);
+        const float128 swp2 = Swizzle::WWZW(m_rows[2]);
+        const float128 swp3 = Swizzle::ZYYX(m_rows[3]);
+        const float128 mul1 = Helper::Mul(swp2, swp3);
 
-        const nixFloat4 sub0 = Helper::Sub(mul0, mul1);
+        const float128 sub0 = Helper::Sub(mul0, mul1);
 
-        const nixFloat4 xxyz = Swizzle::ZYXX(m_rows[2]);
-        const nixFloat4 swp5 = Swizzle::XXZY(m_rows[3]);
-        const nixFloat4 mul2 = Helper::Mul(xxyz, swp5);
-        const nixFloat4 sub1 = Helper::Sub(_mm_movehl_ps(mul2, mul2), mul2);
+        const float128 xxyz = Swizzle::ZYXX(m_rows[2]);
+        const float128 swp5 = Swizzle::XXZY(m_rows[3]);
+        const float128 mul2 = Helper::Mul(xxyz, swp5);
+        const float128 sub1 = Helper::Sub(_mm_movehl_ps(mul2, mul2), mul2);
 
-        const nixFloat4 sbf0 = Swizzle::XXYZ(sub0);
-        const nixFloat4 xxxy = Swizzle::YXXX(m_rows[1]);
-        const nixFloat4 mlf0 = Helper::Mul(xxxy, sbf0);
+        const float128 sbf0 = Swizzle::XXYZ(sub0);
+        const float128 xxxy = Swizzle::YXXX(m_rows[1]);
+        const float128 mlf0 = Helper::Mul(xxxy, sbf0);
 
-        const nixFloat4 sbft = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(0, 0, 3, 1));
-        const nixFloat4 sbf1 = Swizzle::XYYW(sbft);
-        const nixFloat4 swf1 = Swizzle::ZZYY(m_rows[1]);
-        const nixFloat4 mlf1 = Helper::Mul(swf1, sbf1);
+        const float128 sbft = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(0, 0, 3, 1));
+        const float128 sbf1 = Swizzle::XYYW(sbft);
+        const float128 swf1 = Swizzle::ZZYY(m_rows[1]);
+        const float128 mlf1 = Helper::Mul(swf1, sbf1);
 
-        const nixFloat4 subr = Helper::Sub(mlf0, mlf1);
+        const float128 subr = Helper::Sub(mlf0, mlf1);
 
-        const nixFloat4 sbt0 = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(1, 0, 2, 2));
-        const nixFloat4 sbt1 = Swizzle::XZWW(sbt0);
-        const nixFloat4 swft = Swizzle::WWWZ(m_rows[1]);
-        const nixFloat4 mlfc = Helper::Mul(swft, sbt1);
+        const float128 sbt0 = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(1, 0, 2, 2));
+        const float128 sbt1 = Swizzle::XZWW(sbt0);
+        const float128 swft = Swizzle::WWWZ(m_rows[1]);
+        const float128 mlfc = Helper::Mul(swft, sbt1);
 
-        const nixFloat4 addr = Helper::Add(subr, mlfc);
-        const nixFloat4 detc = Helper::Mul(addr, _mm_setr_ps(1.0f, -1.0f, 1.0f, -1.0f));
+        const float128 addr = Helper::Add(subr, mlfc);
+        const float128 detc = Helper::Mul(addr, _mm_setr_ps(1.0f, -1.0f, 1.0f, -1.0f));
 
         return Helper::Dot(m_rows[0], detc);
     }
@@ -210,10 +213,10 @@ public:
     NIX_INLINE Matrix Transpose() const
     {
         Matrix result;
-        const nixFloat4 swp0 = _mm_shuffle_ps(m_rows[0], m_rows[1], 0x44);
-        const nixFloat4 swp1 = _mm_shuffle_ps(m_rows[2], m_rows[3], 0x44);
-        const nixFloat4 swp2 = _mm_shuffle_ps(m_rows[0], m_rows[1], 0xEE);
-        const nixFloat4 swp3 = _mm_shuffle_ps(m_rows[2], m_rows[3], 0xEE);
+        const float128 swp0 = _mm_shuffle_ps(m_rows[0], m_rows[1], 0x44);
+        const float128 swp1 = _mm_shuffle_ps(m_rows[2], m_rows[3], 0x44);
+        const float128 swp2 = _mm_shuffle_ps(m_rows[0], m_rows[1], 0xEE);
+        const float128 swp3 = _mm_shuffle_ps(m_rows[2], m_rows[3], 0xEE);
         result[0] = _mm_shuffle_ps(swp0, swp1, 0x88);
         result[1] = _mm_shuffle_ps(swp0, swp1, 0xDD);
         result[2] = _mm_shuffle_ps(swp2, swp3, 0x88);
@@ -227,8 +230,8 @@ public:
     {
         Matrix result;
         // transpose the 3x3 part, so m03 = m13 = m23 = 0
-        const nixFloat4 lh = _mm_movelh_ps(m_rows[0], m_rows[1]);
-        const nixFloat4 hl = _mm_movehl_ps(m_rows[1], m_rows[0]);
+        const float128 lh = _mm_movelh_ps(m_rows[0], m_rows[1]);
+        const float128 hl = _mm_movehl_ps(m_rows[1], m_rows[0]);
         result[0] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 0, 2, 0));
         result[1] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 1, 3, 1));
         result[2] = _mm_shuffle_ps(hl, m_rows[2], _MM_SHUFFLE(3, 2, 2, 0));
@@ -246,31 +249,31 @@ public:
     {
         Matrix result;
         // transpose the 3x3 part, so m03 = m13 = m23 = 0
-        const nixFloat4 lh = _mm_movelh_ps(m_rows[0], m_rows[1]);
-        const nixFloat4 hl = _mm_movehl_ps(m_rows[1], m_rows[0]);
+        const float128 lh = _mm_movelh_ps(m_rows[0], m_rows[1]);
+        const float128 hl = _mm_movehl_ps(m_rows[1], m_rows[0]);
         result[0] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 0, 2, 0));
         result[1] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 1, 3, 1));
         result[2] = _mm_shuffle_ps(hl, m_rows[2], _MM_SHUFFLE(3, 2, 2, 0));
 
-        nixFloat4 sqr = Helper::Mul(result[0], result[0]);
+        float128 sqr = Helper::Mul(result[0], result[0]);
         sqr = Helper::Add(sqr, Helper::Mul(result[1], result[1]));
         sqr = Helper::Add(sqr, Helper::Mul(result[2], result[2]));
 
-        const nixFloat4 msk = _mm_cmplt_ps(sqr, kSmallNumber);
+        const float128 msk = _mm_cmplt_ps(sqr, kSmallNumber);
 
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
 
-        const nixFloat4 rsqr = _mm_blendv_ps(Helper::Div(kOne, sqr), kOne, msk);
+        const float128 rsqr = _mm_blendv_ps(Helper::Div(kOne, sqr), kOne, msk);
 
 #   else
 
-        nixFloat4 one = kOne;
-        nixFloat4 dva = Helper::Div(one, sqr);
+        float128 one = kOne;
+        float128 dva = Helper::Div(one, sqr);
 
         one = _mm_and_ps(msk, one);
         dva = _mm_andnot_ps(msk, dva);
 
-        const nixFloat4 rsqr = _mm_or_ps(dva, one);
+        const float128 rsqr = _mm_or_ps(dva, one);
 
 #   endif
 
@@ -289,15 +292,15 @@ public:
     NIX_INLINE Matrix Translate(const Vector4& _v) const
     {
         Matrix result;
-        const nixFloat4& xxxx = Swizzle::XXXX(_v);
-        const nixFloat4& yyyy = Swizzle::YYYY(_v);
-        const nixFloat4& zzzz = Swizzle::ZZZZ(_v);
+        const float128& xxxx = Swizzle::XXXX(_v);
+        const float128& yyyy = Swizzle::YYYY(_v);
+        const float128& zzzz = Swizzle::ZZZZ(_v);
 
-        const nixFloat4& v0 = Helper::Mul(m_rows[0], xxxx);
-        const nixFloat4& v1 = Helper::Mul(m_rows[1], yyyy);
-        const nixFloat4& v2 = Helper::Mul(m_rows[2], zzzz);
+        const float128& v0 = Helper::Mul(m_rows[0], xxxx);
+        const float128& v1 = Helper::Mul(m_rows[1], yyyy);
+        const float128& v2 = Helper::Mul(m_rows[2], zzzz);
 
-        const nixFloat4& row3 = Helper::Add(Helper::Add(v0, v1), v2);
+        const float128& row3 = Helper::Add(Helper::Add(v0, v1), v2);
         result[0] = m_rows[0];
         result[1] = m_rows[1];
         result[2] = m_rows[2];
@@ -308,9 +311,9 @@ public:
     NIX_INLINE Matrix Scale(const Vector4& _s) const
     {
         Matrix result;
-        const nixFloat4& xxxx = Swizzle::XXXX(_s);
-        const nixFloat4& yyyy = Swizzle::YYYY(_s);
-        const nixFloat4& zzzz = Swizzle::ZZZZ(_s);
+        const float128& xxxx = Swizzle::XXXX(_s);
+        const float128& yyyy = Swizzle::YYYY(_s);
+        const float128& zzzz = Swizzle::ZZZZ(_s);
 
         result[0] = Helper::Mul(m_rows[0], xxxx);
         result[1] = Helper::Mul(m_rows[1], yyyy);
@@ -323,73 +326,73 @@ public:
     {
         Matrix result;
         {
-            const nixFloat4 xxxx = Swizzle::XXXX(m_rows[0]);
-            const nixFloat4 yyyy = Swizzle::YYYY(m_rows[0]);
-            const nixFloat4 zzzz = Swizzle::ZZZZ(m_rows[0]);
-            const nixFloat4 wwww = Swizzle::WWWW(m_rows[0]);
+            const float128 xxxx = Swizzle::XXXX(m_rows[0]);
+            const float128 yyyy = Swizzle::YYYY(m_rows[0]);
+            const float128 zzzz = Swizzle::ZZZZ(m_rows[0]);
+            const float128 wwww = Swizzle::WWWW(m_rows[0]);
 
-            const nixFloat4 mul0 = Helper::Mul(_other[0], xxxx);
-            const nixFloat4 mul1 = Helper::Mul(_other[1], yyyy);
-            const nixFloat4 mul2 = Helper::Mul(_other[2], zzzz);
-            const nixFloat4 mul3 = Helper::Mul(_other[3], wwww);
+            const float128 mul0 = Helper::Mul(_other[0], xxxx);
+            const float128 mul1 = Helper::Mul(_other[1], yyyy);
+            const float128 mul2 = Helper::Mul(_other[2], zzzz);
+            const float128 mul3 = Helper::Mul(_other[3], wwww);
 
-            const nixFloat4 add0 = Helper::Add(mul0, mul1);
-            const nixFloat4 add1 = Helper::Add(mul2, mul3);
-            const nixFloat4 add2 = Helper::Add(add0, add1);
+            const float128 add0 = Helper::Add(mul0, mul1);
+            const float128 add1 = Helper::Add(mul2, mul3);
+            const float128 add2 = Helper::Add(add0, add1);
 
             result[0] = add2;
         }
 
         {
-            const nixFloat4 xxxx = Swizzle::XXXX(m_rows[1]);
-            const nixFloat4 yyyy = Swizzle::YYYY(m_rows[1]);
-            const nixFloat4 zzzz = Swizzle::ZZZZ(m_rows[1]);
-            const nixFloat4 wwww = Swizzle::WWWW(m_rows[1]);
+            const float128 xxxx = Swizzle::XXXX(m_rows[1]);
+            const float128 yyyy = Swizzle::YYYY(m_rows[1]);
+            const float128 zzzz = Swizzle::ZZZZ(m_rows[1]);
+            const float128 wwww = Swizzle::WWWW(m_rows[1]);
 
-            const nixFloat4 mul0 = Helper::Mul(_other[0], xxxx);
-            const nixFloat4 mul1 = Helper::Mul(_other[1], yyyy);
-            const nixFloat4 mul2 = Helper::Mul(_other[2], zzzz);
-            const nixFloat4 mul3 = Helper::Mul(_other[3], wwww);
+            const float128 mul0 = Helper::Mul(_other[0], xxxx);
+            const float128 mul1 = Helper::Mul(_other[1], yyyy);
+            const float128 mul2 = Helper::Mul(_other[2], zzzz);
+            const float128 mul3 = Helper::Mul(_other[3], wwww);
 
-            const nixFloat4 add0 = Helper::Add(mul0, mul1);
-            const nixFloat4 add1 = Helper::Add(mul2, mul3);
-            const nixFloat4 add2 = Helper::Add(add0, add1);
+            const float128 add0 = Helper::Add(mul0, mul1);
+            const float128 add1 = Helper::Add(mul2, mul3);
+            const float128 add2 = Helper::Add(add0, add1);
 
             result[1] = add2;
         }
 
         {
-            const nixFloat4 xxxx = Swizzle::XXXX(m_rows[2]);
-            const nixFloat4 yyyy = Swizzle::YYYY(m_rows[2]);
-            const nixFloat4 zzzz = Swizzle::ZZZZ(m_rows[2]);
-            const nixFloat4 wwww = Swizzle::WWWW(m_rows[2]);
+            const float128 xxxx = Swizzle::XXXX(m_rows[2]);
+            const float128 yyyy = Swizzle::YYYY(m_rows[2]);
+            const float128 zzzz = Swizzle::ZZZZ(m_rows[2]);
+            const float128 wwww = Swizzle::WWWW(m_rows[2]);
 
-            const nixFloat4 mul0 = Helper::Mul(_other[0], xxxx);
-            const nixFloat4 mul1 = Helper::Mul(_other[1], yyyy);
-            const nixFloat4 mul2 = Helper::Mul(_other[2], zzzz);
-            const nixFloat4 mul3 = Helper::Mul(_other[3], wwww);
+            const float128 mul0 = Helper::Mul(_other[0], xxxx);
+            const float128 mul1 = Helper::Mul(_other[1], yyyy);
+            const float128 mul2 = Helper::Mul(_other[2], zzzz);
+            const float128 mul3 = Helper::Mul(_other[3], wwww);
 
-            const nixFloat4 add0 = Helper::Add(mul0, mul1);
-            const nixFloat4 add1 = Helper::Add(mul2, mul3);
-            const nixFloat4 add2 = Helper::Add(add0, add1);
+            const float128 add0 = Helper::Add(mul0, mul1);
+            const float128 add1 = Helper::Add(mul2, mul3);
+            const float128 add2 = Helper::Add(add0, add1);
 
             result[2] = add2;
         }
 
         {
-            const nixFloat4 xxxx = Swizzle::XXXX(m_rows[3]);
-            const nixFloat4 yyyy = Swizzle::YYYY(m_rows[3]);
-            const nixFloat4 zzzz = Swizzle::ZZZZ(m_rows[3]);
-            const nixFloat4 wwww = Swizzle::WWWW(m_rows[3]);
+            const float128 xxxx = Swizzle::XXXX(m_rows[3]);
+            const float128 yyyy = Swizzle::YYYY(m_rows[3]);
+            const float128 zzzz = Swizzle::ZZZZ(m_rows[3]);
+            const float128 wwww = Swizzle::WWWW(m_rows[3]);
 
-            const nixFloat4 mul0 = Helper::Mul(_other[0], xxxx);
-            const nixFloat4 mul1 = Helper::Mul(_other[1], yyyy);
-            const nixFloat4 mul2 = Helper::Mul(_other[2], zzzz);
-            const nixFloat4 mul3 = Helper::Mul(_other[3], wwww);
+            const float128 mul0 = Helper::Mul(_other[0], xxxx);
+            const float128 mul1 = Helper::Mul(_other[1], yyyy);
+            const float128 mul2 = Helper::Mul(_other[2], zzzz);
+            const float128 mul3 = Helper::Mul(_other[3], wwww);
 
-            const nixFloat4 add0 = Helper::Add(mul0, mul1);
-            const nixFloat4 add1 = Helper::Add(mul2, mul3);
-            const nixFloat4 add2 = Helper::Add(add0, add1);
+            const float128 add0 = Helper::Add(mul0, mul1);
+            const float128 add1 = Helper::Add(mul2, mul3);
+            const float128 add2 = Helper::Add(add0, add1);
 
             result[3] = add2;
         }
@@ -416,10 +419,10 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Add(nixFloat _s) const
+    NIX_INLINE Matrix Add(float _s) const
     {
         Matrix result;
-        const nixFloat4 opv = Helper::Splat(_s);
+        const float128 opv = Helper::Splat(_s);
         result[0] = Helper::Add(m_rows[0], opv);
         result[1] = Helper::Add(m_rows[1], opv);
         result[2] = Helper::Add(m_rows[2], opv);
@@ -427,10 +430,10 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Sub(nixFloat _s) const
+    NIX_INLINE Matrix Sub(float _s) const
     {
         Matrix result;
-        const nixFloat4 opv = Helper::Splat(_s);
+        const float128 opv = Helper::Splat(_s);
         result[0] = Helper::Sub(m_rows[0], opv);
         result[1] = Helper::Sub(m_rows[1], opv);
         result[2] = Helper::Sub(m_rows[2], opv);
@@ -438,10 +441,10 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Mul(nixFloat _s) const
+    NIX_INLINE Matrix Mul(float _s) const
     {
         Matrix result;
-        const nixFloat4 opv = Helper::Splat(_s);
+        const float128 opv = Helper::Splat(_s);
         result[0] = Helper::Mul(m_rows[0], opv);
         result[1] = Helper::Mul(m_rows[1], opv);
         result[2] = Helper::Mul(m_rows[2], opv);
@@ -449,10 +452,10 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Div(nixFloat _s) const
+    NIX_INLINE Matrix Div(float _s) const
     {
         Matrix result;
-        const nixFloat4 opv = Helper::Div(kOne, Helper::Splat(_s));
+        const float128 opv = Helper::Div(kOne, Helper::Splat(_s));
         result[0] = Helper::Mul(m_rows[0], opv);
         result[1] = Helper::Mul(m_rows[1], opv);
         result[2] = Helper::Mul(m_rows[2], opv);
@@ -462,39 +465,39 @@ public:
 
     NIX_INLINE Vector4 MulMatrixVector(const Vector4& _v) const
     {
-        const nixFloat4 xxxx = Swizzle::XXXX(_v);
-        const nixFloat4 yyyy = Swizzle::YYYY(_v);
-        const nixFloat4 zzzz = Swizzle::ZZZZ(_v);
-        const nixFloat4 wwww = Swizzle::WWWW(_v);
+        const float128 xxxx = Swizzle::XXXX(_v);
+        const float128 yyyy = Swizzle::YYYY(_v);
+        const float128 zzzz = Swizzle::ZZZZ(_v);
+        const float128 wwww = Swizzle::WWWW(_v);
 
-        const nixFloat4 mul0 = Helper::Mul(m_rows[0], xxxx);
-        const nixFloat4 mul1 = Helper::Mul(m_rows[1], yyyy);
-        const nixFloat4 mul2 = Helper::Mul(m_rows[2], zzzz);
-        const nixFloat4 mul3 = Helper::Mul(m_rows[3], wwww);
+        const float128 mul0 = Helper::Mul(m_rows[0], xxxx);
+        const float128 mul1 = Helper::Mul(m_rows[1], yyyy);
+        const float128 mul2 = Helper::Mul(m_rows[2], zzzz);
+        const float128 mul3 = Helper::Mul(m_rows[3], wwww);
 
-        const nixFloat4 add0 = Helper::Add(mul0, mul1);
-        const nixFloat4 add1 = Helper::Add(mul2, mul3);
+        const float128 add0 = Helper::Add(mul0, mul1);
+        const float128 add1 = Helper::Add(mul2, mul3);
 
         return Helper::Add(add0, add1);
     }
 
     NIX_INLINE Vector4 MulVectorMatrix(const Vector4& _v) const
     {
-        const nixFloat4 mul0 = Helper::Mul(_v, m_rows[0]);
-        const nixFloat4 mul1 = Helper::Mul(_v, m_rows[1]);
-        const nixFloat4 mul2 = Helper::Mul(_v, m_rows[2]);
-        const nixFloat4 mul3 = Helper::Mul(_v, m_rows[3]);
+        const float128 mul0 = Helper::Mul(_v, m_rows[0]);
+        const float128 mul1 = Helper::Mul(_v, m_rows[1]);
+        const float128 mul2 = Helper::Mul(_v, m_rows[2]);
+        const float128 mul3 = Helper::Mul(_v, m_rows[3]);
 
-        const nixFloat4 lo0 = _mm_unpacklo_ps(mul0, mul1);
-        const nixFloat4 hi0 = _mm_unpackhi_ps(mul0, mul1);
-        const nixFloat4 add0 = Helper::Add(lo0, hi0);
+        const float128 lo0 = _mm_unpacklo_ps(mul0, mul1);
+        const float128 hi0 = _mm_unpackhi_ps(mul0, mul1);
+        const float128 add0 = Helper::Add(lo0, hi0);
 
-        const nixFloat4 lo1 = _mm_unpacklo_ps(mul2, mul3);
-        const nixFloat4 hi1 = _mm_unpackhi_ps(mul2, mul3);
-        const nixFloat4 add1 = Helper::Add(lo1, hi1);
+        const float128 lo1 = _mm_unpacklo_ps(mul2, mul3);
+        const float128 hi1 = _mm_unpackhi_ps(mul2, mul3);
+        const float128 add1 = Helper::Add(lo1, hi1);
 
-        const nixFloat4 mlh = _mm_movelh_ps(add0, add1);
-        const nixFloat4 mhl = _mm_movehl_ps(add1, add0);
+        const float128 mlh = _mm_movelh_ps(add0, add1);
+        const float128 mhl = _mm_movehl_ps(add1, add0);
 
         return Helper::Add(mlh, mhl);
     }
@@ -503,22 +506,22 @@ private:
     friend class Vector4;
 
     // for global operators
-    friend NIX_INLINE Matrix operator+(const Matrix& _m, const nixFloat& _s);
-    friend NIX_INLINE Matrix operator+(const nixFloat& _s, const Matrix& _m);
+    friend NIX_INLINE Matrix operator+(const Matrix& _m, const float& _s);
+    friend NIX_INLINE Matrix operator+(const float& _s, const Matrix& _m);
     friend NIX_INLINE Matrix operator+(const Matrix& _a, const Matrix& _b);
-    friend NIX_INLINE Matrix operator-(const Matrix& _m, const nixFloat& _s);
-    friend NIX_INLINE Matrix operator-(const nixFloat& _s, const Matrix& _m);
+    friend NIX_INLINE Matrix operator-(const Matrix& _m, const float& _s);
+    friend NIX_INLINE Matrix operator-(const float& _s, const Matrix& _m);
     friend NIX_INLINE Matrix operator-(const Matrix& _a, const Matrix& _b);
-    friend NIX_INLINE Matrix operator*(const Matrix& _m, const nixFloat& _s);
-    friend NIX_INLINE Matrix operator*(const nixFloat& _s, const Matrix& _m);
+    friend NIX_INLINE Matrix operator*(const Matrix& _m, const float& _s);
+    friend NIX_INLINE Matrix operator*(const float& _s, const Matrix& _m);
     friend NIX_INLINE Vector4 operator*(const Matrix& _m, const Vector4& _v);
     friend NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix& _m);
     friend NIX_INLINE Matrix operator*(const Matrix& _a, const Matrix& _b);
-    friend NIX_INLINE Matrix operator/(const Matrix& _m, const nixFloat& _s);
-    friend NIX_INLINE Matrix operator/(const nixFloat& _s, const Matrix& _m);
+    friend NIX_INLINE Matrix operator/(const Matrix& _m, const float& _s);
+    friend NIX_INLINE Matrix operator/(const float& _s, const Matrix& _m);
 
 private:
-    nixFloat4 m_rows[4];
+    float128 m_rows[4];
 };
 
 
@@ -528,10 +531,10 @@ private:
 #ifdef _DEBUG
 NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix& _mat)
 {
-    nixFloat *val0 = (nixFloat*)&(_mat[0]);
-    nixFloat *val1 = (nixFloat*)&(_mat[1]);
-    nixFloat *val2 = (nixFloat*)&(_mat[2]);
-    nixFloat *val3 = (nixFloat*)&(_mat[3]);
+    float *val0 = (float*)&(_mat[0]);
+    float *val1 = (float*)&(_mat[1]);
+    float *val2 = (float*)&(_mat[2]);
+    float *val3 = (float*)&(_mat[3]);
 
     _os << "(" << val0[0] << ", " << val0[1] << ", " << val0[2] << ", " << val0[3] << ")" << std::endl
         << "(" << val1[0] << ", " << val1[1] << ", " << val1[2] << ", " << val1[3] << ")" << std::endl
@@ -541,12 +544,12 @@ NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix& _mat)
 }
 #endif
 
-NIX_INLINE Matrix operator+(const Matrix& _m, const nixFloat& _s)
+NIX_INLINE Matrix operator+(const Matrix& _m, const float& _s)
 {
     return _m.Add(_s);
 }
 
-NIX_INLINE Matrix operator+(const nixFloat& _s, const Matrix& _m)
+NIX_INLINE Matrix operator+(const float& _s, const Matrix& _m)
 {
     return _m.Add(_s);
 }
@@ -556,12 +559,12 @@ NIX_INLINE Matrix operator+(const Matrix& _a, const Matrix& _b)
     return _a.Add(_b);
 }
 
-NIX_INLINE Matrix operator-(const Matrix& _m, const nixFloat& _s)
+NIX_INLINE Matrix operator-(const Matrix& _m, const float& _s)
 {
     return _m.Sub(_s);
 }
 
-NIX_INLINE Matrix operator-(const nixFloat& _s, const Matrix& _m)
+NIX_INLINE Matrix operator-(const float& _s, const Matrix& _m)
 {
     return _m.Sub(_s);
 }
@@ -571,12 +574,12 @@ NIX_INLINE Matrix operator-(const Matrix& _a, const Matrix& _b)
     return _a.Sub(_b);
 }
 
-NIX_INLINE Matrix operator*(const Matrix& _m, const nixFloat& _s)
+NIX_INLINE Matrix operator*(const Matrix& _m, const float& _s)
 {
     return _m.Mul(_s);
 }
 
-NIX_INLINE Matrix operator*(const nixFloat& _s, const Matrix& _m)
+NIX_INLINE Matrix operator*(const float& _s, const Matrix& _m)
 {
     return _m.Mul(_s);
 }
@@ -596,12 +599,12 @@ NIX_INLINE Matrix operator*(const Matrix& _a, const Matrix& _b)
     return _a.Mul(_b);
 }
 
-NIX_INLINE Matrix operator/(const Matrix& _m, const nixFloat& _s)
+NIX_INLINE Matrix operator/(const Matrix& _m, const float& _s)
 {
     return _m.Div(_s);
 }
 
-NIX_INLINE Matrix operator/(const nixFloat& _s, const Matrix& _m)
+NIX_INLINE Matrix operator/(const float& _s, const Matrix& _m)
 {
     return _m.Div(_s);
 }
