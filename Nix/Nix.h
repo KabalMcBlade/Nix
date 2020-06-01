@@ -5,10 +5,14 @@
 #include "Core/Assertions.h"
 #include "Core/BasicTypes.h"
 
-
+#include "Conversion.h"
 #include "Constants.h"
 #include "Swizzle.h"
+
 #include "Helper.h"
+
+#include "Permute.h"
+
 #include "Trigonometry.h"
 #include "Vector4.h"
 #include "Quaternion.h"

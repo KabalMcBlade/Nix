@@ -1,278 +1,39 @@
 #pragma once
 
-#include "Core/Architecture.h"
 #include "Core/BasicDefines.h"
-#include "Core/Assertions.h"
-#include "Core/BasicTypes.h"
 
-#include "Constants.h"
+#if NIX_ARCH & NIX_ARCH_AVX_FLAG
+#define NIX_SHUFFLE_PS( v, c ) _mm_permute_ps((v), c )
+#else
+#define NIX_SHUFFLE_PS( v, c ) _mm_shuffle_ps((v), (v), c )
+#endif
+
 
 NIX_NAMESPACE_BEGIN
 
-#define SWIZZLE(V, X, Y, Z, W) float128(_mm_shuffle_ps(V, V, _MM_SHUFFLE(W, Z, Y, X)))
 
-NIX_ALIGN_16 struct Swizzle
+
+enum ESwizzle : uint32
 {
-    static NIX_INLINE float128 XXXX(const float128& _v) { return SWIZZLE(_v, 0, 0, 0, 0); }
-    static NIX_INLINE float128 XXXY(const float128& _v) { return SWIZZLE(_v, 0, 0, 0, 1); }
-    static NIX_INLINE float128 XXXZ(const float128& _v) { return SWIZZLE(_v, 0, 0, 0, 2); }
-    static NIX_INLINE float128 XXXW(const float128& _v) { return SWIZZLE(_v, 0, 0, 0, 3); }
-    static NIX_INLINE float128 XXYX(const float128& _v) { return SWIZZLE(_v, 0, 0, 1, 0); }
-    static NIX_INLINE float128 XXYY(const float128& _v) { return SWIZZLE(_v, 0, 0, 1, 1); }
-    static NIX_INLINE float128 XXYZ(const float128& _v) { return SWIZZLE(_v, 0, 0, 1, 2); }
-    static NIX_INLINE float128 XXYW(const float128& _v) { return SWIZZLE(_v, 0, 0, 1, 3); }
-    static NIX_INLINE float128 XXZX(const float128& _v) { return SWIZZLE(_v, 0, 0, 2, 0); }
-    static NIX_INLINE float128 XXZY(const float128& _v) { return SWIZZLE(_v, 0, 0, 2, 1); }
-    static NIX_INLINE float128 XXZZ(const float128& _v) { return SWIZZLE(_v, 0, 0, 2, 2); }
-    static NIX_INLINE float128 XXZW(const float128& _v) { return SWIZZLE(_v, 0, 0, 2, 3); }
-    static NIX_INLINE float128 XXWX(const float128& _v) { return SWIZZLE(_v, 0, 0, 3, 0); }
-    static NIX_INLINE float128 XXWY(const float128& _v) { return SWIZZLE(_v, 0, 0, 3, 1); }
-    static NIX_INLINE float128 XXWZ(const float128& _v) { return SWIZZLE(_v, 0, 0, 3, 2); }
-    static NIX_INLINE float128 XXWW(const float128& _v) { return SWIZZLE(_v, 0, 0, 3, 3); }
-    static NIX_INLINE float128 XYXX(const float128& _v) { return SWIZZLE(_v, 0, 1, 0, 0); }
-    static NIX_INLINE float128 XYXY(const float128& _v) { return SWIZZLE(_v, 0, 1, 0, 1); }
-    static NIX_INLINE float128 XYXZ(const float128& _v) { return SWIZZLE(_v, 0, 1, 0, 2); }
-    static NIX_INLINE float128 XYXW(const float128& _v) { return SWIZZLE(_v, 0, 1, 0, 3); }
-    static NIX_INLINE float128 XYYX(const float128& _v) { return SWIZZLE(_v, 0, 1, 1, 0); }
-    static NIX_INLINE float128 XYYY(const float128& _v) { return SWIZZLE(_v, 0, 1, 1, 1); }
-    static NIX_INLINE float128 XYYZ(const float128& _v) { return SWIZZLE(_v, 0, 1, 1, 2); }
-    static NIX_INLINE float128 XYYW(const float128& _v) { return SWIZZLE(_v, 0, 1, 1, 3); }
-    static NIX_INLINE float128 XYZX(const float128& _v) { return SWIZZLE(_v, 0, 1, 2, 0); }
-    static NIX_INLINE float128 XYZY(const float128& _v) { return SWIZZLE(_v, 0, 1, 2, 1); }
-    static NIX_INLINE float128 XYZZ(const float128& _v) { return SWIZZLE(_v, 0, 1, 2, 2); }
-    static NIX_INLINE float128 XYZW(const float128& _v) { return _v; }
-    static NIX_INLINE float128 XYWX(const float128& _v) { return SWIZZLE(_v, 0, 1, 3, 0); }
-    static NIX_INLINE float128 XYWY(const float128& _v) { return SWIZZLE(_v, 0, 1, 3, 1); }
-    static NIX_INLINE float128 XYWZ(const float128& _v) { return SWIZZLE(_v, 0, 1, 3, 2); }
-    static NIX_INLINE float128 XYWW(const float128& _v) { return SWIZZLE(_v, 0, 1, 3, 3); }
-    static NIX_INLINE float128 XZXX(const float128& _v) { return SWIZZLE(_v, 0, 2, 0, 0); }
-    static NIX_INLINE float128 XZXY(const float128& _v) { return SWIZZLE(_v, 0, 2, 0, 1); }
-    static NIX_INLINE float128 XZXZ(const float128& _v) { return SWIZZLE(_v, 0, 2, 0, 2); }
-    static NIX_INLINE float128 XZXW(const float128& _v) { return SWIZZLE(_v, 0, 2, 0, 3); }
-    static NIX_INLINE float128 XZYX(const float128& _v) { return SWIZZLE(_v, 0, 2, 1, 0); }
-    static NIX_INLINE float128 XZYY(const float128& _v) { return SWIZZLE(_v, 0, 2, 1, 1); }
-    static NIX_INLINE float128 XZYZ(const float128& _v) { return SWIZZLE(_v, 0, 2, 1, 2); }
-    static NIX_INLINE float128 XZYW(const float128& _v) { return SWIZZLE(_v, 0, 2, 1, 3); }
-    static NIX_INLINE float128 XZZX(const float128& _v) { return SWIZZLE(_v, 0, 2, 2, 0); }
-    static NIX_INLINE float128 XZZY(const float128& _v) { return SWIZZLE(_v, 0, 2, 2, 1); }
-    static NIX_INLINE float128 XZZZ(const float128& _v) { return SWIZZLE(_v, 0, 2, 2, 2); }
-    static NIX_INLINE float128 XZZW(const float128& _v) { return SWIZZLE(_v, 0, 2, 2, 3); }
-    static NIX_INLINE float128 XZWX(const float128& _v) { return SWIZZLE(_v, 0, 2, 3, 0); }
-    static NIX_INLINE float128 XZWY(const float128& _v) { return SWIZZLE(_v, 0, 2, 3, 1); }
-    static NIX_INLINE float128 XZWZ(const float128& _v) { return SWIZZLE(_v, 0, 2, 3, 2); }
-    static NIX_INLINE float128 XZWW(const float128& _v) { return SWIZZLE(_v, 0, 2, 3, 3); }
-    static NIX_INLINE float128 XWXX(const float128& _v) { return SWIZZLE(_v, 0, 3, 0, 0); }
-    static NIX_INLINE float128 XWXY(const float128& _v) { return SWIZZLE(_v, 0, 3, 0, 1); }
-    static NIX_INLINE float128 XWXZ(const float128& _v) { return SWIZZLE(_v, 0, 3, 0, 2); }
-    static NIX_INLINE float128 XWXW(const float128& _v) { return SWIZZLE(_v, 0, 3, 0, 3); }
-    static NIX_INLINE float128 XWYX(const float128& _v) { return SWIZZLE(_v, 0, 3, 1, 0); }
-    static NIX_INLINE float128 XWYY(const float128& _v) { return SWIZZLE(_v, 0, 3, 1, 1); }
-    static NIX_INLINE float128 XWYZ(const float128& _v) { return SWIZZLE(_v, 0, 3, 1, 2); }
-    static NIX_INLINE float128 XWYW(const float128& _v) { return SWIZZLE(_v, 0, 3, 1, 3); }
-    static NIX_INLINE float128 XWZX(const float128& _v) { return SWIZZLE(_v, 0, 3, 2, 0); }
-    static NIX_INLINE float128 XWZY(const float128& _v) { return SWIZZLE(_v, 0, 3, 2, 1); }
-    static NIX_INLINE float128 XWZZ(const float128& _v) { return SWIZZLE(_v, 0, 3, 2, 2); }
-    static NIX_INLINE float128 XWZW(const float128& _v) { return SWIZZLE(_v, 0, 3, 2, 3); }
-    static NIX_INLINE float128 XWWX(const float128& _v) { return SWIZZLE(_v, 0, 3, 3, 0); }
-    static NIX_INLINE float128 XWWY(const float128& _v) { return SWIZZLE(_v, 0, 3, 3, 1); }
-    static NIX_INLINE float128 XWWZ(const float128& _v) { return SWIZZLE(_v, 0, 3, 3, 2); }
-    static NIX_INLINE float128 XWWW(const float128& _v) { return SWIZZLE(_v, 0, 3, 3, 3); }
-
-    static NIX_INLINE float128 YXXX(const float128& _v) { return SWIZZLE(_v, 1, 0, 0, 0); }
-    static NIX_INLINE float128 YXXY(const float128& _v) { return SWIZZLE(_v, 1, 0, 0, 1); }
-    static NIX_INLINE float128 YXXZ(const float128& _v) { return SWIZZLE(_v, 1, 0, 0, 2); }
-    static NIX_INLINE float128 YXXW(const float128& _v) { return SWIZZLE(_v, 1, 0, 0, 3); }
-    static NIX_INLINE float128 YXYX(const float128& _v) { return SWIZZLE(_v, 1, 0, 1, 0); }
-    static NIX_INLINE float128 YXYY(const float128& _v) { return SWIZZLE(_v, 1, 0, 1, 1); }
-    static NIX_INLINE float128 YXYZ(const float128& _v) { return SWIZZLE(_v, 1, 0, 1, 2); }
-    static NIX_INLINE float128 YXYW(const float128& _v) { return SWIZZLE(_v, 1, 0, 1, 3); }
-    static NIX_INLINE float128 YXZX(const float128& _v) { return SWIZZLE(_v, 1, 0, 2, 0); }
-    static NIX_INLINE float128 YXZY(const float128& _v) { return SWIZZLE(_v, 1, 0, 2, 1); }
-    static NIX_INLINE float128 YXZZ(const float128& _v) { return SWIZZLE(_v, 1, 0, 2, 2); }
-    static NIX_INLINE float128 YXZW(const float128& _v) { return SWIZZLE(_v, 1, 0, 2, 3); }
-    static NIX_INLINE float128 YXWX(const float128& _v) { return SWIZZLE(_v, 1, 0, 3, 0); }
-    static NIX_INLINE float128 YXWY(const float128& _v) { return SWIZZLE(_v, 1, 0, 3, 1); }
-    static NIX_INLINE float128 YXWZ(const float128& _v) { return SWIZZLE(_v, 1, 0, 3, 2); }
-    static NIX_INLINE float128 YXWW(const float128& _v) { return SWIZZLE(_v, 1, 0, 3, 3); }
-    static NIX_INLINE float128 YYXX(const float128& _v) { return SWIZZLE(_v, 1, 1, 0, 0); }
-    static NIX_INLINE float128 YYXY(const float128& _v) { return SWIZZLE(_v, 1, 1, 0, 1); }
-    static NIX_INLINE float128 YYXZ(const float128& _v) { return SWIZZLE(_v, 1, 1, 0, 2); }
-    static NIX_INLINE float128 YYXW(const float128& _v) { return SWIZZLE(_v, 1, 1, 0, 3); }
-    static NIX_INLINE float128 YYYX(const float128& _v) { return SWIZZLE(_v, 1, 1, 1, 0); }
-    static NIX_INLINE float128 YYYY(const float128& _v) { return SWIZZLE(_v, 1, 1, 1, 1); }
-    static NIX_INLINE float128 YYYZ(const float128& _v) { return SWIZZLE(_v, 1, 1, 1, 2); }
-    static NIX_INLINE float128 YYYW(const float128& _v) { return SWIZZLE(_v, 1, 1, 1, 3); }
-    static NIX_INLINE float128 YYZX(const float128& _v) { return SWIZZLE(_v, 1, 1, 2, 0); }
-    static NIX_INLINE float128 YYZY(const float128& _v) { return SWIZZLE(_v, 1, 1, 2, 1); }
-    static NIX_INLINE float128 YYZZ(const float128& _v) { return SWIZZLE(_v, 1, 1, 2, 2); }
-    static NIX_INLINE float128 YYZW(const float128& _v) { return SWIZZLE(_v, 1, 1, 2, 3); }
-    static NIX_INLINE float128 YYWX(const float128& _v) { return SWIZZLE(_v, 1, 1, 3, 0); }
-    static NIX_INLINE float128 YYWY(const float128& _v) { return SWIZZLE(_v, 1, 1, 3, 1); }
-    static NIX_INLINE float128 YYWZ(const float128& _v) { return SWIZZLE(_v, 1, 1, 3, 2); }
-    static NIX_INLINE float128 YYWW(const float128& _v) { return SWIZZLE(_v, 1, 1, 3, 3); }
-    static NIX_INLINE float128 YZXX(const float128& _v) { return SWIZZLE(_v, 1, 2, 0, 0); }
-    static NIX_INLINE float128 YZXY(const float128& _v) { return SWIZZLE(_v, 1, 2, 0, 1); }
-    static NIX_INLINE float128 YZXZ(const float128& _v) { return SWIZZLE(_v, 1, 2, 0, 2); }
-    static NIX_INLINE float128 YZXW(const float128& _v) { return SWIZZLE(_v, 1, 2, 0, 3); }
-    static NIX_INLINE float128 YZYX(const float128& _v) { return SWIZZLE(_v, 1, 2, 1, 0); }
-    static NIX_INLINE float128 YZYY(const float128& _v) { return SWIZZLE(_v, 1, 2, 1, 1); }
-    static NIX_INLINE float128 YZYZ(const float128& _v) { return SWIZZLE(_v, 1, 2, 1, 2); }
-    static NIX_INLINE float128 YZYW(const float128& _v) { return SWIZZLE(_v, 1, 2, 1, 3); }
-    static NIX_INLINE float128 YZZX(const float128& _v) { return SWIZZLE(_v, 1, 2, 2, 0); }
-    static NIX_INLINE float128 YZZY(const float128& _v) { return SWIZZLE(_v, 1, 2, 2, 1); }
-    static NIX_INLINE float128 YZZZ(const float128& _v) { return SWIZZLE(_v, 1, 2, 2, 2); }
-    static NIX_INLINE float128 YZZW(const float128& _v) { return SWIZZLE(_v, 1, 2, 2, 3); }
-    static NIX_INLINE float128 YZWX(const float128& _v) { return SWIZZLE(_v, 1, 2, 3, 0); }
-    static NIX_INLINE float128 YZWY(const float128& _v) { return SWIZZLE(_v, 1, 2, 3, 1); }
-    static NIX_INLINE float128 YZWZ(const float128& _v) { return SWIZZLE(_v, 1, 2, 3, 2); }
-    static NIX_INLINE float128 YZWW(const float128& _v) { return SWIZZLE(_v, 1, 2, 3, 3); }
-    static NIX_INLINE float128 YWXX(const float128& _v) { return SWIZZLE(_v, 1, 3, 0, 0); }
-    static NIX_INLINE float128 YWXY(const float128& _v) { return SWIZZLE(_v, 1, 3, 0, 1); }
-    static NIX_INLINE float128 YWXZ(const float128& _v) { return SWIZZLE(_v, 1, 3, 0, 2); }
-    static NIX_INLINE float128 YWXW(const float128& _v) { return SWIZZLE(_v, 1, 3, 0, 3); }
-    static NIX_INLINE float128 YWYX(const float128& _v) { return SWIZZLE(_v, 1, 3, 1, 0); }
-    static NIX_INLINE float128 YWYY(const float128& _v) { return SWIZZLE(_v, 1, 3, 1, 1); }
-    static NIX_INLINE float128 YWYZ(const float128& _v) { return SWIZZLE(_v, 1, 3, 1, 2); }
-    static NIX_INLINE float128 YWYW(const float128& _v) { return SWIZZLE(_v, 1, 3, 1, 3); }
-    static NIX_INLINE float128 YWZX(const float128& _v) { return SWIZZLE(_v, 1, 3, 2, 0); }
-    static NIX_INLINE float128 YWZY(const float128& _v) { return SWIZZLE(_v, 1, 3, 2, 1); }
-    static NIX_INLINE float128 YWZZ(const float128& _v) { return SWIZZLE(_v, 1, 3, 2, 2); }
-    static NIX_INLINE float128 YWZW(const float128& _v) { return SWIZZLE(_v, 1, 3, 2, 3); }
-    static NIX_INLINE float128 YWWX(const float128& _v) { return SWIZZLE(_v, 1, 3, 3, 0); }
-    static NIX_INLINE float128 YWWY(const float128& _v) { return SWIZZLE(_v, 1, 3, 3, 1); }
-    static NIX_INLINE float128 YWWZ(const float128& _v) { return SWIZZLE(_v, 1, 3, 3, 2); }
-    static NIX_INLINE float128 YWWW(const float128& _v) { return SWIZZLE(_v, 1, 3, 3, 3); }
-
-    static NIX_INLINE float128 ZXXX(const float128& _v) { return SWIZZLE(_v, 2, 0, 0, 0); }
-    static NIX_INLINE float128 ZXXY(const float128& _v) { return SWIZZLE(_v, 2, 0, 0, 1); }
-    static NIX_INLINE float128 ZXXZ(const float128& _v) { return SWIZZLE(_v, 2, 0, 0, 2); }
-    static NIX_INLINE float128 ZXXW(const float128& _v) { return SWIZZLE(_v, 2, 0, 0, 3); }
-    static NIX_INLINE float128 ZXYX(const float128& _v) { return SWIZZLE(_v, 2, 0, 1, 0); }
-    static NIX_INLINE float128 ZXYY(const float128& _v) { return SWIZZLE(_v, 2, 0, 1, 1); }
-    static NIX_INLINE float128 ZXYZ(const float128& _v) { return SWIZZLE(_v, 2, 0, 1, 2); }
-    static NIX_INLINE float128 ZXYW(const float128& _v) { return SWIZZLE(_v, 2, 0, 1, 3); }
-    static NIX_INLINE float128 ZXZX(const float128& _v) { return SWIZZLE(_v, 2, 0, 2, 0); }
-    static NIX_INLINE float128 ZXZY(const float128& _v) { return SWIZZLE(_v, 2, 0, 2, 1); }
-    static NIX_INLINE float128 ZXZZ(const float128& _v) { return SWIZZLE(_v, 2, 0, 2, 2); }
-    static NIX_INLINE float128 ZXZW(const float128& _v) { return SWIZZLE(_v, 2, 0, 2, 3); }
-    static NIX_INLINE float128 ZXWX(const float128& _v) { return SWIZZLE(_v, 2, 0, 3, 0); }
-    static NIX_INLINE float128 ZXWY(const float128& _v) { return SWIZZLE(_v, 2, 0, 3, 1); }
-    static NIX_INLINE float128 ZXWZ(const float128& _v) { return SWIZZLE(_v, 2, 0, 3, 2); }
-    static NIX_INLINE float128 ZXWW(const float128& _v) { return SWIZZLE(_v, 2, 0, 3, 3); }
-    static NIX_INLINE float128 ZYXX(const float128& _v) { return SWIZZLE(_v, 2, 1, 0, 0); }
-    static NIX_INLINE float128 ZYXY(const float128& _v) { return SWIZZLE(_v, 2, 1, 0, 1); }
-    static NIX_INLINE float128 ZYXZ(const float128& _v) { return SWIZZLE(_v, 2, 1, 0, 2); }
-    static NIX_INLINE float128 ZYXW(const float128& _v) { return SWIZZLE(_v, 2, 1, 0, 3); }
-    static NIX_INLINE float128 ZYYX(const float128& _v) { return SWIZZLE(_v, 2, 1, 1, 0); }
-    static NIX_INLINE float128 ZYYY(const float128& _v) { return SWIZZLE(_v, 2, 1, 1, 1); }
-    static NIX_INLINE float128 ZYYZ(const float128& _v) { return SWIZZLE(_v, 2, 1, 1, 2); }
-    static NIX_INLINE float128 ZYYW(const float128& _v) { return SWIZZLE(_v, 2, 1, 1, 3); }
-    static NIX_INLINE float128 ZYZX(const float128& _v) { return SWIZZLE(_v, 2, 1, 2, 0); }
-    static NIX_INLINE float128 ZYZY(const float128& _v) { return SWIZZLE(_v, 2, 1, 2, 1); }
-    static NIX_INLINE float128 ZYZZ(const float128& _v) { return SWIZZLE(_v, 2, 1, 2, 2); }
-    static NIX_INLINE float128 ZYZW(const float128& _v) { return SWIZZLE(_v, 2, 1, 2, 3); }
-    static NIX_INLINE float128 ZYWX(const float128& _v) { return SWIZZLE(_v, 2, 1, 3, 0); }
-    static NIX_INLINE float128 ZYWY(const float128& _v) { return SWIZZLE(_v, 2, 1, 3, 1); }
-    static NIX_INLINE float128 ZYWZ(const float128& _v) { return SWIZZLE(_v, 2, 1, 3, 2); }
-    static NIX_INLINE float128 ZYWW(const float128& _v) { return SWIZZLE(_v, 2, 1, 3, 3); }
-    static NIX_INLINE float128 ZZXX(const float128& _v) { return SWIZZLE(_v, 2, 2, 0, 0); }
-    static NIX_INLINE float128 ZZXY(const float128& _v) { return SWIZZLE(_v, 2, 2, 0, 1); }
-    static NIX_INLINE float128 ZZXZ(const float128& _v) { return SWIZZLE(_v, 2, 2, 0, 2); }
-    static NIX_INLINE float128 ZZXW(const float128& _v) { return SWIZZLE(_v, 2, 2, 0, 3); }
-    static NIX_INLINE float128 ZZYX(const float128& _v) { return SWIZZLE(_v, 2, 2, 1, 0); }
-    static NIX_INLINE float128 ZZYY(const float128& _v) { return SWIZZLE(_v, 2, 2, 1, 1); }
-    static NIX_INLINE float128 ZZYZ(const float128& _v) { return SWIZZLE(_v, 2, 2, 1, 2); }
-    static NIX_INLINE float128 ZZYW(const float128& _v) { return SWIZZLE(_v, 2, 2, 1, 3); }
-    static NIX_INLINE float128 ZZZX(const float128& _v) { return SWIZZLE(_v, 2, 2, 2, 0); }
-    static NIX_INLINE float128 ZZZY(const float128& _v) { return SWIZZLE(_v, 2, 2, 2, 1); }
-    static NIX_INLINE float128 ZZZZ(const float128& _v) { return SWIZZLE(_v, 2, 2, 2, 2); }
-    static NIX_INLINE float128 ZZZW(const float128& _v) { return SWIZZLE(_v, 2, 2, 2, 3); }
-    static NIX_INLINE float128 ZZWX(const float128& _v) { return SWIZZLE(_v, 2, 2, 3, 0); }
-    static NIX_INLINE float128 ZZWY(const float128& _v) { return SWIZZLE(_v, 2, 2, 3, 1); }
-    static NIX_INLINE float128 ZZWZ(const float128& _v) { return SWIZZLE(_v, 2, 2, 3, 2); }
-    static NIX_INLINE float128 ZZWW(const float128& _v) { return SWIZZLE(_v, 2, 2, 3, 3); }
-    static NIX_INLINE float128 ZWXX(const float128& _v) { return SWIZZLE(_v, 2, 3, 0, 0); }
-    static NIX_INLINE float128 ZWXY(const float128& _v) { return SWIZZLE(_v, 2, 3, 0, 1); }
-    static NIX_INLINE float128 ZWXZ(const float128& _v) { return SWIZZLE(_v, 2, 3, 0, 2); }
-    static NIX_INLINE float128 ZWXW(const float128& _v) { return SWIZZLE(_v, 2, 3, 0, 3); }
-    static NIX_INLINE float128 ZWYX(const float128& _v) { return SWIZZLE(_v, 2, 3, 1, 0); }
-    static NIX_INLINE float128 ZWYY(const float128& _v) { return SWIZZLE(_v, 2, 3, 1, 1); }
-    static NIX_INLINE float128 ZWYZ(const float128& _v) { return SWIZZLE(_v, 2, 3, 1, 2); }
-    static NIX_INLINE float128 ZWYW(const float128& _v) { return SWIZZLE(_v, 2, 3, 1, 3); }
-    static NIX_INLINE float128 ZWZX(const float128& _v) { return SWIZZLE(_v, 2, 3, 2, 0); }
-    static NIX_INLINE float128 ZWZY(const float128& _v) { return SWIZZLE(_v, 2, 3, 2, 1); }
-    static NIX_INLINE float128 ZWZZ(const float128& _v) { return SWIZZLE(_v, 2, 3, 2, 2); }
-    static NIX_INLINE float128 ZWZW(const float128& _v) { return SWIZZLE(_v, 2, 3, 2, 3); }
-    static NIX_INLINE float128 ZWWX(const float128& _v) { return SWIZZLE(_v, 2, 3, 3, 0); }
-    static NIX_INLINE float128 ZWWY(const float128& _v) { return SWIZZLE(_v, 2, 3, 3, 1); }
-    static NIX_INLINE float128 ZWWZ(const float128& _v) { return SWIZZLE(_v, 2, 3, 3, 2); }
-    static NIX_INLINE float128 ZWWW(const float128& _v) { return SWIZZLE(_v, 2, 3, 3, 3); }
-
-    static NIX_INLINE float128 WXXX(const float128& _v) { return SWIZZLE(_v, 3, 0, 0, 0); }
-    static NIX_INLINE float128 WXXY(const float128& _v) { return SWIZZLE(_v, 3, 0, 0, 1); }
-    static NIX_INLINE float128 WXXZ(const float128& _v) { return SWIZZLE(_v, 3, 0, 0, 2); }
-    static NIX_INLINE float128 WXXW(const float128& _v) { return SWIZZLE(_v, 3, 0, 0, 3); }
-    static NIX_INLINE float128 WXYX(const float128& _v) { return SWIZZLE(_v, 3, 0, 1, 0); }
-    static NIX_INLINE float128 WXYY(const float128& _v) { return SWIZZLE(_v, 3, 0, 1, 1); }
-    static NIX_INLINE float128 WXYZ(const float128& _v) { return SWIZZLE(_v, 3, 0, 1, 2); }
-    static NIX_INLINE float128 WXYW(const float128& _v) { return SWIZZLE(_v, 3, 0, 1, 3); }
-    static NIX_INLINE float128 WXZX(const float128& _v) { return SWIZZLE(_v, 3, 0, 2, 0); }
-    static NIX_INLINE float128 WXZY(const float128& _v) { return SWIZZLE(_v, 3, 0, 2, 1); }
-    static NIX_INLINE float128 WXZZ(const float128& _v) { return SWIZZLE(_v, 3, 0, 2, 2); }
-    static NIX_INLINE float128 WXZW(const float128& _v) { return SWIZZLE(_v, 3, 0, 2, 3); }
-    static NIX_INLINE float128 WXWX(const float128& _v) { return SWIZZLE(_v, 3, 0, 3, 0); }
-    static NIX_INLINE float128 WXWY(const float128& _v) { return SWIZZLE(_v, 3, 0, 3, 1); }
-    static NIX_INLINE float128 WXWZ(const float128& _v) { return SWIZZLE(_v, 3, 0, 3, 2); }
-    static NIX_INLINE float128 WXWW(const float128& _v) { return SWIZZLE(_v, 3, 0, 3, 3); }
-    static NIX_INLINE float128 WYXX(const float128& _v) { return SWIZZLE(_v, 3, 1, 0, 0); }
-    static NIX_INLINE float128 WYXY(const float128& _v) { return SWIZZLE(_v, 3, 1, 0, 1); }
-    static NIX_INLINE float128 WYXZ(const float128& _v) { return SWIZZLE(_v, 3, 1, 0, 2); }
-    static NIX_INLINE float128 WYXW(const float128& _v) { return SWIZZLE(_v, 3, 1, 0, 3); }
-    static NIX_INLINE float128 WYYX(const float128& _v) { return SWIZZLE(_v, 3, 1, 1, 0); }
-    static NIX_INLINE float128 WYYY(const float128& _v) { return SWIZZLE(_v, 3, 1, 1, 1); }
-    static NIX_INLINE float128 WYYZ(const float128& _v) { return SWIZZLE(_v, 3, 1, 1, 2); }
-    static NIX_INLINE float128 WYYW(const float128& _v) { return SWIZZLE(_v, 3, 1, 1, 3); }
-    static NIX_INLINE float128 WYZX(const float128& _v) { return SWIZZLE(_v, 3, 1, 2, 0); }
-    static NIX_INLINE float128 WYZY(const float128& _v) { return SWIZZLE(_v, 3, 1, 2, 1); }
-    static NIX_INLINE float128 WYZZ(const float128& _v) { return SWIZZLE(_v, 3, 1, 2, 2); }
-    static NIX_INLINE float128 WYZW(const float128& _v) { return SWIZZLE(_v, 3, 1, 2, 3); }
-    static NIX_INLINE float128 WYWX(const float128& _v) { return SWIZZLE(_v, 3, 1, 3, 0); }
-    static NIX_INLINE float128 WYWY(const float128& _v) { return SWIZZLE(_v, 3, 1, 3, 1); }
-    static NIX_INLINE float128 WYWZ(const float128& _v) { return SWIZZLE(_v, 3, 1, 3, 2); }
-    static NIX_INLINE float128 WYWW(const float128& _v) { return SWIZZLE(_v, 3, 1, 3, 3); }
-    static NIX_INLINE float128 WZXX(const float128& _v) { return SWIZZLE(_v, 3, 2, 0, 0); }
-    static NIX_INLINE float128 WZXY(const float128& _v) { return SWIZZLE(_v, 3, 2, 0, 1); }
-    static NIX_INLINE float128 WZXZ(const float128& _v) { return SWIZZLE(_v, 3, 2, 0, 2); }
-    static NIX_INLINE float128 WZXW(const float128& _v) { return SWIZZLE(_v, 3, 2, 0, 3); }
-    static NIX_INLINE float128 WZYX(const float128& _v) { return SWIZZLE(_v, 3, 2, 1, 0); }
-    static NIX_INLINE float128 WZYY(const float128& _v) { return SWIZZLE(_v, 3, 2, 1, 1); }
-    static NIX_INLINE float128 WZYZ(const float128& _v) { return SWIZZLE(_v, 3, 2, 1, 2); }
-    static NIX_INLINE float128 WZYW(const float128& _v) { return SWIZZLE(_v, 3, 2, 1, 3); }
-    static NIX_INLINE float128 WZZX(const float128& _v) { return SWIZZLE(_v, 3, 2, 2, 0); }
-    static NIX_INLINE float128 WZZY(const float128& _v) { return SWIZZLE(_v, 3, 2, 2, 1); }
-    static NIX_INLINE float128 WZZZ(const float128& _v) { return SWIZZLE(_v, 3, 2, 2, 2); }
-    static NIX_INLINE float128 WZZW(const float128& _v) { return SWIZZLE(_v, 3, 2, 2, 3); }
-    static NIX_INLINE float128 WZWX(const float128& _v) { return SWIZZLE(_v, 3, 2, 3, 0); }
-    static NIX_INLINE float128 WZWY(const float128& _v) { return SWIZZLE(_v, 3, 2, 3, 1); }
-    static NIX_INLINE float128 WZWZ(const float128& _v) { return SWIZZLE(_v, 3, 2, 3, 2); }
-    static NIX_INLINE float128 WZWW(const float128& _v) { return SWIZZLE(_v, 3, 2, 3, 3); }
-    static NIX_INLINE float128 WWXX(const float128& _v) { return SWIZZLE(_v, 3, 3, 0, 0); }
-    static NIX_INLINE float128 WWXY(const float128& _v) { return SWIZZLE(_v, 3, 3, 0, 1); }
-    static NIX_INLINE float128 WWXZ(const float128& _v) { return SWIZZLE(_v, 3, 3, 0, 2); }
-    static NIX_INLINE float128 WWXW(const float128& _v) { return SWIZZLE(_v, 3, 3, 0, 3); }
-    static NIX_INLINE float128 WWYX(const float128& _v) { return SWIZZLE(_v, 3, 3, 1, 0); }
-    static NIX_INLINE float128 WWYY(const float128& _v) { return SWIZZLE(_v, 3, 3, 1, 1); }
-    static NIX_INLINE float128 WWYZ(const float128& _v) { return SWIZZLE(_v, 3, 3, 1, 2); }
-    static NIX_INLINE float128 WWYW(const float128& _v) { return SWIZZLE(_v, 3, 3, 1, 3); }
-    static NIX_INLINE float128 WWZX(const float128& _v) { return SWIZZLE(_v, 3, 3, 2, 0); }
-    static NIX_INLINE float128 WWZY(const float128& _v) { return SWIZZLE(_v, 3, 3, 2, 1); }
-    static NIX_INLINE float128 WWZZ(const float128& _v) { return SWIZZLE(_v, 3, 3, 2, 2); }
-    static NIX_INLINE float128 WWZW(const float128& _v) { return SWIZZLE(_v, 3, 3, 2, 3); }
-    static NIX_INLINE float128 WWWX(const float128& _v) { return SWIZZLE(_v, 3, 3, 3, 0); }
-    static NIX_INLINE float128 WWWY(const float128& _v) { return SWIZZLE(_v, 3, 3, 3, 1); }
-    static NIX_INLINE float128 WWWZ(const float128& _v) { return SWIZZLE(_v, 3, 3, 3, 2); }
-    static NIX_INLINE float128 WWWW(const float128& _v) { return SWIZZLE(_v, 3, 3, 3, 3); }
+	X = 0,
+	Y = 1,
+	Z = 2,
+	W = 3
 };
+
+namespace MathFunctions
+{
+	template<ESwizzle _X, ESwizzle _Y, ESwizzle _Z, ESwizzle _W>
+	static NIX_INLINE float128 Swizzle(float128 _v)
+	{
+		static_assert(_X <= 3, "X parameter out of range (0 to 3)");
+		static_assert(_Y <= 3, "Y parameter out of range (0 to 3)");
+		static_assert(_Z <= 3, "Z parameter out of range (0 to 3)");
+		static_assert(_W <= 3, "W parameter out of range (0 to 3)");
+
+		return NIX_SHUFFLE_PS(_v, _MM_SHUFFLE(_W, _Z, _Y, _X));
+	}
+}
 
 
 NIX_NAMESPACE_END

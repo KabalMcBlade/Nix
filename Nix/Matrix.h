@@ -51,10 +51,10 @@ public:
         const Vector4& _v2,
         const Vector4& _v3)
     {
-        this->m_rows[0] = _v0.m_vec;
-        this->m_rows[1] = _v1.m_vec;
-        this->m_rows[2] = _v2.m_vec;
-        this->m_rows[3] = _v3.m_vec;
+        this->m_rows[0] = _v0;
+        this->m_rows[1] = _v1;
+        this->m_rows[2] = _v2;
+        this->m_rows[3] = _v3;
     }
 
     NIX_INLINE Matrix(const Matrix& _m)
@@ -67,10 +67,10 @@ public:
 
     NIX_INLINE Matrix(const Vector4 _v[4])
     {
-        this->m_rows[0] = _v[0].m_vec;
-        this->m_rows[1] = _v[1].m_vec;
-        this->m_rows[2] = _v[2].m_vec;
-        this->m_rows[3] = _v[3].m_vec;
+        this->m_rows[0] = _v[0];
+        this->m_rows[1] = _v[1];
+        this->m_rows[2] = _v[2];
+        this->m_rows[3] = _v[3];
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -173,35 +173,35 @@ public:
     // Functions
     NIX_INLINE Vector4 Determinant() const
     {
-        const float128 swp0 = Swizzle::ZYYX(m_rows[2]);
-        const float128 swp1 = Swizzle::WWZW(m_rows[3]);
+        const float128 swp0 = MathFunctions::Swizzle<Z, Y, Y, X>(m_rows[2]);
+        const float128 swp1 = MathFunctions::Swizzle<W, W, Z, W>(m_rows[3]);
         const float128 mul0 = Helper::Mul(swp0, swp1);
 
-        const float128 swp2 = Swizzle::WWZW(m_rows[2]);
-        const float128 swp3 = Swizzle::ZYYX(m_rows[3]);
+        const float128 swp2 = MathFunctions::Swizzle<W, W, Z, W>(m_rows[2]);
+        const float128 swp3 = MathFunctions::Swizzle<Z, Y, Y, X>(m_rows[3]);
         const float128 mul1 = Helper::Mul(swp2, swp3);
 
         const float128 sub0 = Helper::Sub(mul0, mul1);
 
-        const float128 xxyz = Swizzle::ZYXX(m_rows[2]);
-        const float128 swp5 = Swizzle::XXZY(m_rows[3]);
+        const float128 xxyz = MathFunctions::Swizzle<Z, Y, X, X>(m_rows[2]);
+        const float128 swp5 = MathFunctions::Swizzle<X, X, Z, Y>(m_rows[3]);
         const float128 mul2 = Helper::Mul(xxyz, swp5);
         const float128 sub1 = Helper::Sub(_mm_movehl_ps(mul2, mul2), mul2);
 
-        const float128 sbf0 = Swizzle::XXYZ(sub0);
-        const float128 xxxy = Swizzle::YXXX(m_rows[1]);
+        const float128 sbf0 = MathFunctions::Swizzle<X, X, Y, Z>(sub0);
+        const float128 xxxy = MathFunctions::Swizzle<Y, X, X, X>(m_rows[1]);
         const float128 mlf0 = Helper::Mul(xxxy, sbf0);
 
         const float128 sbft = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(0, 0, 3, 1));
-        const float128 sbf1 = Swizzle::XYYW(sbft);
-        const float128 swf1 = Swizzle::ZZYY(m_rows[1]);
+        const float128 sbf1 = MathFunctions::Swizzle<X, Y, Y, W>(sbft);
+        const float128 swf1 = MathFunctions::Swizzle<Z, Z, Y, Y>(m_rows[1]);
         const float128 mlf1 = Helper::Mul(swf1, sbf1);
 
         const float128 subr = Helper::Sub(mlf0, mlf1);
 
         const float128 sbt0 = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(1, 0, 2, 2));
-        const float128 sbt1 = Swizzle::XZWW(sbt0);
-        const float128 swft = Swizzle::WWWZ(m_rows[1]);
+        const float128 sbt1 = MathFunctions::Swizzle<X, Z, W, W>(sbt0);
+        const float128 swft = MathFunctions::Swizzle<W, W, W, Z>(m_rows[1]);
         const float128 mlfc = Helper::Mul(swft, sbt1);
 
         const float128 addr = Helper::Add(subr, mlfc);
@@ -263,11 +263,11 @@ public:
 
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
 
-        const float128 rsqr = _mm_blendv_ps(Helper::Div(kOne, sqr), kOne, msk);
+        const float128 rsqr = _mm_blendv_ps(Helper::Div(kOneVec4, sqr), kOneVec4, msk);
 
 #   else
 
-        float128 one = kOne;
+        float128 one = kOneVec4;
         float128 dva = Helper::Div(one, sqr);
 
         one = _mm_and_ps(msk, one);
@@ -292,9 +292,9 @@ public:
     NIX_INLINE Matrix Translate(const Vector4& _v) const
     {
         Matrix result;
-        const float128& xxxx = Swizzle::XXXX(_v);
-        const float128& yyyy = Swizzle::YYYY(_v);
-        const float128& zzzz = Swizzle::ZZZZ(_v);
+        const float128& xxxx = MathFunctions::Swizzle<X, X, X, X>(_v);
+        const float128& yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(_v);
+        const float128& zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(_v);
 
         const float128& v0 = Helper::Mul(m_rows[0], xxxx);
         const float128& v1 = Helper::Mul(m_rows[1], yyyy);
@@ -311,9 +311,9 @@ public:
     NIX_INLINE Matrix Scale(const Vector4& _s) const
     {
         Matrix result;
-        const float128& xxxx = Swizzle::XXXX(_s);
-        const float128& yyyy = Swizzle::YYYY(_s);
-        const float128& zzzz = Swizzle::ZZZZ(_s);
+        const float128& xxxx = MathFunctions::Swizzle<X, X, X, X>(_s);
+        const float128& yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(_s);
+        const float128& zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(_s);
 
         result[0] = Helper::Mul(m_rows[0], xxxx);
         result[1] = Helper::Mul(m_rows[1], yyyy);
@@ -326,10 +326,10 @@ public:
     {
         Matrix result;
         {
-            const float128 xxxx = Swizzle::XXXX(m_rows[0]);
-            const float128 yyyy = Swizzle::YYYY(m_rows[0]);
-            const float128 zzzz = Swizzle::ZZZZ(m_rows[0]);
-            const float128 wwww = Swizzle::WWWW(m_rows[0]);
+            const float128 xxxx = MathFunctions::Swizzle<X, X, X, X>(m_rows[0]);
+            const float128 yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(m_rows[0]);
+            const float128 zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(m_rows[0]);
+            const float128 wwww = MathFunctions::Swizzle<W, W, W, W>(m_rows[0]);
 
             const float128 mul0 = Helper::Mul(_other[0], xxxx);
             const float128 mul1 = Helper::Mul(_other[1], yyyy);
@@ -344,10 +344,10 @@ public:
         }
 
         {
-            const float128 xxxx = Swizzle::XXXX(m_rows[1]);
-            const float128 yyyy = Swizzle::YYYY(m_rows[1]);
-            const float128 zzzz = Swizzle::ZZZZ(m_rows[1]);
-            const float128 wwww = Swizzle::WWWW(m_rows[1]);
+            const float128 xxxx = MathFunctions::Swizzle<X, X, X, X>(m_rows[1]);
+            const float128 yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(m_rows[1]);
+            const float128 zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(m_rows[1]);
+            const float128 wwww = MathFunctions::Swizzle<W, W, W, W>(m_rows[1]);
 
             const float128 mul0 = Helper::Mul(_other[0], xxxx);
             const float128 mul1 = Helper::Mul(_other[1], yyyy);
@@ -362,10 +362,10 @@ public:
         }
 
         {
-            const float128 xxxx = Swizzle::XXXX(m_rows[2]);
-            const float128 yyyy = Swizzle::YYYY(m_rows[2]);
-            const float128 zzzz = Swizzle::ZZZZ(m_rows[2]);
-            const float128 wwww = Swizzle::WWWW(m_rows[2]);
+            const float128 xxxx = MathFunctions::Swizzle<X, X, X, X>(m_rows[2]);
+            const float128 yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(m_rows[2]);
+            const float128 zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(m_rows[2]);
+            const float128 wwww = MathFunctions::Swizzle<W, W, W, W>(m_rows[2]);
 
             const float128 mul0 = Helper::Mul(_other[0], xxxx);
             const float128 mul1 = Helper::Mul(_other[1], yyyy);
@@ -380,10 +380,10 @@ public:
         }
 
         {
-            const float128 xxxx = Swizzle::XXXX(m_rows[3]);
-            const float128 yyyy = Swizzle::YYYY(m_rows[3]);
-            const float128 zzzz = Swizzle::ZZZZ(m_rows[3]);
-            const float128 wwww = Swizzle::WWWW(m_rows[3]);
+            const float128 xxxx = MathFunctions::Swizzle<X, X, X, X>(m_rows[3]);
+            const float128 yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(m_rows[3]);
+            const float128 zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(m_rows[3]);
+            const float128 wwww = MathFunctions::Swizzle<W, W, W, W>(m_rows[3]);
 
             const float128 mul0 = Helper::Mul(_other[0], xxxx);
             const float128 mul1 = Helper::Mul(_other[1], yyyy);
@@ -455,7 +455,7 @@ public:
     NIX_INLINE Matrix Div(float _s) const
     {
         Matrix result;
-        const float128 opv = Helper::Div(kOne, Helper::Splat(_s));
+        const float128 opv = Helper::Div(kOneVec4, Helper::Splat(_s));
         result[0] = Helper::Mul(m_rows[0], opv);
         result[1] = Helper::Mul(m_rows[1], opv);
         result[2] = Helper::Mul(m_rows[2], opv);
@@ -465,10 +465,10 @@ public:
 
     NIX_INLINE Vector4 MulMatrixVector(const Vector4& _v) const
     {
-        const float128 xxxx = Swizzle::XXXX(_v);
-        const float128 yyyy = Swizzle::YYYY(_v);
-        const float128 zzzz = Swizzle::ZZZZ(_v);
-        const float128 wwww = Swizzle::WWWW(_v);
+        const float128 xxxx = MathFunctions::Swizzle<X, X, X, X>(_v);
+        const float128 yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(_v);
+        const float128 zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(_v);
+        const float128 wwww = MathFunctions::Swizzle<W, W, W, W>(_v);
 
         const float128 mul0 = Helper::Mul(m_rows[0], xxxx);
         const float128 mul1 = Helper::Mul(m_rows[1], yyyy);

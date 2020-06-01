@@ -14,10 +14,18 @@
 #include <iostream>
 #endif
 
-
 #include "BasicDefines.h"
 
 NIX_NAMESPACE_BEGIN
+
+
+#ifdef max
+#undef max
+#endif //
+
+#ifdef min
+#undef min
+#endif //
 
 
 #define NIX_MATH_CONST extern const __declspec(selectany)
