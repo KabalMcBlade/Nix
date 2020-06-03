@@ -25,10 +25,9 @@ public:
     NIX_INLINE Vector4(float _x, float _y, float _z, float _w) : m_vec(Helper::Set(_x, _y, _z, _w)) {}
     NIX_INLINE Vector4(float _v) : m_vec(Helper::Splat(_v)) {}
     NIX_INLINE Vector4(const Vector4& _copy) : m_vec(_copy) {}
-    //NIX_INLINE Vector4(Vector4&& _copy) noexcept : m_vec(std::move(_copy)) {}
+    NIX_INLINE Vector4(Vector4&& _copy) noexcept : m_vec(std::move(_copy)) {}
     NIX_INLINE Vector4(const float128& _copy) : m_vec(_copy) {}
-    //NIX_INLINE Vector4(float128&& _copy) noexcept : m_vec(std::move(_copy)) {}
-	//NIX_INLINE Vector4(float128 _v) : m_vec(_v) {}
+    NIX_INLINE Vector4(float128&& _copy) noexcept : m_vec(std::move(_copy)) {}
 
     //////////////////////////////////////////////////////////////////////////
     // Print function for debug purpose only

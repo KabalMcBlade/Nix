@@ -17,11 +17,11 @@ NIX_ALIGN_16 class Quaternion
 public:
     NIX_INLINE Quaternion() : m_quat(Helper::Set(0.0f, 0.0f, 0.0f, 1.0f)) {}
     NIX_INLINE Quaternion(const Quaternion& _copy) : m_quat(_copy.m_quat) {}
-    //NIX_INLINE Quaternion(Quaternion&& _copy) noexcept : m_quat(std::move(_copy.m_quat)) {}
+    NIX_INLINE Quaternion(Quaternion&& _copy) noexcept : m_quat(std::move(_copy.m_quat)) {}
     NIX_INLINE Quaternion(const float128& _copy) : m_quat(_copy) {}
-   // NIX_INLINE Quaternion(float128&& _copy) noexcept : m_quat(std::move(_copy)) {}
+    NIX_INLINE Quaternion(float128&& _copy) noexcept : m_quat(std::move(_copy)) {}
     NIX_INLINE Quaternion(const Vector4& _copy) : m_quat(_copy) {}
-    //NIX_INLINE Quaternion(Vector4&& _copy) noexcept : m_quat(std::move(_copy)) {}
+    NIX_INLINE Quaternion(Vector4&& _copy) noexcept : m_quat(std::move(_copy)) {}
     NIX_INLINE Quaternion(float _x, float _y, float _z, float _w) : m_quat(Helper::Set(_x, _y, _z, _w)) { }
     NIX_INLINE Quaternion(const float& _radians, const Vector4& _axis) { SetFromAngleAxis(_radians, _axis); }
     NIX_INLINE Quaternion(const float& _pitch, const float& _yaw, const float& _roll) { SetFromPitchYawRoll(_pitch, _yaw, _roll); }
@@ -61,22 +61,35 @@ public:
     // Functions
     NIX_INLINE void SetFromPitchYawRoll(const float& _pitch, const float& _yaw, const float& _roll)
     {
-        float128 angles = Helper::Set(_pitch, _pitch, _yaw, _roll);
+		static const Float128 sign = { { {  -1.0f, 1.0f, -1.0f, 1.0f } } };
 
-        float128 sin, cos;
-        Trigonometry::SinCos(Helper::Mul(angles, Helper::Splat(0.5f)), &sin, &cos);
+		const float128 angles = Helper::Set(_pitch, _pitch, _roll, _yaw);
+		const float128 halfAngles = Helper::Mul(angles, kOneHalfVec4);
 
-        float128 cxxyz = MathFunctions::Permute<B_X, A_Y, A_Z, A_W>(sin, cos);
-        float128 sxxyz = MathFunctions::Permute<B_X, A_Y, A_Z, A_W>(cos, sin);
+		float128 sine;
+		float128 cosine;
+		Trigonometry::SinCos(halfAngles, &sine, &cosine);
 
-        float128 left = _mm_mul_ps(cxxyz, _mm_mul_ps(MathFunctions::Swizzle<Z, Z, Y, Z>(cos), MathFunctions::Swizzle<W, W, W, Y>(cos)));
-        float128 right = _mm_mul_ps(sxxyz, _mm_mul_ps(MathFunctions::Swizzle<Z, Z, Y, Z>(sin), MathFunctions::Swizzle<W, W, W, Y>(sin)));
-        float128 xor = _mm_xor_ps(right, kMaskSignZeroSignZero);
-        float128 rot = Helper::Add(left, xor);
+		const float128 cx_sy_sz_sw = MathFunctions::Permute<B_X, A_Y, A_Z, A_W>(sine, cosine);
+		const float128 sx_cy_cz_cw = MathFunctions::Permute<B_X, A_Y, A_Z, A_W>(cosine, sine);
 
-        m_quat = MathFunctions::Swizzle<Y, Z, W, X>(rot);
+		const float128 L0 = MathFunctions::Swizzle<Z, Z, Y, Z>(cosine);
+		const float128 L1 = MathFunctions::Swizzle<W, W, W, Y>(cosine);
+		const float128 R0 = MathFunctions::Swizzle<Z, Z, Y, Z>(sine);
+		const float128 R1 = MathFunctions::Swizzle<W, W, W, Y>(sine);
+
+		const float128 left = Helper::Mul(Helper::Mul(cx_sy_sz_sw, L0), L1);
+		const float128 right = Helper::Mul(Helper::Mul(sx_cy_cz_cw, R0), R1);
+
+		const float128 adjust = Helper::Mul(right, sign);
+		const float128 rotate = Helper::Add(left, adjust);
+
+		m_quat = MathFunctions::Swizzle<Y, Z, W, X>(rotate);
     }
 
+	// x is the canonical right vector
+	// y is the canonical forward vector
+	// z is the canonical up vector
     NIX_INLINE void SetFromAngleAxis(const float& _radians, const Vector4& _axis)
     {
         float128 sin, cos;
@@ -88,6 +101,9 @@ public:
         m_quat = _mm_movelh_ps(quat, high);             // [1 z y x]
     }
 
+	// x is the canonical right vector
+	// y is the canonical forward vector
+	// z is the canonical up vector
     NIX_INLINE void SetFromAngleAxis(const float& _radians, float _x, float _y, float _z)
     {
         SetFromAngleAxis(_radians, Vector4(_x, _y, _z));
@@ -95,45 +111,59 @@ public:
 
     NIX_INLINE void SetFromMatrix(const Matrix4x4& _matrix)
     {
-        NIX_ALIGN_16 float m0[4];
-        NIX_ALIGN_16 float m1[4];
-        NIX_ALIGN_16 float m2[4];
+		const float128 col0 = _matrix[0];
+		const float128 col1 = _matrix[1];
+		const float128 col2 = _matrix[2];
 
-        _mm_store_ps(m0, _matrix[0]);
-        _mm_store_ps(m1, _matrix[1]);
-        _mm_store_ps(m2, _matrix[2]);
+		const float128 xx_yy = Helper::Select(col0, col1, kSelectY);
+		float128 xx_yy_zz_xx = MathFunctions::Swizzle<X, Y, X, X>(xx_yy);
+		xx_yy_zz_xx = Helper::Select(xx_yy_zz_xx, col2, kSelectZ);
+		const float128 yy_zz_xx_yy = MathFunctions::Swizzle<Y, Z, X, Y>(xx_yy_zz_xx);
+		const float128 zz_xx_yy_zz = MathFunctions::Swizzle<Z, X, Y, Z>(xx_yy_zz_xx);
 
-        const float trace = m0[0] + m1[1] + m2[2] + 1.0f;
-        if (trace > 0.0f)
-        {
-            const float s = 0.5f / std::sqrtf(trace);
-            m_quat = Helper::Set((m1[2] - m2[1]) * s, (m2[0] - m0[2]) * s, (m0[1] - m1[0]) * s, 0.25f / s);
-        }
-        else
-        {
-            if (m0[0] > m1[1])
-            {
-                if (m0[0] > m2[2])
-                {
-                    const float s = std::sqrt(m0[0] - m1[1] - m2[2] + 1.0f) * 0.5f;
-                    m_quat = Helper::Set(0.5f * s, (m0[1] + m1[0]) * s, (m2[0] + m0[2]) * s, (m1[2] - m2[1]) * s);
-                    return;
-                }
-            }
-            else
-            {
-                if (m1[1] > m2[2])
-                {
-                    const float s = std::sqrt(m1[1] - m0[0] - m2[2] + 1.0f) * 0.5f;
-                    m_quat = Helper::Set((m0[1] + m1[0]) * s, 0.5f * s, (m1[2] + m2[1]) * s, (m2[0] - m0[2]) * s);
-                    return;
-                }
-            }
+		const float128 diagSum = _mm_add_ps(_mm_add_ps(xx_yy_zz_xx, yy_zz_xx_yy), zz_xx_yy_zz);
+		const float128 diagDiff = _mm_sub_ps(_mm_sub_ps(xx_yy_zz_xx, yy_zz_xx_yy), zz_xx_yy_zz);
+		const float128 radicand = _mm_add_ps(Helper::Select(diagDiff, diagSum, kSelectW), _mm_set1_ps(1.0f));
+		const float128 invSqrt = Helper::NewtonRaphsonReciprocalSquareRoot(radicand);
 
-            const float s = std::sqrt(m2[2] - m0[0] - m1[1] + 1.0f) * 0.5f;
-            m_quat = Helper::Set((m2[0] + m0[2]) * s, (m1[2] + m2[1]) * s, 0.5f * s, (m0[1] - m1[0]) * s);
-            return;
-        }
+
+		float128 zy_xz_yx = Helper::Select(col0, col1, kSelectZ);
+		zy_xz_yx = MathFunctions::Swizzle<Z, Z, Y, X>(zy_xz_yx);
+		zy_xz_yx = Helper::Select(zy_xz_yx, MathFunctions::Swizzle<X, X, X, X>(col2), kSelectY);
+		float128 yz_zx_xy = Helper::Select(col0, col1, kSelectX);
+		yz_zx_xy = MathFunctions::Swizzle<X, Z, X, X>(yz_zx_xy);
+		yz_zx_xy = Helper::Select(yz_zx_xy, MathFunctions::Swizzle<Y, Y, Y, Y>(col2), kSelectX);
+
+		const float128 sum = _mm_add_ps(zy_xz_yx, yz_zx_xy);
+		const float128 diff = _mm_sub_ps(zy_xz_yx, yz_zx_xy);
+
+		const float128 scale = _mm_mul_ps(invSqrt, _mm_set1_ps(0.5f));
+
+		float128 res0 = MathFunctions::Swizzle<X, Z, Y, X>(sum);
+		res0 = Helper::Select(res0, MathFunctions::Swizzle<X, X, X, X>(diff), kSelectW);
+		float128 res1 = MathFunctions::Swizzle<Z, X, X, X>(sum);
+		res1 = Helper::Select(res1, MathFunctions::Swizzle<Y, Y, Y, Y>(diff), kSelectW);
+		float128 res2 = MathFunctions::Swizzle<Y, X, X, X>(sum);
+		res2 = Helper::Select(res2, MathFunctions::Swizzle<Z, Z, Z, Z>(diff), kSelectW);
+		float128 res3 = diff;
+		res0 = Helper::Select(res0, radicand, kSelectX);
+		res1 = Helper::Select(res1, radicand, kSelectY);
+		res2 = Helper::Select(res2, radicand, kSelectZ);
+		res3 = Helper::Select(res3, radicand, kSelectW);
+		res0 = _mm_mul_ps(res0, MathFunctions::Swizzle<X, X, X, X>(scale));
+		res1 = _mm_mul_ps(res1, MathFunctions::Swizzle<Y, Y, Y, Y>(scale));
+		res2 = _mm_mul_ps(res2, MathFunctions::Swizzle<Z, Z, Z, Z>(scale));
+		res3 = _mm_mul_ps(res3, MathFunctions::Swizzle<W, W, W, W>(scale));
+
+		const float128 xx = MathFunctions::Swizzle<X, X, X, X>(col0);
+		const float128 yy = MathFunctions::Swizzle<Y, Y, Y, Y>(col1);
+		const float128 zz = MathFunctions::Swizzle<Z, Z, Z, Z>(col2);
+
+		float128 res = Helper::Select(res0, res1, _mm_cmpgt_ps(yy, xx));
+		res = Helper::Select(res, res2, _mm_and_ps(_mm_cmpgt_ps(zz, xx), _mm_cmpgt_ps(zz, yy)));
+		res = Helper::Select(res, res3, _mm_cmpgt_ps(MathFunctions::Swizzle<X, X, X, X>(diagSum), _mm_setzero_ps()));
+
+		m_quat = (res);
     }
 
     NIX_INLINE Vector4 Length() const
@@ -157,6 +187,8 @@ public:
             const Vector4 oneOverLen(1.0f / len);
             return Helper::Mul(oneOverLen, m_quat);
         }
+		
+		//return Helper::Normalize(m_quat);
     }
 
     NIX_INLINE Vector4 Dot(const Quaternion& _other) const
@@ -278,7 +310,7 @@ public:
         const float Wz = qW * qZ;
 
         /*  
-        Matrix rotation(
+        Matrix4x4 rotation(
             1.f - (YY + ZZ) * 2.0f,     (XY - Wz) * 2.0f,           (XZ + WY) * 2.0f,           0.f,
             (XY + Wz) * 2.0f,           1.f - (XX + ZZ) * 2.0f,     (YZ - WX) * 2.0f,           0.f,
             (XZ - WY) * 2.0f,           (YZ + WX) * 2.0f,           1.f - (XX + YY) * 2.0f,     0.f,
@@ -318,7 +350,7 @@ public:
         const float Wz = qW * qZ;
 
         /*
-        Matrix rt(
+        Matrix4x4 rt(
             1.f - (YY + ZZ) * 2.0f,     (XY - Wz) * 2.0f,           (XZ + WY) * 2.0f,           vX,
             (XY + Wz) * 2.0f,           1.f - (XX + ZZ) * 2.0f,     (YZ - WX) * 2.0f,           vY,
             (XZ - WY) * 2.0f,           (YZ + WX) * 2.0f,           1.f - (XX + YY) * 2.0f,     vZ,

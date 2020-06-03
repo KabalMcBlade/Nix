@@ -389,6 +389,14 @@ namespace Helper
 		float128 masked2 = _mm_and_ps(_selectMask, _v2);
 		return _mm_or_ps(masked1, masked2);
 	}
+
+
+	NIX_INLINE float128 NewtonRaphsonReciprocalSquareRoot(const float128 _v)
+	{
+		const float128 approx = _mm_rsqrt_ps(_v);
+		const float128 muls = _mm_mul_ps(_mm_mul_ps(_v, approx), approx);
+		return _mm_mul_ps(_mm_mul_ps(_mm_setr_ps(0.5f, 0.5f, 0.5f, 0.5f), approx), _mm_sub_ps(_mm_setr_ps(3.0f, 3.0f, 3.0f, 3.0f), muls));
+	}
 };
 
 
