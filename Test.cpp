@@ -55,7 +55,7 @@ int main()
 	Vector4 forward(0.0f, 0.0f, 1.0f);
     Quaternion rotPitch(NIX_DEG_TO_RAD(90.0f), 0.0f, 0.0f);
 
-    Matrix qTOm = rotPitch.ToMatrix();
+    Matrix4x4 qTOm = rotPitch.ToMatrix();
 
     Quaternion mTOq(qTOm);
 
@@ -67,13 +67,13 @@ int main()
     Quaternion rotYaw(0.0f, NIX_DEG_TO_RAD(90.0f), 0.0f);
 	Vector4 scl(2.0f);
 
-    static const Matrix identity;
+    static const Matrix4x4 identity;
 
-    const Matrix scale = identity.Scale(scl);
-    const Matrix rotate = rotYaw.ToMatrix();
-    const Matrix translate = identity.Translate(pos);
+    const Matrix4x4 scale = identity.Scale(scl);
+    const Matrix4x4 rotate = rotYaw.ToMatrix();
+    const Matrix4x4 translate = identity.Translate(pos);
 
-    Matrix res = scale * rotate * translate;
+	Matrix4x4 res = scale * rotate * translate;
     
      
     getchar();
