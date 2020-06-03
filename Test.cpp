@@ -46,13 +46,13 @@ NIX_USING_NAMESPACE
 
 int main()
 {
-    Vector4 a(4.0f, 2.0f, 7.0f);
-	Vector4 b(15.0f, 3.0f, 9.0f);
+    Vector4 a(4.0f, 2.0f, 7.0f, 0.0f);
+	Vector4 b(15.0f, 3.0f, 9.0f, 0.0f);
 
 	Vector4 d = a.Dot3(b);
 
     //////////////////////////////////////////////////////////////////////////
-	Vector4 forward(0.0f, 0.0f, 1.0f);
+	Vector4 forward(0.0f, 0.0f, 1.0f, 0.0f);
     Quaternion rotPitch(NIX_DEG_TO_RAD(90.0f), 0.0f, 0.0f);
 
     Matrix4x4 qTOm = rotPitch.ToMatrix();
@@ -63,7 +63,7 @@ int main()
 	Vector4 newDir2 = forward * rotPitch;
     
     //////////////////////////////////////////////////////////////////////////
-	Vector4 pos(5.0f, 3.0f, 1.0f);
+	Vector4 pos(5.0f, 3.0f, 1.0f, 1.0f);
     Quaternion rotYaw(0.0f, NIX_DEG_TO_RAD(90.0f), 0.0f);
 	Vector4 scl(2.0f);
 
