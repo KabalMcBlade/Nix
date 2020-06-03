@@ -5,31 +5,32 @@
 #include "Core/Assertions.h"
 #include "Core/BasicTypes.h"
 
-#include "Helper.h"
+#include "MathAligned.h"
+#include "BasicMathFunctions.h"
 #include "Trigonometry.h"
 #include "Vector4.h"
 
 NIX_NAMESPACE_BEGIN
 
 
-NIX_ALIGN_16 class Matrix4x4
+class Matrix4x4 : public MathAligned<16>
 {
 public:
     //////////////////////////////////////////////////////////////////////////
     NIX_INLINE Matrix4x4()
     {
-        this->m_rows[0] = Helper::Set(1.0f, 0.0f, 0.0f, 0.0f);
-        this->m_rows[1] = Helper::Set(0.0f, 1.0f, 0.0f, 0.0f);
-        this->m_rows[2] = Helper::Set(0.0f, 0.0f, 1.0f, 0.0f);
-        this->m_rows[3] = Helper::Set(0.0f, 0.0f, 0.0f, 1.0f);
+        this->m_rows[0] = MathFunctions::Set(1.0f, 0.0f, 0.0f, 0.0f);
+        this->m_rows[1] = MathFunctions::Set(0.0f, 1.0f, 0.0f, 0.0f);
+        this->m_rows[2] = MathFunctions::Set(0.0f, 0.0f, 1.0f, 0.0f);
+        this->m_rows[3] = MathFunctions::Set(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
     NIX_INLINE Matrix4x4(const float& _s)
     {
-        this->m_rows[0] = Helper::Set(_s, 0.0f, 0.0f, 0.0f);
-        this->m_rows[1] = Helper::Set(0.0f, _s, 0.0f, 0.0f);
-        this->m_rows[2] = Helper::Set(0.0f, 0.0f, _s, 0.0f);
-        this->m_rows[3] = Helper::Set(0.0f, 0.0f, 0.0f, _s);
+        this->m_rows[0] = MathFunctions::Set(_s, 0.0f, 0.0f, 0.0f);
+        this->m_rows[1] = MathFunctions::Set(0.0f, _s, 0.0f, 0.0f);
+        this->m_rows[2] = MathFunctions::Set(0.0f, 0.0f, _s, 0.0f);
+        this->m_rows[3] = MathFunctions::Set(0.0f, 0.0f, 0.0f, _s);
 
     }
 
@@ -39,10 +40,10 @@ public:
         const float& _x2, const float& _y2, const float& _z2, const float& _w2,
         const float& _x3, const float& _y3, const float& _z3, const float& _w3)
     {
-        this->m_rows[0] = Helper::Set(_x0, _y0, _z0, _w0);
-        this->m_rows[1] = Helper::Set(_x1, _y1, _z1, _w1);
-        this->m_rows[2] = Helper::Set(_x2, _y2, _z2, _w2);
-        this->m_rows[3] = Helper::Set(_x3, _y3, _z3, _w3);
+        this->m_rows[0] = MathFunctions::Set(_x0, _y0, _z0, _w0);
+        this->m_rows[1] = MathFunctions::Set(_x1, _y1, _z1, _w1);
+        this->m_rows[2] = MathFunctions::Set(_x2, _y2, _z2, _w2);
+        this->m_rows[3] = MathFunctions::Set(_x3, _y3, _z3, _w3);
     }
 
     NIX_INLINE Matrix4x4(
@@ -175,39 +176,39 @@ public:
     {
         const float128 swp0 = MathFunctions::Swizzle<Z, Y, Y, X>(m_rows[2]);
         const float128 swp1 = MathFunctions::Swizzle<W, W, Z, W>(m_rows[3]);
-        const float128 mul0 = Helper::Mul(swp0, swp1);
+        const float128 mul0 = MathFunctions::Mul(swp0, swp1);
 
         const float128 swp2 = MathFunctions::Swizzle<W, W, Z, W>(m_rows[2]);
         const float128 swp3 = MathFunctions::Swizzle<Z, Y, Y, X>(m_rows[3]);
-        const float128 mul1 = Helper::Mul(swp2, swp3);
+        const float128 mul1 = MathFunctions::Mul(swp2, swp3);
 
-        const float128 sub0 = Helper::Sub(mul0, mul1);
+        const float128 sub0 = MathFunctions::Sub(mul0, mul1);
 
         const float128 xxyz = MathFunctions::Swizzle<Z, Y, X, X>(m_rows[2]);
         const float128 swp5 = MathFunctions::Swizzle<X, X, Z, Y>(m_rows[3]);
-        const float128 mul2 = Helper::Mul(xxyz, swp5);
-        const float128 sub1 = Helper::Sub(_mm_movehl_ps(mul2, mul2), mul2);
+        const float128 mul2 = MathFunctions::Mul(xxyz, swp5);
+        const float128 sub1 = MathFunctions::Sub(_mm_movehl_ps(mul2, mul2), mul2);
 
         const float128 sbf0 = MathFunctions::Swizzle<X, X, Y, Z>(sub0);
         const float128 xxxy = MathFunctions::Swizzle<Y, X, X, X>(m_rows[1]);
-        const float128 mlf0 = Helper::Mul(xxxy, sbf0);
+        const float128 mlf0 = MathFunctions::Mul(xxxy, sbf0);
 
         const float128 sbft = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(0, 0, 3, 1));
         const float128 sbf1 = MathFunctions::Swizzle<X, Y, Y, W>(sbft);
         const float128 swf1 = MathFunctions::Swizzle<Z, Z, Y, Y>(m_rows[1]);
-        const float128 mlf1 = Helper::Mul(swf1, sbf1);
+        const float128 mlf1 = MathFunctions::Mul(swf1, sbf1);
 
-        const float128 subr = Helper::Sub(mlf0, mlf1);
+        const float128 subr = MathFunctions::Sub(mlf0, mlf1);
 
         const float128 sbt0 = _mm_shuffle_ps(sub0, sub1, _MM_SHUFFLE(1, 0, 2, 2));
         const float128 sbt1 = MathFunctions::Swizzle<X, Z, W, W>(sbt0);
         const float128 swft = MathFunctions::Swizzle<W, W, W, Z>(m_rows[1]);
-        const float128 mlfc = Helper::Mul(swft, sbt1);
+        const float128 mlfc = MathFunctions::Mul(swft, sbt1);
 
-        const float128 addr = Helper::Add(subr, mlfc);
-        const float128 detc = Helper::Mul(addr, _mm_setr_ps(1.0f, -1.0f, 1.0f, -1.0f));
+        const float128 addr = MathFunctions::Add(subr, mlfc);
+        const float128 detc = MathFunctions::Mul(addr, _mm_setr_ps(1.0f, -1.0f, 1.0f, -1.0f));
 
-        return Helper::Dot(m_rows[0], detc);
+        return MathFunctions::Dot(m_rows[0], detc);
     }
 
     NIX_INLINE Matrix4x4 Transpose() const
@@ -237,10 +238,10 @@ public:
         result[2] = _mm_shuffle_ps(hl, m_rows[2], _MM_SHUFFLE(3, 2, 2, 0));
 
         // the forth line
-        result[3] = Helper::Mul(result[0], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x00));
-        result[3] = Helper::Add(result[3], Helper::Mul(result[1], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x55)));
-        result[3] = Helper::Add(result[3], Helper::Mul(result[2], _mm_shuffle_ps(m_rows[3], m_rows[3], 0xAA)));
-        result[3] = Helper::Sub(Helper::Set(0.f, 0.f, 0.f, 1.f), result[3]);
+        result[3] = MathFunctions::Mul(result[0], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x00));
+        result[3] = MathFunctions::Add(result[3], MathFunctions::Mul(result[1], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x55)));
+        result[3] = MathFunctions::Add(result[3], MathFunctions::Mul(result[2], _mm_shuffle_ps(m_rows[3], m_rows[3], 0xAA)));
+        result[3] = MathFunctions::Sub(MathFunctions::Set(0.f, 0.f, 0.f, 1.f), result[3]);
         return result;
     }
 
@@ -255,20 +256,20 @@ public:
         result[1] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 1, 3, 1));
         result[2] = _mm_shuffle_ps(hl, m_rows[2], _MM_SHUFFLE(3, 2, 2, 0));
 
-        float128 sqr = Helper::Mul(result[0], result[0]);
-        sqr = Helper::Add(sqr, Helper::Mul(result[1], result[1]));
-        sqr = Helper::Add(sqr, Helper::Mul(result[2], result[2]));
+        float128 sqr = MathFunctions::Mul(result[0], result[0]);
+        sqr = MathFunctions::Add(sqr, MathFunctions::Mul(result[1], result[1]));
+        sqr = MathFunctions::Add(sqr, MathFunctions::Mul(result[2], result[2]));
 
         const float128 msk = _mm_cmplt_ps(sqr, kSmallNumber);
 
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
 
-        const float128 rsqr = _mm_blendv_ps(Helper::Div(kOneVec4, sqr), kOneVec4, msk);
+        const float128 rsqr = _mm_blendv_ps(MathFunctions::Div(kOneVec4, sqr), kOneVec4, msk);
 
 #   else
 
         float128 one = kOneVec4;
-        float128 dva = Helper::Div(one, sqr);
+        float128 dva = MathFunctions::Div(one, sqr);
 
         one = _mm_and_ps(msk, one);
         dva = _mm_andnot_ps(msk, dva);
@@ -277,15 +278,15 @@ public:
 
 #   endif
 
-        result[0] = Helper::Mul(result[0], rsqr);
-        result[1] = Helper::Mul(result[1], rsqr);
-        result[2] = Helper::Mul(result[2], rsqr);
+        result[0] = MathFunctions::Mul(result[0], rsqr);
+        result[1] = MathFunctions::Mul(result[1], rsqr);
+        result[2] = MathFunctions::Mul(result[2], rsqr);
 
         // the forth line
-        result[3] = Helper::Mul(result[0], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x00));
-        result[3] = Helper::Add(result[3], Helper::Mul(result[1], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x55)));
-        result[3] = Helper::Add(result[3], Helper::Mul(result[2], _mm_shuffle_ps(m_rows[3], m_rows[3], 0xAA)));
-        result[3] = Helper::Sub(Helper::Set(0.f, 0.f, 0.f, 1.f), result[3]);
+        result[3] = MathFunctions::Mul(result[0], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x00));
+        result[3] = MathFunctions::Add(result[3], MathFunctions::Mul(result[1], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x55)));
+        result[3] = MathFunctions::Add(result[3], MathFunctions::Mul(result[2], _mm_shuffle_ps(m_rows[3], m_rows[3], 0xAA)));
+        result[3] = MathFunctions::Sub(MathFunctions::Set(0.f, 0.f, 0.f, 1.f), result[3]);
         return result;
     }
 
@@ -296,15 +297,15 @@ public:
         const float128& yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(_v);
         const float128& zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(_v);
 
-        const float128& v0 = Helper::Mul(m_rows[0], xxxx);
-        const float128& v1 = Helper::Mul(m_rows[1], yyyy);
-        const float128& v2 = Helper::Mul(m_rows[2], zzzz);
+        const float128& v0 = MathFunctions::Mul(m_rows[0], xxxx);
+        const float128& v1 = MathFunctions::Mul(m_rows[1], yyyy);
+        const float128& v2 = MathFunctions::Mul(m_rows[2], zzzz);
 
-        const float128& row3 = Helper::Add(Helper::Add(v0, v1), v2);
+        const float128& row3 = MathFunctions::Add(MathFunctions::Add(v0, v1), v2);
         result[0] = m_rows[0];
         result[1] = m_rows[1];
         result[2] = m_rows[2];
-        result[3] = Helper::Add(row3, m_rows[3]);
+        result[3] = MathFunctions::Add(row3, m_rows[3]);
         return result;
     }
 
@@ -315,9 +316,9 @@ public:
         const float128& yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(_s);
         const float128& zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(_s);
 
-        result[0] = Helper::Mul(m_rows[0], xxxx);
-        result[1] = Helper::Mul(m_rows[1], yyyy);
-        result[2] = Helper::Mul(m_rows[2], zzzz);
+        result[0] = MathFunctions::Mul(m_rows[0], xxxx);
+        result[1] = MathFunctions::Mul(m_rows[1], yyyy);
+        result[2] = MathFunctions::Mul(m_rows[2], zzzz);
         result[3] = m_rows[3];
         return result;
     }
@@ -331,14 +332,14 @@ public:
             const float128 zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(m_rows[0]);
             const float128 wwww = MathFunctions::Swizzle<W, W, W, W>(m_rows[0]);
 
-            const float128 mul0 = Helper::Mul(_other[0], xxxx);
-            const float128 mul1 = Helper::Mul(_other[1], yyyy);
-            const float128 mul2 = Helper::Mul(_other[2], zzzz);
-            const float128 mul3 = Helper::Mul(_other[3], wwww);
+            const float128 mul0 = MathFunctions::Mul(_other[0], xxxx);
+            const float128 mul1 = MathFunctions::Mul(_other[1], yyyy);
+            const float128 mul2 = MathFunctions::Mul(_other[2], zzzz);
+            const float128 mul3 = MathFunctions::Mul(_other[3], wwww);
 
-            const float128 add0 = Helper::Add(mul0, mul1);
-            const float128 add1 = Helper::Add(mul2, mul3);
-            const float128 add2 = Helper::Add(add0, add1);
+            const float128 add0 = MathFunctions::Add(mul0, mul1);
+            const float128 add1 = MathFunctions::Add(mul2, mul3);
+            const float128 add2 = MathFunctions::Add(add0, add1);
 
             result[0] = add2;
         }
@@ -349,14 +350,14 @@ public:
             const float128 zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(m_rows[1]);
             const float128 wwww = MathFunctions::Swizzle<W, W, W, W>(m_rows[1]);
 
-            const float128 mul0 = Helper::Mul(_other[0], xxxx);
-            const float128 mul1 = Helper::Mul(_other[1], yyyy);
-            const float128 mul2 = Helper::Mul(_other[2], zzzz);
-            const float128 mul3 = Helper::Mul(_other[3], wwww);
+            const float128 mul0 = MathFunctions::Mul(_other[0], xxxx);
+            const float128 mul1 = MathFunctions::Mul(_other[1], yyyy);
+            const float128 mul2 = MathFunctions::Mul(_other[2], zzzz);
+            const float128 mul3 = MathFunctions::Mul(_other[3], wwww);
 
-            const float128 add0 = Helper::Add(mul0, mul1);
-            const float128 add1 = Helper::Add(mul2, mul3);
-            const float128 add2 = Helper::Add(add0, add1);
+            const float128 add0 = MathFunctions::Add(mul0, mul1);
+            const float128 add1 = MathFunctions::Add(mul2, mul3);
+            const float128 add2 = MathFunctions::Add(add0, add1);
 
             result[1] = add2;
         }
@@ -367,14 +368,14 @@ public:
             const float128 zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(m_rows[2]);
             const float128 wwww = MathFunctions::Swizzle<W, W, W, W>(m_rows[2]);
 
-            const float128 mul0 = Helper::Mul(_other[0], xxxx);
-            const float128 mul1 = Helper::Mul(_other[1], yyyy);
-            const float128 mul2 = Helper::Mul(_other[2], zzzz);
-            const float128 mul3 = Helper::Mul(_other[3], wwww);
+            const float128 mul0 = MathFunctions::Mul(_other[0], xxxx);
+            const float128 mul1 = MathFunctions::Mul(_other[1], yyyy);
+            const float128 mul2 = MathFunctions::Mul(_other[2], zzzz);
+            const float128 mul3 = MathFunctions::Mul(_other[3], wwww);
 
-            const float128 add0 = Helper::Add(mul0, mul1);
-            const float128 add1 = Helper::Add(mul2, mul3);
-            const float128 add2 = Helper::Add(add0, add1);
+            const float128 add0 = MathFunctions::Add(mul0, mul1);
+            const float128 add1 = MathFunctions::Add(mul2, mul3);
+            const float128 add2 = MathFunctions::Add(add0, add1);
 
             result[2] = add2;
         }
@@ -385,14 +386,14 @@ public:
             const float128 zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(m_rows[3]);
             const float128 wwww = MathFunctions::Swizzle<W, W, W, W>(m_rows[3]);
 
-            const float128 mul0 = Helper::Mul(_other[0], xxxx);
-            const float128 mul1 = Helper::Mul(_other[1], yyyy);
-            const float128 mul2 = Helper::Mul(_other[2], zzzz);
-            const float128 mul3 = Helper::Mul(_other[3], wwww);
+            const float128 mul0 = MathFunctions::Mul(_other[0], xxxx);
+            const float128 mul1 = MathFunctions::Mul(_other[1], yyyy);
+            const float128 mul2 = MathFunctions::Mul(_other[2], zzzz);
+            const float128 mul3 = MathFunctions::Mul(_other[3], wwww);
 
-            const float128 add0 = Helper::Add(mul0, mul1);
-            const float128 add1 = Helper::Add(mul2, mul3);
-            const float128 add2 = Helper::Add(add0, add1);
+            const float128 add0 = MathFunctions::Add(mul0, mul1);
+            const float128 add1 = MathFunctions::Add(mul2, mul3);
+            const float128 add2 = MathFunctions::Add(add0, add1);
 
             result[3] = add2;
         }
@@ -402,64 +403,64 @@ public:
     NIX_INLINE Matrix4x4 Add(const Matrix4x4& _other) const
     {
         Matrix4x4 result;
-        result[0] = Helper::Add(m_rows[0], _other[0]);
-        result[1] = Helper::Add(m_rows[1], _other[1]);
-        result[2] = Helper::Add(m_rows[2], _other[2]);
-        result[3] = Helper::Add(m_rows[3], _other[3]);
+        result[0] = MathFunctions::Add(m_rows[0], _other[0]);
+        result[1] = MathFunctions::Add(m_rows[1], _other[1]);
+        result[2] = MathFunctions::Add(m_rows[2], _other[2]);
+        result[3] = MathFunctions::Add(m_rows[3], _other[3]);
         return result;
     }
 
     NIX_INLINE Matrix4x4 Sub(const Matrix4x4& _other) const
     {
         Matrix4x4 result;
-        result[0] = Helper::Sub(m_rows[0], _other[0]);
-        result[1] = Helper::Sub(m_rows[1], _other[1]);
-        result[2] = Helper::Sub(m_rows[2], _other[2]);
-        result[3] = Helper::Sub(m_rows[3], _other[3]);
+        result[0] = MathFunctions::Sub(m_rows[0], _other[0]);
+        result[1] = MathFunctions::Sub(m_rows[1], _other[1]);
+        result[2] = MathFunctions::Sub(m_rows[2], _other[2]);
+        result[3] = MathFunctions::Sub(m_rows[3], _other[3]);
         return result;
     }
 
     NIX_INLINE Matrix4x4 Add(float _s) const
     {
         Matrix4x4 result;
-        const float128 opv = Helper::Splat(_s);
-        result[0] = Helper::Add(m_rows[0], opv);
-        result[1] = Helper::Add(m_rows[1], opv);
-        result[2] = Helper::Add(m_rows[2], opv);
-        result[3] = Helper::Add(m_rows[3], opv);
+        const float128 opv = MathFunctions::Splat(_s);
+        result[0] = MathFunctions::Add(m_rows[0], opv);
+        result[1] = MathFunctions::Add(m_rows[1], opv);
+        result[2] = MathFunctions::Add(m_rows[2], opv);
+        result[3] = MathFunctions::Add(m_rows[3], opv);
         return result;
     }
 
     NIX_INLINE Matrix4x4 Sub(float _s) const
     {
         Matrix4x4 result;
-        const float128 opv = Helper::Splat(_s);
-        result[0] = Helper::Sub(m_rows[0], opv);
-        result[1] = Helper::Sub(m_rows[1], opv);
-        result[2] = Helper::Sub(m_rows[2], opv);
-        result[3] = Helper::Sub(m_rows[3], opv);
+        const float128 opv = MathFunctions::Splat(_s);
+        result[0] = MathFunctions::Sub(m_rows[0], opv);
+        result[1] = MathFunctions::Sub(m_rows[1], opv);
+        result[2] = MathFunctions::Sub(m_rows[2], opv);
+        result[3] = MathFunctions::Sub(m_rows[3], opv);
         return result;
     }
 
     NIX_INLINE Matrix4x4 Mul(float _s) const
     {
         Matrix4x4 result;
-        const float128 opv = Helper::Splat(_s);
-        result[0] = Helper::Mul(m_rows[0], opv);
-        result[1] = Helper::Mul(m_rows[1], opv);
-        result[2] = Helper::Mul(m_rows[2], opv);
-        result[3] = Helper::Mul(m_rows[3], opv);
+        const float128 opv = MathFunctions::Splat(_s);
+        result[0] = MathFunctions::Mul(m_rows[0], opv);
+        result[1] = MathFunctions::Mul(m_rows[1], opv);
+        result[2] = MathFunctions::Mul(m_rows[2], opv);
+        result[3] = MathFunctions::Mul(m_rows[3], opv);
         return result;
     }
 
     NIX_INLINE Matrix4x4 Div(float _s) const
     {
         Matrix4x4 result;
-        const float128 opv = Helper::Div(kOneVec4, Helper::Splat(_s));
-        result[0] = Helper::Mul(m_rows[0], opv);
-        result[1] = Helper::Mul(m_rows[1], opv);
-        result[2] = Helper::Mul(m_rows[2], opv);
-        result[3] = Helper::Mul(m_rows[3], opv);
+        const float128 opv = MathFunctions::Div(kOneVec4, MathFunctions::Splat(_s));
+        result[0] = MathFunctions::Mul(m_rows[0], opv);
+        result[1] = MathFunctions::Mul(m_rows[1], opv);
+        result[2] = MathFunctions::Mul(m_rows[2], opv);
+        result[3] = MathFunctions::Mul(m_rows[3], opv);
         return result;
     }
 
@@ -470,36 +471,36 @@ public:
         const float128 zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(_v);
         const float128 wwww = MathFunctions::Swizzle<W, W, W, W>(_v);
 
-        const float128 mul0 = Helper::Mul(m_rows[0], xxxx);
-        const float128 mul1 = Helper::Mul(m_rows[1], yyyy);
-        const float128 mul2 = Helper::Mul(m_rows[2], zzzz);
-        const float128 mul3 = Helper::Mul(m_rows[3], wwww);
+        const float128 mul0 = MathFunctions::Mul(m_rows[0], xxxx);
+        const float128 mul1 = MathFunctions::Mul(m_rows[1], yyyy);
+        const float128 mul2 = MathFunctions::Mul(m_rows[2], zzzz);
+        const float128 mul3 = MathFunctions::Mul(m_rows[3], wwww);
 
-        const float128 add0 = Helper::Add(mul0, mul1);
-        const float128 add1 = Helper::Add(mul2, mul3);
+        const float128 add0 = MathFunctions::Add(mul0, mul1);
+        const float128 add1 = MathFunctions::Add(mul2, mul3);
 
-        return Helper::Add(add0, add1);
+        return MathFunctions::Add(add0, add1);
     }
 
     NIX_INLINE Vector4 MulVectorMatrix(const Vector4& _v) const
     {
-        const float128 mul0 = Helper::Mul(_v, m_rows[0]);
-        const float128 mul1 = Helper::Mul(_v, m_rows[1]);
-        const float128 mul2 = Helper::Mul(_v, m_rows[2]);
-        const float128 mul3 = Helper::Mul(_v, m_rows[3]);
+        const float128 mul0 = MathFunctions::Mul(_v, m_rows[0]);
+        const float128 mul1 = MathFunctions::Mul(_v, m_rows[1]);
+        const float128 mul2 = MathFunctions::Mul(_v, m_rows[2]);
+        const float128 mul3 = MathFunctions::Mul(_v, m_rows[3]);
 
         const float128 lo0 = _mm_unpacklo_ps(mul0, mul1);
         const float128 hi0 = _mm_unpackhi_ps(mul0, mul1);
-        const float128 add0 = Helper::Add(lo0, hi0);
+        const float128 add0 = MathFunctions::Add(lo0, hi0);
 
         const float128 lo1 = _mm_unpacklo_ps(mul2, mul3);
         const float128 hi1 = _mm_unpackhi_ps(mul2, mul3);
-        const float128 add1 = Helper::Add(lo1, hi1);
+        const float128 add1 = MathFunctions::Add(lo1, hi1);
 
         const float128 mlh = _mm_movelh_ps(add0, add1);
         const float128 mhl = _mm_movehl_ps(add1, add0);
 
-        return Helper::Add(mlh, mhl);
+        return MathFunctions::Add(mlh, mhl);
     }
 
 private:

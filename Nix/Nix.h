@@ -9,7 +9,7 @@
 #include "Constants.h"
 #include "Swizzle.h"
 
-#include "Helper.h"
+#include "BasicMathFunctions.h"
 
 #include "Permute.h"
 

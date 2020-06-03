@@ -1,9 +1,8 @@
 #pragma once
 
-//#include "MathBasicFunctions.h"
 #include "Swizzle.h"
 #include "Conversion.h"
-#include "Helper.h"
+#include "BasicMathFunctions.h"
 
 
 NIX_NAMESPACE_BEGIN
@@ -46,7 +45,7 @@ namespace MathFunctions
 		float128 shuffled2 = NIX_SHUFFLE_PS(_b, shuffle);
 
 		//return MathFunctions::Select(shuffled1, shuffled2, selectMask);
-		return Helper::Select(shuffled1, shuffled2, selectMask);
+		return MathFunctions::Select(shuffled1, shuffled2, selectMask);
 	}
 
 	template<>

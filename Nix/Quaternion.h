@@ -5,24 +5,26 @@
 #include "Core/Assertions.h"
 #include "Core/BasicTypes.h"
 
-#include "Helper.h"
+#include "MathAligned.h"
+#include "BasicMathFunctions.h"
 #include "Trigonometry.h"
 #include "Matrix4x4.h"
+
 
 NIX_NAMESPACE_BEGIN
 
 
-NIX_ALIGN_16 class Quaternion
+class Quaternion : public MathAligned<16>
 {
 public:
-    NIX_INLINE Quaternion() : m_quat(Helper::Set(0.0f, 0.0f, 0.0f, 1.0f)) {}
+    NIX_INLINE Quaternion() : m_quat(MathFunctions::Set(0.0f, 0.0f, 0.0f, 1.0f)) {}
     NIX_INLINE Quaternion(const Quaternion& _copy) : m_quat(_copy.m_quat) {}
     NIX_INLINE Quaternion(Quaternion&& _copy) noexcept : m_quat(std::move(_copy.m_quat)) {}
     NIX_INLINE Quaternion(const float128& _copy) : m_quat(_copy) {}
     NIX_INLINE Quaternion(float128&& _copy) noexcept : m_quat(std::move(_copy)) {}
     NIX_INLINE Quaternion(const Vector4& _copy) : m_quat(_copy) {}
     NIX_INLINE Quaternion(Vector4&& _copy) noexcept : m_quat(std::move(_copy)) {}
-    NIX_INLINE Quaternion(float _x, float _y, float _z, float _w) : m_quat(Helper::Set(_x, _y, _z, _w)) { }
+    NIX_INLINE Quaternion(float _x, float _y, float _z, float _w) : m_quat(MathFunctions::Set(_x, _y, _z, _w)) { }
     NIX_INLINE Quaternion(const float& _radians, const Vector4& _axis) { SetFromAngleAxis(_radians, _axis); }
     NIX_INLINE Quaternion(const float& _pitch, const float& _yaw, const float& _roll) { SetFromPitchYawRoll(_pitch, _yaw, _roll); }
     NIX_INLINE Quaternion(const Matrix4x4& _rotMatrix) { SetFromMatrix(_rotMatrix); }
@@ -47,13 +49,13 @@ public:
 
     NIX_INLINE Quaternion& operator*=(float& _s)
     {
-        this->m_quat = Helper::Mul(this->m_quat, Helper::Splat(_s));
+        this->m_quat = MathFunctions::Mul(this->m_quat, MathFunctions::Splat(_s));
         return *this;
     }
 
     NIX_INLINE Quaternion& operator/=(float& _s)
     {
-        this->m_quat = Helper::Div(this->m_quat, Helper::Splat(_s));
+        this->m_quat = MathFunctions::Div(this->m_quat, MathFunctions::Splat(_s));
         return *this;
     }
 
@@ -63,8 +65,8 @@ public:
     {
 		static const Float128 sign = { { {  -1.0f, 1.0f, -1.0f, 1.0f } } };
 
-		const float128 angles = Helper::Set(_pitch, _pitch, _roll, _yaw);
-		const float128 halfAngles = Helper::Mul(angles, kOneHalfVec4);
+		const float128 angles = MathFunctions::Set(_pitch, _pitch, _roll, _yaw);
+		const float128 halfAngles = MathFunctions::Mul(angles, kOneHalfVec4);
 
 		float128 sine;
 		float128 cosine;
@@ -78,11 +80,11 @@ public:
 		const float128 R0 = MathFunctions::Swizzle<Z, Z, Y, Z>(sine);
 		const float128 R1 = MathFunctions::Swizzle<W, W, W, Y>(sine);
 
-		const float128 left = Helper::Mul(Helper::Mul(cx_sy_sz_sw, L0), L1);
-		const float128 right = Helper::Mul(Helper::Mul(sx_cy_cz_cw, R0), R1);
+		const float128 left = MathFunctions::Mul(MathFunctions::Mul(cx_sy_sz_sw, L0), L1);
+		const float128 right = MathFunctions::Mul(MathFunctions::Mul(sx_cy_cz_cw, R0), R1);
 
-		const float128 adjust = Helper::Mul(right, sign);
-		const float128 rotate = Helper::Add(left, adjust);
+		const float128 adjust = MathFunctions::Mul(right, sign);
+		const float128 rotate = MathFunctions::Add(left, adjust);
 
 		m_quat = MathFunctions::Swizzle<Y, Z, W, X>(rotate);
     }
@@ -94,9 +96,9 @@ public:
     {
         float128 sin, cos;
 
-        Trigonometry::SinCos(Helper::Mul(Helper::Splat(_radians), Helper::Splat(0.5f)), &sin, &cos);
+        Trigonometry::SinCos(MathFunctions::Mul(MathFunctions::Splat(_radians), MathFunctions::Splat(0.5f)), &sin, &cos);
 
-        const float128 quat = Helper::Mul(_axis, sin);
+        const float128 quat = MathFunctions::Mul(_axis, sin);
         const float128 high = _mm_unpackhi_ps(quat, cos);  // [_ _ 1 z]
         m_quat = _mm_movelh_ps(quat, high);             // [1 z y x]
     }
@@ -115,60 +117,60 @@ public:
 		const float128 col1 = _matrix[1];
 		const float128 col2 = _matrix[2];
 
-		const float128 xx_yy = Helper::Select(col0, col1, kSelectY);
+		const float128 xx_yy = MathFunctions::Select(col0, col1, kSelectY);
 		float128 xx_yy_zz_xx = MathFunctions::Swizzle<X, Y, X, X>(xx_yy);
-		xx_yy_zz_xx = Helper::Select(xx_yy_zz_xx, col2, kSelectZ);
+		xx_yy_zz_xx = MathFunctions::Select(xx_yy_zz_xx, col2, kSelectZ);
 		const float128 yy_zz_xx_yy = MathFunctions::Swizzle<Y, Z, X, Y>(xx_yy_zz_xx);
 		const float128 zz_xx_yy_zz = MathFunctions::Swizzle<Z, X, Y, Z>(xx_yy_zz_xx);
 
-		const float128 diagSum = _mm_add_ps(_mm_add_ps(xx_yy_zz_xx, yy_zz_xx_yy), zz_xx_yy_zz);
-		const float128 diagDiff = _mm_sub_ps(_mm_sub_ps(xx_yy_zz_xx, yy_zz_xx_yy), zz_xx_yy_zz);
-		const float128 radicand = _mm_add_ps(Helper::Select(diagDiff, diagSum, kSelectW), _mm_set1_ps(1.0f));
-		const float128 invSqrt = Helper::NewtonRaphsonReciprocalSquareRoot(radicand);
+		const float128 diagSum = MathFunctions::Add(MathFunctions::Add(xx_yy_zz_xx, yy_zz_xx_yy), zz_xx_yy_zz);
+		const float128 diagDiff = MathFunctions::Sub(MathFunctions::Sub(xx_yy_zz_xx, yy_zz_xx_yy), zz_xx_yy_zz);
+		const float128 radicand = MathFunctions::Add(MathFunctions::Select(diagDiff, diagSum, kSelectW), MathFunctions::Splat(1.0f));
+		const float128 invSqrt = MathFunctions::NewtonRaphsonReciprocalSquareRoot(radicand);
 
 
-		float128 zy_xz_yx = Helper::Select(col0, col1, kSelectZ);
+		float128 zy_xz_yx = MathFunctions::Select(col0, col1, kSelectZ);
 		zy_xz_yx = MathFunctions::Swizzle<Z, Z, Y, X>(zy_xz_yx);
-		zy_xz_yx = Helper::Select(zy_xz_yx, MathFunctions::Swizzle<X, X, X, X>(col2), kSelectY);
-		float128 yz_zx_xy = Helper::Select(col0, col1, kSelectX);
+		zy_xz_yx = MathFunctions::Select(zy_xz_yx, MathFunctions::Swizzle<X, X, X, X>(col2), kSelectY);
+		float128 yz_zx_xy = MathFunctions::Select(col0, col1, kSelectX);
 		yz_zx_xy = MathFunctions::Swizzle<X, Z, X, X>(yz_zx_xy);
-		yz_zx_xy = Helper::Select(yz_zx_xy, MathFunctions::Swizzle<Y, Y, Y, Y>(col2), kSelectX);
+		yz_zx_xy = MathFunctions::Select(yz_zx_xy, MathFunctions::Swizzle<Y, Y, Y, Y>(col2), kSelectX);
 
-		const float128 sum = _mm_add_ps(zy_xz_yx, yz_zx_xy);
-		const float128 diff = _mm_sub_ps(zy_xz_yx, yz_zx_xy);
+		const float128 sum = MathFunctions::Add(zy_xz_yx, yz_zx_xy);
+		const float128 diff = MathFunctions::Sub(zy_xz_yx, yz_zx_xy);
 
-		const float128 scale = _mm_mul_ps(invSqrt, _mm_set1_ps(0.5f));
+		const float128 scale = MathFunctions::Mul(invSqrt, MathFunctions::Splat(0.5f));
 
 		float128 res0 = MathFunctions::Swizzle<X, Z, Y, X>(sum);
-		res0 = Helper::Select(res0, MathFunctions::Swizzle<X, X, X, X>(diff), kSelectW);
+		res0 = MathFunctions::Select(res0, MathFunctions::Swizzle<X, X, X, X>(diff), kSelectW);
 		float128 res1 = MathFunctions::Swizzle<Z, X, X, X>(sum);
-		res1 = Helper::Select(res1, MathFunctions::Swizzle<Y, Y, Y, Y>(diff), kSelectW);
+		res1 = MathFunctions::Select(res1, MathFunctions::Swizzle<Y, Y, Y, Y>(diff), kSelectW);
 		float128 res2 = MathFunctions::Swizzle<Y, X, X, X>(sum);
-		res2 = Helper::Select(res2, MathFunctions::Swizzle<Z, Z, Z, Z>(diff), kSelectW);
+		res2 = MathFunctions::Select(res2, MathFunctions::Swizzle<Z, Z, Z, Z>(diff), kSelectW);
 		float128 res3 = diff;
-		res0 = Helper::Select(res0, radicand, kSelectX);
-		res1 = Helper::Select(res1, radicand, kSelectY);
-		res2 = Helper::Select(res2, radicand, kSelectZ);
-		res3 = Helper::Select(res3, radicand, kSelectW);
-		res0 = _mm_mul_ps(res0, MathFunctions::Swizzle<X, X, X, X>(scale));
-		res1 = _mm_mul_ps(res1, MathFunctions::Swizzle<Y, Y, Y, Y>(scale));
-		res2 = _mm_mul_ps(res2, MathFunctions::Swizzle<Z, Z, Z, Z>(scale));
-		res3 = _mm_mul_ps(res3, MathFunctions::Swizzle<W, W, W, W>(scale));
+		res0 = MathFunctions::Select(res0, radicand, kSelectX);
+		res1 = MathFunctions::Select(res1, radicand, kSelectY);
+		res2 = MathFunctions::Select(res2, radicand, kSelectZ);
+		res3 = MathFunctions::Select(res3, radicand, kSelectW);
+		res0 = MathFunctions::Mul(res0, MathFunctions::Swizzle<X, X, X, X>(scale));
+		res1 = MathFunctions::Mul(res1, MathFunctions::Swizzle<Y, Y, Y, Y>(scale));
+		res2 = MathFunctions::Mul(res2, MathFunctions::Swizzle<Z, Z, Z, Z>(scale));
+		res3 = MathFunctions::Mul(res3, MathFunctions::Swizzle<W, W, W, W>(scale));
 
 		const float128 xx = MathFunctions::Swizzle<X, X, X, X>(col0);
 		const float128 yy = MathFunctions::Swizzle<Y, Y, Y, Y>(col1);
 		const float128 zz = MathFunctions::Swizzle<Z, Z, Z, Z>(col2);
 
-		float128 res = Helper::Select(res0, res1, _mm_cmpgt_ps(yy, xx));
-		res = Helper::Select(res, res2, _mm_and_ps(_mm_cmpgt_ps(zz, xx), _mm_cmpgt_ps(zz, yy)));
-		res = Helper::Select(res, res3, _mm_cmpgt_ps(MathFunctions::Swizzle<X, X, X, X>(diagSum), _mm_setzero_ps()));
+		float128 res = MathFunctions::Select(res0, res1, _mm_cmpgt_ps(yy, xx));
+		res = MathFunctions::Select(res, res2, _mm_and_ps(_mm_cmpgt_ps(zz, xx), _mm_cmpgt_ps(zz, yy)));
+		res = MathFunctions::Select(res, res3, _mm_cmpgt_ps(MathFunctions::Swizzle<X, X, X, X>(diagSum), _mm_setzero_ps()));
 
 		m_quat = (res);
     }
 
     NIX_INLINE Vector4 Length() const
     {
-        return Helper::Sqrt(Helper::Dot(m_quat, m_quat));
+        return MathFunctions::Sqrt(MathFunctions::Dot(m_quat, m_quat));
     }
 
     NIX_INLINE Quaternion Normalize() const
@@ -185,7 +187,7 @@ public:
         else
         {
             const Vector4 oneOverLen(1.0f / len);
-            return Helper::Mul(oneOverLen, m_quat);
+            return MathFunctions::Mul(oneOverLen, m_quat);
         }
 		
 		//return Helper::Normalize(m_quat);
@@ -193,55 +195,55 @@ public:
 
     NIX_INLINE Vector4 Dot(const Quaternion& _other) const
     {
-        return Helper::Dot(m_quat, _other.m_quat);
+        return MathFunctions::Dot(m_quat, _other.m_quat);
     }
 
     // It means go FROM *this* quaternion TO *other* quaternion in T
     NIX_INLINE Vector4 LerpTo(const Quaternion& _to, const Vector4& _time) const
     {
-        return Helper::Lerp(m_quat, _to.m_quat, _time);
+        return MathFunctions::Lerp(m_quat, _to.m_quat, _time);
     }
 
     // It means go FROM *other* quaternion TO *this* quaternion in T
     NIX_INLINE Vector4 LerpFrom(const Quaternion& _from, const Vector4& _time) const
     {
-        return Helper::Lerp(_from.m_quat, m_quat, _time);
+        return MathFunctions::Lerp(_from.m_quat, m_quat, _time);
     }
 
     // It means go FROM *this* quaternion TO *other* quaternion in T
     NIX_INLINE Vector4 LerpTo(const Quaternion& _to, const float& _time) const
     {
-        return LerpTo(_to, Helper::Splat(_time));
+        return LerpTo(_to, MathFunctions::Splat(_time));
     }
 
     // It means go FROM *other* quaternion TO *this* quaternion in T
     NIX_INLINE Vector4 LerpFrom(const Quaternion& _from, const float& _time) const
     {
-        return LerpFrom(_from, Helper::Splat(_time));
+        return LerpFrom(_from, MathFunctions::Splat(_time));
     }
 
     // It means go FROM *this* quaternion TO *other* quaternion in T
     NIX_INLINE Vector4 StepTo(const Quaternion& _to, const Vector4& _time) const
     {
-        return Helper::Step(m_quat, _to.m_quat, _time);
+        return MathFunctions::Step(m_quat, _to.m_quat, _time);
     }
 
     // It means go FROM *other* quaternion TO *this* quaternion in T
     NIX_INLINE Vector4 StepFrom(const Quaternion& _from, const Vector4& _time) const
     {
-        return Helper::Step(_from.m_quat, m_quat, _time);
+        return MathFunctions::Step(_from.m_quat, m_quat, _time);
     }
 
     // It means go FROM *this* quaternion TO *other* quaternion in T
     NIX_INLINE Vector4 StepTo(const Quaternion& _to, const float& _time) const
     {
-        return StepTo(_to, Helper::Splat(_time));
+        return StepTo(_to, MathFunctions::Splat(_time));
     }
 
     // It means go FROM *other* quaternion TO *this* quaternion in T
     NIX_INLINE Vector4 StepFrom(const Quaternion& _from, const float& _time) const
     {
-        return StepFrom(_from, Helper::Splat(_time));
+        return StepFrom(_from, MathFunctions::Splat(_time));
     }
 
     NIX_INLINE Quaternion Slerp(const Quaternion& _other, const float& _time) const
@@ -271,17 +273,17 @@ public:
             float b = std::sinf(_time * angle);
             float c = std::sinf(angle);
 
-            const float128 ax = _mm_mul_ps(_mm_set1_ps(a), m_quat);
-            const float128 by = _mm_mul_ps(_mm_set1_ps(b), other);
+            const float128 ax = MathFunctions::Mul(MathFunctions::Splat(a), m_quat);
+            const float128 by = MathFunctions::Mul(MathFunctions::Splat(b), other);
 
-            const float128 q = _mm_div_ps(_mm_add_ps(ax, by), _mm_set1_ps(c));
+            const float128 q = MathFunctions::Div(MathFunctions::Add(ax, by), MathFunctions::Splat(c));
             return q;
         }
     }
 
     NIX_INLINE Quaternion Conjugate() const
     {
-        return Helper::Mul(m_quat, Helper::Set(-1.0f, -1.0f, -1.0f, 1.0f));
+        return MathFunctions::Mul(m_quat, MathFunctions::Set(-1.0f, -1.0f, -1.0f, 1.0f));
     }
 
     NIX_INLINE Quaternion Inverse() const
@@ -294,10 +296,10 @@ public:
 
     NIX_INLINE Matrix4x4 ToMatrix() const
     {
-        const float qX = Helper::ExtractX(m_quat);
-        const float qY = Helper::ExtractY(m_quat);
-        const float qZ = Helper::ExtractZ(m_quat);
-        const float qW = Helper::ExtractW(m_quat);
+        const float qX = MathFunctions::ExtractX(m_quat);
+        const float qY = MathFunctions::ExtractY(m_quat);
+        const float qZ = MathFunctions::ExtractZ(m_quat);
+        const float qW = MathFunctions::ExtractW(m_quat);
 
         const float XX = qX * qX;
         const float YY = qY * qY;
@@ -330,14 +332,14 @@ public:
 
     NIX_INLINE Matrix4x4 ToMatrix(const Vector4& _translation) const
     {
-        const float vX = Helper::ExtractX(_translation);
-        const float vY = Helper::ExtractY(_translation);
-        const float vZ = Helper::ExtractZ(_translation);
+        const float vX = MathFunctions::ExtractX(_translation);
+        const float vY = MathFunctions::ExtractY(_translation);
+        const float vZ = MathFunctions::ExtractZ(_translation);
 
-        const float qX = Helper::ExtractX(m_quat);
-        const float qY = Helper::ExtractY(m_quat);
-        const float qZ = Helper::ExtractZ(m_quat);
-        const float qW = Helper::ExtractW(m_quat);
+        const float qX = MathFunctions::ExtractX(m_quat);
+        const float qY = MathFunctions::ExtractY(m_quat);
+        const float qZ = MathFunctions::ExtractZ(m_quat);
+        const float qW = MathFunctions::ExtractW(m_quat);
 
         const float XX = qX * qX;
         const float YY = qY * qY;
@@ -401,38 +403,38 @@ NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Quaternion& _quat)
 // negate operator
 NIX_INLINE Quaternion operator- (const Quaternion& _q)
 {
-    return Helper::Mul(_q.m_quat, kMinusOneVec4);
+    return MathFunctions::Mul(_q.m_quat, kMinusOneVec4);
 }
 
 // operator+
 NIX_INLINE Quaternion operator+ (const Quaternion& _q1, const Quaternion& _q2)
 {
-    return Helper::Add(_q1.m_quat, _q2.m_quat);
+    return MathFunctions::Add(_q1.m_quat, _q2.m_quat);
 }
 
 //operator*
 NIX_INLINE Quaternion operator* (const Quaternion& _q1, const Quaternion& _q2)
 {
-    const float128 mul0 = Helper::Mul(_q1.m_quat, MathFunctions::Swizzle<W, Z, Y, X>(_q2.m_quat));
-    const float128 mul1 = Helper::Mul(_q1.m_quat, MathFunctions::Swizzle<Z, W, X, Y>(_q2.m_quat));
-    const float128 mul2 = Helper::Mul(_q1.m_quat, MathFunctions::Swizzle<Y, X, W, Z>(_q2.m_quat));
-    const float128 mul3 = Helper::Mul(_q1.m_quat, _q2.m_quat);
+    const float128 mul0 = MathFunctions::Mul(_q1.m_quat, MathFunctions::Swizzle<W, Z, Y, X>(_q2.m_quat));
+    const float128 mul1 = MathFunctions::Mul(_q1.m_quat, MathFunctions::Swizzle<Z, W, X, Y>(_q2.m_quat));
+    const float128 mul2 = MathFunctions::Mul(_q1.m_quat, MathFunctions::Swizzle<Y, X, W, Z>(_q2.m_quat));
+    const float128 mul3 = MathFunctions::Mul(_q1.m_quat, _q2.m_quat);
 
 #if NIX_ARCH & NIX_ARCH_SSE41_FLAG
-    const float128 add00 = _mm_dp_ps(mul0, Helper::Set(1.0f, 1.0f, -1.0f, 1.0f), 0xff);
-    const float128 add01 = _mm_dp_ps(mul1, Helper::Set(-1.0f, 1.0f, 1.0f, 1.0f), 0xff);
-    const float128 add02 = _mm_dp_ps(mul2, Helper::Set(1.0f, -1.0f, 1.0f, 1.0f), 0xff);
-    const float128 add03 = _mm_dp_ps(mul3, Helper::Set(-1.0f, -1.0f, -1.0f, 1.0f), 0xff);
+    const float128 add00 = _mm_dp_ps(mul0, MathFunctions::Set(1.0f, 1.0f, -1.0f, 1.0f), 0xff);
+    const float128 add01 = _mm_dp_ps(mul1, MathFunctions::Set(-1.0f, 1.0f, 1.0f, 1.0f), 0xff);
+    const float128 add02 = _mm_dp_ps(mul2, MathFunctions::Set(1.0f, -1.0f, 1.0f, 1.0f), 0xff);
+    const float128 add03 = _mm_dp_ps(mul3, MathFunctions::Set(-1.0f, -1.0f, -1.0f, 1.0f), 0xff);
 #   else
-    const float128 mul00 = Helper::Mul(mul0, Helper::Set(1.0f, 1.0f, -1.0f, 1.0f));
-    const float128 mul01 = Helper::Mul(mul1, Helper::Set(-1.0f, 1.0f, 1.0f, 1.0f));
-    const float128 mul02 = Helper::Mul(mul2, Helper::Set(1.0f, -1.0f, 1.0f, 1.0f));
-    const float128 mul03 = Helper::Mul(mul3, Helper::Set(-1.0f, -1.0f, -1.0f, 1.0f));
+    const float128 mul00 = MathFunctions::Mul(mul0, MathFunctions::Set(1.0f, 1.0f, -1.0f, 1.0f));
+    const float128 mul01 = MathFunctions::Mul(mul1, MathFunctions::Set(-1.0f, 1.0f, 1.0f, 1.0f));
+    const float128 mul02 = MathFunctions::Mul(mul2, MathFunctions::Set(1.0f, -1.0f, 1.0f, 1.0f));
+    const float128 mul03 = MathFunctions::Mul(mul3, MathFunctions::Set(-1.0f, -1.0f, -1.0f, 1.0f));
 
-    const float128 add0 = Helper::Add(mul00, _mm_movehl_ps(mul00, mul00));
-    const float128 add1 = Helper::Add(mul01, _mm_movehl_ps(mul01, mul01));
-    const float128 add2 = Helper::Add(mul02, _mm_movehl_ps(mul02, mul02));
-    const float128 add3 = Helper::Add(mul03, _mm_movehl_ps(mul03, mul03));
+    const float128 add0 = MathFunctions::Add(mul00, _mm_movehl_ps(mul00, mul00));
+    const float128 add1 = MathFunctions::Add(mul01, _mm_movehl_ps(mul01, mul01));
+    const float128 add2 = MathFunctions::Add(mul02, _mm_movehl_ps(mul02, mul02));
+    const float128 add3 = MathFunctions::Add(mul03, _mm_movehl_ps(mul03, mul03));
 
     const float128 add00 = _mm_add_ss(add0, _mm_shuffle_ps(add0, add0, 1));
     const float128 add01 = _mm_add_ss(add1, _mm_shuffle_ps(add1, add1, 1));
@@ -448,7 +450,7 @@ NIX_INLINE Quaternion operator* (const Quaternion& _q1, const Quaternion& _q2)
 
 NIX_INLINE Vector4 operator* (const Quaternion& _q, const Vector4& _v)
 {
-    static const float128 two = Helper::Splat(2.0f);
+    static const float128 two = MathFunctions::Splat(2.0f);
 
     const float128 q_wwww = MathFunctions::Swizzle<W, W, W, W>(_q.m_quat);
     const float128 q_yzxw = MathFunctions::Swizzle<Y, Z, X, W>(_q.m_quat);
@@ -456,15 +458,15 @@ NIX_INLINE Vector4 operator* (const Quaternion& _q, const Vector4& _v)
     const float128 v_yzxw = MathFunctions::Swizzle<Y, Z, X, W>(_v);
     const float128 v_wyxz = MathFunctions::Swizzle<Z, X, Y, W>(_v);
 
-    const float128 qv = Helper::Sub(Helper::Mul(q_yzxw, v_wyxz), Helper::Mul(q_zxyw, v_yzxw));
+    const float128 qv = MathFunctions::Sub(MathFunctions::Mul(q_yzxw, v_wyxz), MathFunctions::Mul(q_zxyw, v_yzxw));
     const float128 qv_yzxw = MathFunctions::Swizzle<Y, Z, X, W>(qv);
     const float128 qv_zxyw = MathFunctions::Swizzle<Z, X, Y, W>(qv);
-    const float128 qqv = Helper::Sub(Helper::Mul(q_yzxw, qv_zxyw), Helper::Mul(q_zxyw, qv_yzxw));
+    const float128 qqv = MathFunctions::Sub(MathFunctions::Mul(q_yzxw, qv_zxyw), MathFunctions::Mul(q_zxyw, qv_yzxw));
 
-    const float128 mul0 = Helper::Mul(qv, Helper::Mul(q_wwww, two));
-    const float128 mul1 = Helper::Mul(qqv, two);
+    const float128 mul0 = MathFunctions::Mul(qv, MathFunctions::Mul(q_wwww, two));
+    const float128 mul1 = MathFunctions::Mul(qqv, two);
 
-    return Helper::Add(_v, Helper::Add(mul0, mul1));
+    return MathFunctions::Add(_v, MathFunctions::Add(mul0, mul1));
 }
 
 NIX_INLINE Vector4 operator* (const Vector4& _v, const Quaternion& _q)
@@ -475,18 +477,18 @@ NIX_INLINE Vector4 operator* (const Vector4& _v, const Quaternion& _q)
 
 NIX_INLINE Quaternion operator* (const Quaternion& _q, float _s)
 {
-    return Helper::Mul(_q.m_quat, Helper::Splat(_s));
+    return MathFunctions::Mul(_q.m_quat, MathFunctions::Splat(_s));
 }
 
 NIX_INLINE Quaternion operator* (float _s, const Quaternion& _q)
 {
-    return Helper::Mul(Helper::Splat(_s), _q.m_quat);
+    return MathFunctions::Mul(MathFunctions::Splat(_s), _q.m_quat);
 }
 
 //operator/
 NIX_INLINE Quaternion operator/ (const Quaternion& _q, float _s)
 {
-    return Helper::Div(_q.m_quat, Helper::Splat(_s));
+    return MathFunctions::Div(_q.m_quat, MathFunctions::Splat(_s));
 }
 
 NIX_NAMESPACE_END

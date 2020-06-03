@@ -6,7 +6,7 @@
 #include "Core/Assertions.h"
 #include "Core/BasicTypes.h"
 
-#include "Helper.h"
+#include "BasicMathFunctions.h"
 #include "Constants.h"
 
 
@@ -28,7 +28,7 @@ namespace Utilities
     NIX_INLINE void VectorToByte(const float& _x, const float& _y, const float& _z, uint8* _out)
     {
         const float128 xyz = _mm_unpacklo_ps(_mm_unpacklo_ps(_mm_load_ss(&_x), _mm_load_ss(&_z)), _mm_load_ss(&_y));
-        const float128 xyzScaled = Helper::MulAdd(Helper::Add(xyz, kOneVec4), k255Over2Vec4, kOneHalfVec4);
+        const float128 xyzScaled = MathFunctions::MulAdd(MathFunctions::Add(xyz, kOneVec4), k255Over2Vec4, kOneHalfVec4);
         const int128 xyzInt = _mm_cvtps_epi32(xyzScaled);
         const int128 xyzShort = _mm_packs_epi32(xyzInt, xyzInt);
         const int128 xyzChar = _mm_packus_epi16(xyzShort, xyzShort);
@@ -41,8 +41,8 @@ namespace Utilities
 
     NIX_INLINE void VectorToByte(const float& _x, const float& _y, const float& _z, const float& _w, uint8* _out)
     {
-        const float128 xyzw = Helper::Set(_x, _y, _z, _w);
-        const float128 xyzwScaled = Helper::MulAdd(Helper::Add(xyzw, kOneVec4), k255Over2Vec4, kOneHalfVec4);
+        const float128 xyzw = MathFunctions::Set(_x, _y, _z, _w);
+        const float128 xyzwScaled = MathFunctions::MulAdd(MathFunctions::Add(xyzw, kOneVec4), k255Over2Vec4, kOneHalfVec4);
         const int128 xyzwInt = _mm_cvtps_epi32(xyzwScaled);
         const int128 xyzwShort = _mm_packs_epi32(xyzwInt, xyzwInt);
         const int128 xyzwChar = _mm_packus_epi16(xyzwShort, xyzwShort);
@@ -56,7 +56,7 @@ namespace Utilities
 
     NIX_INLINE void VectorToByte(const float128& _v, uint8* _out)
     {
-        const float128 xyzScaled = Helper::MulAdd(Helper::Add(_v, kOneVec4), k255Over2Vec4, kOneHalfVec4);
+        const float128 xyzScaled = MathFunctions::MulAdd(MathFunctions::Add(_v, kOneVec4), k255Over2Vec4, kOneHalfVec4);
         const int128 xyzInt = _mm_cvtps_epi32(xyzScaled);
         const int128 xyzShort = _mm_packs_epi32(xyzInt, xyzInt);
         const int128 xyzChar = _mm_packus_epi16(xyzShort, xyzShort);

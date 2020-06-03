@@ -5,7 +5,9 @@
 #include "Core/Assertions.h"
 #include "Core/BasicTypes.h"
 
-#include "Helper.h"
+#include "MathAligned.h"
+#include "BasicMathFunctions.h"
+
 
 NIX_NAMESPACE_BEGIN
 
@@ -15,14 +17,14 @@ NIX_NAMESPACE_BEGIN
     For the vector3 version, just referring to the function having the number "3" at the end, like Dot3
 */
 
-NIX_ALIGN_16 class Vector4
+class Vector4 : public MathAligned<16>
 {
 public:
     //////////////////////////////////////////////////////////////////////////
     // Constructors
     NIX_INLINE Vector4() : m_vec(kZero) {}
-    NIX_INLINE Vector4(float _x, float _y, float _z, float _w) : m_vec(Helper::Set(_x, _y, _z, _w)) {}
-    NIX_INLINE Vector4(float _v) : m_vec(Helper::Splat(_v)) {}
+    NIX_INLINE Vector4(float _x, float _y, float _z, float _w) : m_vec(MathFunctions::Set(_x, _y, _z, _w)) {}
+    NIX_INLINE Vector4(float _v) : m_vec(MathFunctions::Splat(_v)) {}
     NIX_INLINE Vector4(const Vector4& _copy) : m_vec(_copy) {}
     NIX_INLINE Vector4(Vector4&& _copy) noexcept : m_vec(std::move(_copy)) {}
     NIX_INLINE Vector4(const float128& _copy) : m_vec(_copy) {}
@@ -47,52 +49,52 @@ public:
     }
     NIX_INLINE Vector4& operator+=(const Vector4& _v)
     {
-        this->m_vec = Helper::Add(this->m_vec, _v);
+        this->m_vec = MathFunctions::Add(this->m_vec, _v);
         return *this;
     }
     NIX_INLINE Vector4& operator-=(const Vector4& _v)
     {
-        this->m_vec = Helper::Sub(this->m_vec, _v);
+        this->m_vec = MathFunctions::Sub(this->m_vec, _v);
         return *this;
     }
     NIX_INLINE Vector4& operator*=(const Vector4& _v)
     {
-        this->m_vec = Helper::Mul(this->m_vec, _v);
+        this->m_vec = MathFunctions::Mul(this->m_vec, _v);
         return *this;
     }
     NIX_INLINE Vector4& operator/=(const Vector4& _v)
     {
-        this->m_vec = Helper::Div(this->m_vec, _v);
+        this->m_vec = MathFunctions::Div(this->m_vec, _v);
         return *this;
     }
     NIX_INLINE Vector4& operator+=(const float& _s)
     {
-        this->m_vec = Helper::Add(this->m_vec, Helper::Splat(_s));
+        this->m_vec = MathFunctions::Add(this->m_vec, MathFunctions::Splat(_s));
         return *this;
     }
     NIX_INLINE Vector4& operator-=(const float& _s)
     {
-        this->m_vec = Helper::Sub(this->m_vec, Helper::Splat(_s));
+        this->m_vec = MathFunctions::Sub(this->m_vec, MathFunctions::Splat(_s));
         return *this;
     }
     NIX_INLINE Vector4& operator*=(const float& _s)
     {
-        this->m_vec = Helper::Mul(this->m_vec, Helper::Splat(_s));
+        this->m_vec = MathFunctions::Mul(this->m_vec, MathFunctions::Splat(_s));
         return *this;
     }
     NIX_INLINE Vector4& operator/=(const float& _s)
     {
-        this->m_vec = Helper::Div(this->m_vec, Helper::Splat(_s));
+        this->m_vec = MathFunctions::Div(this->m_vec, MathFunctions::Splat(_s));
         return *this;
     }
     NIX_INLINE Vector4& operator++()
     {
-        this->m_vec = Helper::Add(this->m_vec, kOneVec4);
+        this->m_vec = MathFunctions::Add(this->m_vec, kOneVec4);
         return *this;
     }
     NIX_INLINE Vector4& operator--()
     {
-        this->m_vec = Helper::Sub(this->m_vec, kOneVec4);
+        this->m_vec = MathFunctions::Sub(this->m_vec, kOneVec4);
         return *this;
     }
 
@@ -100,158 +102,158 @@ public:
     // Vector3 Version: Means that there are some difference to properly work upon 3 elements
     NIX_INLINE Vector4 Dot3(const Vector4& _other) const
     {
-        return Helper::Dot3(m_vec, _other);
+        return MathFunctions::Dot3(m_vec, _other);
     }
 
     NIX_INLINE Vector4 SquareLength3() const
     {
-        return Helper::SquareLength3(m_vec);
+        return MathFunctions::SquareLength3(m_vec);
     }
 
     NIX_INLINE Vector4 Length3() const
     {
-        return Helper::Length3(m_vec);
+        return MathFunctions::Length3(m_vec);
     }
 
     NIX_INLINE Vector4 Normalize3() const
     {
-        return Helper::Normalize3(m_vec);
+        return MathFunctions::Normalize3(m_vec);
     }
 
     NIX_INLINE Vector4 Distance3(const Vector4& _other) const
     {
-        return Helper::Distance3(m_vec, _other);
+        return MathFunctions::Distance3(m_vec, _other);
     }
 
     //////////////////////////////////////////////////////////////////////////
     // Both Vector3 and Vector4 Version (even possible)
     NIX_INLINE Vector4 Abs() const
     {
-        return Helper::Abs(m_vec);
+        return MathFunctions::Abs(m_vec);
     }
 
     NIX_INLINE Vector4 Floor() const
     {
-        return Helper::Floor(m_vec);
+        return MathFunctions::Floor(m_vec);
     }
 
     NIX_INLINE Vector4 Ceil() const
     {
-        return Helper::Ceil(m_vec);
+        return MathFunctions::Ceil(m_vec);
     }
 
     // Computes and returns (this * _vecToMul) + _vecToAdd.
     NIX_INLINE Vector4 MulAdd(const Vector4& _vecToMul, const Vector4& _vecToAdd) const
     {
-        return Helper::MulAdd(m_vec, _vecToMul, _vecToAdd);
+        return MathFunctions::MulAdd(m_vec, _vecToMul, _vecToAdd);
     }
 
     NIX_INLINE Vector4 Dot(const Vector4& _other) const
     {
-        return Helper::Dot(m_vec, _other);
+        return MathFunctions::Dot(m_vec, _other);
     }
 
     NIX_INLINE Vector4 SquareLength() const
     {
-        return Helper::SquareLength(m_vec);
+        return MathFunctions::SquareLength(m_vec);
     }
 
     NIX_INLINE Vector4 Length() const
     {
-        return Helper::Length(m_vec);
+        return MathFunctions::Length(m_vec);
     }
 
     NIX_INLINE Vector4 SquareDistance(const Vector4& _other) const
     {
-        return Helper::SquareDistance(m_vec, _other);
+        return MathFunctions::SquareDistance(m_vec, _other);
     }
 
     NIX_INLINE Vector4 Distance(const Vector4& _other) const
     {
-        return Helper::Distance(m_vec, _other);
+        return MathFunctions::Distance(m_vec, _other);
     }
 
     NIX_INLINE Vector4 Cross(const Vector4& _other) const
     {
-        return Helper::Cross(m_vec, _other);
+        return MathFunctions::Cross(m_vec, _other);
     }
 
     NIX_INLINE Vector4 Mod(const Vector4& _other) const
     {
-        return Helper::Mod(m_vec, _other);
+        return MathFunctions::Mod(m_vec, _other);
     }
 
     NIX_INLINE Vector4 Clamp(const Vector4& _min, const Vector4& _max) const
     {
-        return Helper::Clamp(m_vec, _min, _max);
+        return MathFunctions::Clamp(m_vec, _min, _max);
     }
 
     NIX_INLINE Vector4 Normalize() const
     {
-        return Helper::Normalize(m_vec);
+        return MathFunctions::Normalize(m_vec);
     }
 
     NIX_INLINE Vector4 Min(const Vector4& _other) const
     {
-        return Helper::Min(m_vec, _other);
+        return MathFunctions::Min(m_vec, _other);
     }
 
     NIX_INLINE Vector4 Max(const Vector4& _other) const
     {
-        return Helper::Max(m_vec, _other);
+        return MathFunctions::Max(m_vec, _other);
     }
 
     // It means go FROM *this* vector TO *other* vector in T
     NIX_INLINE Vector4 LerpTo(const Vector4& _to, const Vector4& _time) const
     {
-        return Helper::Lerp(m_vec, _to, _time);
+        return MathFunctions::Lerp(m_vec, _to, _time);
     }
 
     // It means go FROM *other* vector TO *this* vector in T
     NIX_INLINE Vector4 LerpFrom(const Vector4& _from, const Vector4& _time) const
     {
-        return Helper::Lerp(_from, m_vec, _time);
+        return MathFunctions::Lerp(_from, m_vec, _time);
     }
 
     // It means go FROM *this* vector TO *other* vector in T
     NIX_INLINE Vector4 LerpTo(const Vector4& _to, const float& _time) const
     {
-        return LerpTo(_to, Helper::Splat(_time));
+        return LerpTo(_to, MathFunctions::Splat(_time));
     }
 
     // It means go FROM *other* vector TO *this* vector in T
     NIX_INLINE Vector4 LerpFrom(const Vector4& _from, const float& _time) const
     {
-        return LerpFrom(_from, Helper::Splat(_time));
+        return LerpFrom(_from, MathFunctions::Splat(_time));
     }
 
     NIX_INLINE Vector4 InverseLerp(const Vector4& _min, const Vector4& _max) const
     {
-        return Helper::InverseLerp(m_vec, _min, _max);
+        return MathFunctions::InverseLerp(m_vec, _min, _max);
     }
 
     // It means go FROM *this* vector TO *other* vector in T
     NIX_INLINE Vector4 StepTo(const Vector4& _to, const Vector4& _time) const
     {
-        return Helper::Step(m_vec, _to, _time);
+        return MathFunctions::Step(m_vec, _to, _time);
     }
 
     // It means go FROM *other* vector TO *this* vector in T
     NIX_INLINE Vector4 StepFrom(const Vector4& _from, const Vector4& _time) const
     {
-        return Helper::Step(_from, m_vec, _time);
+        return MathFunctions::Step(_from, m_vec, _time);
     }
 
     // It means go FROM *this* vector TO *other* vector in T
     NIX_INLINE Vector4 StepTo(const Vector4& _to, const float& _time) const
     {
-        return StepTo(_to, Helper::Splat(_time));
+        return StepTo(_to, MathFunctions::Splat(_time));
     }
 
     // It means go FROM *other* vector TO *this* vector in T
     NIX_INLINE Vector4 StepFrom(const Vector4& _from, const float& _time) const
     {
-        return StepFrom(_from, Helper::Splat(_time));
+        return StepFrom(_from, MathFunctions::Splat(_time));
     }
 
 
@@ -340,92 +342,92 @@ NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Vector4& _v)
 // operator+
 NIX_INLINE Vector4 operator+ (const Vector4& _v, float _s)
 {
-    return Helper::Add(_v, Helper::Splat(_s));
+    return MathFunctions::Add(_v, MathFunctions::Splat(_s));
 }
 
 NIX_INLINE Vector4 operator+ (float _s, const Vector4& _v)
 {
-    return Helper::Add(Helper::Splat(_s), _v);
+    return MathFunctions::Add(MathFunctions::Splat(_s), _v);
 }
 
 NIX_INLINE Vector4 operator+ (const Vector4& _a, const Vector4& _b)
 {
-    return Helper::Add(_a, _b);
+    return MathFunctions::Add(_a, _b);
 }
 
 //operator-
 NIX_INLINE Vector4 operator- (const Vector4& _v, float _s)
 {
-    return Helper::Sub(_v, Helper::Splat(_s));
+    return MathFunctions::Sub(_v, MathFunctions::Splat(_s));
 }
 
 NIX_INLINE Vector4 operator- (float _s, const Vector4& _v)
 {
-    return Helper::Sub(Helper::Splat(_s), _v);
+    return MathFunctions::Sub(MathFunctions::Splat(_s), _v);
 }
 
 NIX_INLINE Vector4 operator- (const Vector4& _a, const Vector4& _b)
 {
-    return Helper::Sub(_a, _b);
+    return MathFunctions::Sub(_a, _b);
 }
 
 //operator*
 NIX_INLINE Vector4 operator* (const Vector4& _v, float _s)
 {
-    return Helper::Mul(_v, Helper::Splat(_s));
+    return MathFunctions::Mul(_v, MathFunctions::Splat(_s));
 }
 
 NIX_INLINE Vector4 operator* (float _s, const Vector4& _v)
 {
-    return Helper::Mul(Helper::Splat(_s), _v);
+    return MathFunctions::Mul(MathFunctions::Splat(_s), _v);
 }
 
 NIX_INLINE Vector4 operator* (const Vector4& _a, const Vector4& _b)
 {
-    return Helper::Mul(_a, _b);
+    return MathFunctions::Mul(_a, _b);
 }
 
 NIX_INLINE Vector4 operator* (const Vector4& _a, const float128& _b)
 {
-    return Helper::Mul(_a, _b);
+    return MathFunctions::Mul(_a, _b);
 }
 
 NIX_INLINE Vector4 operator* (const float128& _a, const Vector4& _b)
 {
-    return Helper::Mul(_a, _b);
+    return MathFunctions::Mul(_a, _b);
 }
 
 
 //operator/
 NIX_INLINE Vector4  operator/ (const Vector4& _v, float _s)
 {
-    return Helper::Div(_v, Helper::Splat(_s));
+    return MathFunctions::Div(_v, MathFunctions::Splat(_s));
 }
 
 NIX_INLINE Vector4  operator/ (float _s, const Vector4& _v)
 {
-    return Helper::Div(Helper::Splat(_s), _v);
+    return MathFunctions::Div(MathFunctions::Splat(_s), _v);
 }
 
 NIX_INLINE Vector4  operator/ (const Vector4& _a, const Vector4& _b)
 {
-    return Helper::Div(_a, _b);
+    return MathFunctions::Div(_a, _b);
 }
 
 // Unary constant operators
 NIX_INLINE Vector4  operator- (const Vector4& _v)
 {
-    return _mm_sub_ps(kZero, _v);
+    return MathFunctions::Sub(kZero, _v);
 }
 
 NIX_INLINE Vector4  operator++ (const Vector4& _v, int32)
 {
-    return _mm_add_ps(_v, kOneVec4);
+    return MathFunctions::Add(_v, kOneVec4);
 }
 
 NIX_INLINE Vector4  operator-- (const Vector4& _v, int32)
 {
-    return _mm_sub_ps(_v, kOneVec4);
+    return MathFunctions::Sub(_v, kOneVec4);
 }
 
 NIX_INLINE bool operator==(const Vector4& _lhs, const Vector4& _rhs)
