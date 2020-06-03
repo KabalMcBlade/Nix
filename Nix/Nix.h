@@ -16,5 +16,5 @@
 #include "Trigonometry.h"
 #include "Vector4.h"
 #include "Quaternion.h"
-#include "Matrix.h"
+#include "Matrix4x4.h"
 #include "Utilities.h"

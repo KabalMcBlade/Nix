@@ -288,7 +288,7 @@ public:
 
 private:
     friend class Quaternion;
-    friend class Matrix;
+    friend class Matrix4x4;
 
     // for global operators
     friend NIX_INLINE Vector4 operator+ (const Vector4& _v, float _s);
@@ -320,8 +320,8 @@ private:
     friend NIX_INLINE Vector4 operator* (const Quaternion& _q, const Vector4& _v);
 
     // from matrix
-    friend NIX_INLINE Vector4 operator*(const Matrix& _m, const Vector4& _v);
-    friend NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix& _m);
+    friend NIX_INLINE Vector4 operator*(const Matrix4x4& _m, const Vector4& _v);
+    friend NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix4x4& _m);
 
     float128 m_vec;
 };

@@ -7,7 +7,7 @@
 
 #include "Helper.h"
 #include "Trigonometry.h"
-#include "Matrix.h"
+#include "Matrix4x4.h"
 
 NIX_NAMESPACE_BEGIN
 
@@ -25,7 +25,7 @@ public:
     NIX_INLINE Quaternion(float _x, float _y, float _z, float _w) : m_quat(Helper::Set(_x, _y, _z, _w)) { }
     NIX_INLINE Quaternion(const float& _radians, const Vector4& _axis) { SetFromAngleAxis(_radians, _axis); }
     NIX_INLINE Quaternion(const float& _pitch, const float& _yaw, const float& _roll) { SetFromPitchYawRoll(_pitch, _yaw, _roll); }
-    NIX_INLINE Quaternion(const Matrix& _rotMatrix) { SetFromMatrix(_rotMatrix); }
+    NIX_INLINE Quaternion(const Matrix4x4& _rotMatrix) { SetFromMatrix(_rotMatrix); }
 
     //////////////////////////////////////////////////////////////////////////
     // Print function for debug purpose only
@@ -93,7 +93,7 @@ public:
         SetFromAngleAxis(_radians, Vector4(_x, _y, _z));
     }
 
-    NIX_INLINE void SetFromMatrix(const Matrix& _matrix)
+    NIX_INLINE void SetFromMatrix(const Matrix4x4& _matrix)
     {
         NIX_ALIGN_16 float m0[4];
         NIX_ALIGN_16 float m1[4];
@@ -260,7 +260,7 @@ public:
         return Conjugate() / sDot;
     }
 
-    NIX_INLINE Matrix ToMatrix() const
+    NIX_INLINE Matrix4x4 ToMatrix() const
     {
         const float qX = Helper::ExtractX(m_quat);
         const float qY = Helper::ExtractY(m_quat);
@@ -286,7 +286,7 @@ public:
         );
         */
 
-        Matrix rotation(
+        Matrix4x4 rotation(
             1.f - (YY + ZZ) * 2.0f,     (XY + Wz) * 2.0f,           (XZ - WY) * 2.0f,           0.f,
             (XY - Wz) * 2.0f,           1.f - (XX + ZZ) * 2.0f,     (YZ + WX) * 2.0f,           0.f,
             (XZ + WY) * 2.0f,           (YZ - WX) * 2.0f,           1.f - (XX + YY) * 2.0f,     0.f,
@@ -296,7 +296,7 @@ public:
         return rotation;
     }
 
-    NIX_INLINE Matrix ToMatrix(const Vector4& _translation) const
+    NIX_INLINE Matrix4x4 ToMatrix(const Vector4& _translation) const
     {
         const float vX = Helper::ExtractX(_translation);
         const float vY = Helper::ExtractY(_translation);
@@ -326,7 +326,7 @@ public:
         );
         */
 
-        Matrix rt(
+        Matrix4x4 rt(
             1.f - (YY + ZZ) * 2.0f,     (XY + Wz) * 2.0f,           (XZ - WY) * 2.0f,           0.f,
             (XY - Wz) * 2.0f,           1.f - (XX + ZZ) * 2.0f,     (YZ + WX) * 2.0f,           0.f,
             (XZ + WY) * 2.0f,           (YZ - WX) * 2.0f,           1.f - (XX + YY) * 2.0f,     0.f,

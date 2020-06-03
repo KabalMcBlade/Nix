@@ -12,11 +12,11 @@
 NIX_NAMESPACE_BEGIN
 
 
-NIX_ALIGN_16 class Matrix
+NIX_ALIGN_16 class Matrix4x4
 {
 public:
     //////////////////////////////////////////////////////////////////////////
-    NIX_INLINE Matrix()
+    NIX_INLINE Matrix4x4()
     {
         this->m_rows[0] = Helper::Set(1.0f, 0.0f, 0.0f, 0.0f);
         this->m_rows[1] = Helper::Set(0.0f, 1.0f, 0.0f, 0.0f);
@@ -24,7 +24,7 @@ public:
         this->m_rows[3] = Helper::Set(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
-    NIX_INLINE Matrix(const float& _s)
+    NIX_INLINE Matrix4x4(const float& _s)
     {
         this->m_rows[0] = Helper::Set(_s, 0.0f, 0.0f, 0.0f);
         this->m_rows[1] = Helper::Set(0.0f, _s, 0.0f, 0.0f);
@@ -33,7 +33,7 @@ public:
 
     }
 
-    NIX_INLINE Matrix(
+    NIX_INLINE Matrix4x4(
         const float& _x0, const float& _y0, const float& _z0, const float& _w0,
         const float& _x1, const float& _y1, const float& _z1, const float& _w1,
         const float& _x2, const float& _y2, const float& _z2, const float& _w2,
@@ -45,7 +45,7 @@ public:
         this->m_rows[3] = Helper::Set(_x3, _y3, _z3, _w3);
     }
 
-    NIX_INLINE Matrix(
+    NIX_INLINE Matrix4x4(
         const Vector4& _v0,
         const Vector4& _v1,
         const Vector4& _v2,
@@ -57,7 +57,7 @@ public:
         this->m_rows[3] = _v3;
     }
 
-    NIX_INLINE Matrix(const Matrix& _m)
+    NIX_INLINE Matrix4x4(const Matrix4x4& _m)
     {
         this->m_rows[0] = _m.m_rows[0];
         this->m_rows[1] = _m.m_rows[1];
@@ -65,7 +65,7 @@ public:
         this->m_rows[3] = _m.m_rows[3];
     }
 
-    NIX_INLINE Matrix(const Vector4 _v[4])
+    NIX_INLINE Matrix4x4(const Vector4 _v[4])
     {
         this->m_rows[0] = _v[0];
         this->m_rows[1] = _v[1];
@@ -77,7 +77,7 @@ public:
     // Print function for debug purpose only
 
 #ifdef _DEBUG
-    friend NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix& _mat);
+    friend NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix4x4& _mat);
 #endif
 
     //////////////////////////////////////////////////////////////////////////
@@ -111,7 +111,7 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
     // Operators
-    NIX_INLINE Matrix& operator=(const Matrix& _m)
+    NIX_INLINE Matrix4x4& operator=(const Matrix4x4& _m)
     {
         m_rows[0] = _m[0];
         m_rows[1] = _m[1];
@@ -120,50 +120,50 @@ public:
         return *this;
     }
 
-    NIX_INLINE Matrix& operator+=(const Matrix& _m)
+    NIX_INLINE Matrix4x4& operator+=(const Matrix4x4& _m)
     {
         *this = Add(_m);
         return *this;
     }
 
-    NIX_INLINE Matrix& operator-=(const Matrix& _m)
+    NIX_INLINE Matrix4x4& operator-=(const Matrix4x4& _m)
     {
         *this = Sub(_m);
         return *this;
     }
 
-    NIX_INLINE Matrix& operator*=(const Matrix& _m)
+    NIX_INLINE Matrix4x4& operator*=(const Matrix4x4& _m)
     {
         *this = Mul(_m);
         return *this;
     }
 
-    NIX_INLINE Matrix& operator/=(const Matrix& _m)
+    NIX_INLINE Matrix4x4& operator/=(const Matrix4x4& _m)
     {
-        Matrix inv = Inverse();
+        Matrix4x4 inv = Inverse();
         *this = inv.Mul(_m);
         return *this;
     }
 
-    NIX_INLINE Matrix& operator+=(const float& _s)
+    NIX_INLINE Matrix4x4& operator+=(const float& _s)
     {
         *this = Add(_s);
         return *this;
     }
 
-    NIX_INLINE Matrix& operator-=(const float& _s)
+    NIX_INLINE Matrix4x4& operator-=(const float& _s)
     {
         *this = Sub(_s);
         return *this;
     }
 
-    NIX_INLINE Matrix& operator*=(const float& _s)
+    NIX_INLINE Matrix4x4& operator*=(const float& _s)
     {
         *this = Mul(_s);
         return *this;
     }
 
-    NIX_INLINE Matrix& operator/=(const float& _s)
+    NIX_INLINE Matrix4x4& operator/=(const float& _s)
     {
         *this = Div(_s);
         return *this;
@@ -210,9 +210,9 @@ public:
         return Helper::Dot(m_rows[0], detc);
     }
 
-    NIX_INLINE Matrix Transpose() const
+    NIX_INLINE Matrix4x4 Transpose() const
     {
-        Matrix result;
+        Matrix4x4 result;
         const float128 swp0 = _mm_shuffle_ps(m_rows[0], m_rows[1], 0x44);
         const float128 swp1 = _mm_shuffle_ps(m_rows[2], m_rows[3], 0x44);
         const float128 swp2 = _mm_shuffle_ps(m_rows[0], m_rows[1], 0xEE);
@@ -226,9 +226,9 @@ public:
 
     // It works ONLY with transform matrix, not for generic matrix purpose
     // Moreover this not take into consider the scale, so this matrix is treated is of scale 1
-    NIX_INLINE Matrix InverseNoScale() const
+    NIX_INLINE Matrix4x4 InverseNoScale() const
     {
-        Matrix result;
+        Matrix4x4 result;
         // transpose the 3x3 part, so m03 = m13 = m23 = 0
         const float128 lh = _mm_movelh_ps(m_rows[0], m_rows[1]);
         const float128 hl = _mm_movehl_ps(m_rows[1], m_rows[0]);
@@ -245,9 +245,9 @@ public:
     }
 
     // It works ONLY with transform matrix, not for generic matrix purpose
-    NIX_INLINE Matrix Inverse() const
+    NIX_INLINE Matrix4x4 Inverse() const
     {
-        Matrix result;
+        Matrix4x4 result;
         // transpose the 3x3 part, so m03 = m13 = m23 = 0
         const float128 lh = _mm_movelh_ps(m_rows[0], m_rows[1]);
         const float128 hl = _mm_movehl_ps(m_rows[1], m_rows[0]);
@@ -289,9 +289,9 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Translate(const Vector4& _v) const
+    NIX_INLINE Matrix4x4 Translate(const Vector4& _v) const
     {
-        Matrix result;
+        Matrix4x4 result;
         const float128& xxxx = MathFunctions::Swizzle<X, X, X, X>(_v);
         const float128& yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(_v);
         const float128& zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(_v);
@@ -308,9 +308,9 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Scale(const Vector4& _s) const
+    NIX_INLINE Matrix4x4 Scale(const Vector4& _s) const
     {
-        Matrix result;
+        Matrix4x4 result;
         const float128& xxxx = MathFunctions::Swizzle<X, X, X, X>(_s);
         const float128& yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(_s);
         const float128& zzzz = MathFunctions::Swizzle<Z, Z, Z, Z>(_s);
@@ -322,9 +322,9 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Mul(const Matrix& _other) const
+    NIX_INLINE Matrix4x4 Mul(const Matrix4x4& _other) const
     {
-        Matrix result;
+        Matrix4x4 result;
         {
             const float128 xxxx = MathFunctions::Swizzle<X, X, X, X>(m_rows[0]);
             const float128 yyyy = MathFunctions::Swizzle<Y, Y, Y, Y>(m_rows[0]);
@@ -399,9 +399,9 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Add(const Matrix& _other) const
+    NIX_INLINE Matrix4x4 Add(const Matrix4x4& _other) const
     {
-        Matrix result;
+        Matrix4x4 result;
         result[0] = Helper::Add(m_rows[0], _other[0]);
         result[1] = Helper::Add(m_rows[1], _other[1]);
         result[2] = Helper::Add(m_rows[2], _other[2]);
@@ -409,9 +409,9 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Sub(const Matrix& _other) const
+    NIX_INLINE Matrix4x4 Sub(const Matrix4x4& _other) const
     {
-        Matrix result;
+        Matrix4x4 result;
         result[0] = Helper::Sub(m_rows[0], _other[0]);
         result[1] = Helper::Sub(m_rows[1], _other[1]);
         result[2] = Helper::Sub(m_rows[2], _other[2]);
@@ -419,9 +419,9 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Add(float _s) const
+    NIX_INLINE Matrix4x4 Add(float _s) const
     {
-        Matrix result;
+        Matrix4x4 result;
         const float128 opv = Helper::Splat(_s);
         result[0] = Helper::Add(m_rows[0], opv);
         result[1] = Helper::Add(m_rows[1], opv);
@@ -430,9 +430,9 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Sub(float _s) const
+    NIX_INLINE Matrix4x4 Sub(float _s) const
     {
-        Matrix result;
+        Matrix4x4 result;
         const float128 opv = Helper::Splat(_s);
         result[0] = Helper::Sub(m_rows[0], opv);
         result[1] = Helper::Sub(m_rows[1], opv);
@@ -441,9 +441,9 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Mul(float _s) const
+    NIX_INLINE Matrix4x4 Mul(float _s) const
     {
-        Matrix result;
+        Matrix4x4 result;
         const float128 opv = Helper::Splat(_s);
         result[0] = Helper::Mul(m_rows[0], opv);
         result[1] = Helper::Mul(m_rows[1], opv);
@@ -452,9 +452,9 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix Div(float _s) const
+    NIX_INLINE Matrix4x4 Div(float _s) const
     {
-        Matrix result;
+        Matrix4x4 result;
         const float128 opv = Helper::Div(kOneVec4, Helper::Splat(_s));
         result[0] = Helper::Mul(m_rows[0], opv);
         result[1] = Helper::Mul(m_rows[1], opv);
@@ -506,19 +506,19 @@ private:
     friend class Vector4;
 
     // for global operators
-    friend NIX_INLINE Matrix operator+(const Matrix& _m, const float& _s);
-    friend NIX_INLINE Matrix operator+(const float& _s, const Matrix& _m);
-    friend NIX_INLINE Matrix operator+(const Matrix& _a, const Matrix& _b);
-    friend NIX_INLINE Matrix operator-(const Matrix& _m, const float& _s);
-    friend NIX_INLINE Matrix operator-(const float& _s, const Matrix& _m);
-    friend NIX_INLINE Matrix operator-(const Matrix& _a, const Matrix& _b);
-    friend NIX_INLINE Matrix operator*(const Matrix& _m, const float& _s);
-    friend NIX_INLINE Matrix operator*(const float& _s, const Matrix& _m);
-    friend NIX_INLINE Vector4 operator*(const Matrix& _m, const Vector4& _v);
-    friend NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix& _m);
-    friend NIX_INLINE Matrix operator*(const Matrix& _a, const Matrix& _b);
-    friend NIX_INLINE Matrix operator/(const Matrix& _m, const float& _s);
-    friend NIX_INLINE Matrix operator/(const float& _s, const Matrix& _m);
+    friend NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _m, const float& _s);
+    friend NIX_INLINE Matrix4x4 operator+(const float& _s, const Matrix4x4& _m);
+    friend NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _a, const Matrix4x4& _b);
+    friend NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _m, const float& _s);
+    friend NIX_INLINE Matrix4x4 operator-(const float& _s, const Matrix4x4& _m);
+    friend NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _a, const Matrix4x4& _b);
+    friend NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _m, const float& _s);
+    friend NIX_INLINE Matrix4x4 operator*(const float& _s, const Matrix4x4& _m);
+    friend NIX_INLINE Vector4 operator*(const Matrix4x4& _m, const Vector4& _v);
+    friend NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix4x4& _m);
+    friend NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _a, const Matrix4x4& _b);
+    friend NIX_INLINE Matrix4x4 operator/(const Matrix4x4& _m, const float& _s);
+    friend NIX_INLINE Matrix4x4 operator/(const float& _s, const Matrix4x4& _m);
 
 private:
     float128 m_rows[4];
@@ -529,7 +529,7 @@ private:
 // Operators
 
 #ifdef _DEBUG
-NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix& _mat)
+NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix4x4& _mat)
 {
     float *val0 = (float*)&(_mat[0]);
     float *val1 = (float*)&(_mat[1]);
@@ -544,67 +544,67 @@ NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix& _mat)
 }
 #endif
 
-NIX_INLINE Matrix operator+(const Matrix& _m, const float& _s)
+NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _m, const float& _s)
 {
     return _m.Add(_s);
 }
 
-NIX_INLINE Matrix operator+(const float& _s, const Matrix& _m)
+NIX_INLINE Matrix4x4 operator+(const float& _s, const Matrix4x4& _m)
 {
     return _m.Add(_s);
 }
 
-NIX_INLINE Matrix operator+(const Matrix& _a, const Matrix& _b)
+NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _a, const Matrix4x4& _b)
 {
     return _a.Add(_b);
 }
 
-NIX_INLINE Matrix operator-(const Matrix& _m, const float& _s)
+NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _m, const float& _s)
 {
     return _m.Sub(_s);
 }
 
-NIX_INLINE Matrix operator-(const float& _s, const Matrix& _m)
+NIX_INLINE Matrix4x4 operator-(const float& _s, const Matrix4x4& _m)
 {
     return _m.Sub(_s);
 }
 
-NIX_INLINE Matrix operator-(const Matrix& _a, const Matrix& _b)
+NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _a, const Matrix4x4& _b)
 {
     return _a.Sub(_b);
 }
 
-NIX_INLINE Matrix operator*(const Matrix& _m, const float& _s)
+NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _m, const float& _s)
 {
     return _m.Mul(_s);
 }
 
-NIX_INLINE Matrix operator*(const float& _s, const Matrix& _m)
+NIX_INLINE Matrix4x4 operator*(const float& _s, const Matrix4x4& _m)
 {
     return _m.Mul(_s);
 }
 
-NIX_INLINE Vector4 operator*(const Matrix& _m, const Vector4& _v)
+NIX_INLINE Vector4 operator*(const Matrix4x4& _m, const Vector4& _v)
 {
     return _m.MulMatrixVector(_v);
 }
 
-NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix& _m)
+NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix4x4& _m)
 {
     return _m.MulVectorMatrix(_v);
 }
 
-NIX_INLINE Matrix operator*(const Matrix& _a, const Matrix& _b)
+NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _a, const Matrix4x4& _b)
 {
     return _a.Mul(_b);
 }
 
-NIX_INLINE Matrix operator/(const Matrix& _m, const float& _s)
+NIX_INLINE Matrix4x4 operator/(const Matrix4x4& _m, const float& _s)
 {
     return _m.Div(_s);
 }
 
-NIX_INLINE Matrix operator/(const float& _s, const Matrix& _m)
+NIX_INLINE Matrix4x4 operator/(const float& _s, const Matrix4x4& _m)
 {
     return _m.Div(_s);
 }
