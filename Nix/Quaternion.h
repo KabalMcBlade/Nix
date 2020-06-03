@@ -106,7 +106,7 @@ public:
 	// z is the canonical up vector
     NIX_INLINE void SetFromAngleAxis(const float& _radians, float _x, float _y, float _z)
     {
-        SetFromAngleAxis(_radians, Vector4(_x, _y, _z));
+        SetFromAngleAxis(_radians, Vector4(_x, _y, _z, 0.0f));
     }
 
     NIX_INLINE void SetFromMatrix(const Matrix4x4& _matrix)
