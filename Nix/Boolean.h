@@ -10,6 +10,7 @@ NIX_NAMESPACE_BEGIN
 class Boolean : public MathAligned<16>
 {
 public:
+	NIX_INLINE Boolean() = default;
 	NIX_INLINE Boolean(const Boolean& _s) { m_vec = _s; }
 	NIX_INLINE Boolean(bool _s) { m_vec = MathFunctions::Splat(_s); }
 	NIX_INLINE explicit Boolean(float128 _s) { m_vec = _s; }

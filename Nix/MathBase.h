@@ -48,6 +48,7 @@ public:
 	NIX_INLINE Boolean operator>  (const T& _rhs) const { return static_cast<Boolean>(_mm_cmpgt_ps(*this, _rhs)); }
 	NIX_INLINE Boolean operator>= (const T& _rhs) const { return static_cast<Boolean>(_mm_cmpge_ps(*this, _rhs)); }
 	NIX_INLINE Boolean operator== (const T& _rhs) const { return static_cast<Boolean>(_mm_cmpeq_ps(*this, _rhs)); }
+	NIX_INLINE Boolean operator!= (const T& _rhs) const { return static_cast<Boolean>(_mm_cmpneq_ps(*this, _rhs)); }
 
 
 protected:

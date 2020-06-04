@@ -27,14 +27,6 @@ public:
     NIX_INLINE Quaternion(const Scalar& _pitch, const Scalar& _yaw, const Scalar& _roll) { SetFromPitchYawRoll(_pitch, _yaw, _roll); }
     NIX_INLINE Quaternion(const Matrix4x4& _rotMatrix) { SetFromMatrix(_rotMatrix); }
 
-
-    //////////////////////////////////////////////////////////////////////////
-    // Print function for debug purpose only
-
-#ifdef _DEBUG
-    friend NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Quaternion& _quat);
-#endif
-
     //////////////////////////////////////////////////////////////////////////
     // Operators
 
@@ -177,8 +169,7 @@ public:
         const Vector4 len = Length();
 		const Vector4 zero = 0.0f;
 
-		Boolean res = len <= zero;
-        if (res.IsTrue())
+        if (len <= zero)
         {
             return Quaternion();
         }
@@ -321,122 +312,99 @@ public:
         return rt;
     }
 
-private:
-    friend class Vector4;
-
-    // for global operators
-    friend NIX_INLINE Quaternion operator- (const Quaternion& _q);
-    friend NIX_INLINE Quaternion operator+ (const Quaternion& _q1, const Quaternion& _q2);
-    friend NIX_INLINE Quaternion operator* (const Quaternion& _q1, const Quaternion& _q2);
-    friend NIX_INLINE Vector4 operator* (const Quaternion& _q, const Vector4& _v);
-    friend NIX_INLINE Vector4 operator* (const Vector4& _v, const Quaternion& _q);
-    friend NIX_INLINE Quaternion operator* (const Quaternion& _q, const Scalar& _s);
-    friend NIX_INLINE Quaternion operator* (const Scalar& _s, const Quaternion& _q);
-    friend NIX_INLINE Quaternion operator/ (const Quaternion& _q, const Scalar& _s);
-};
-
-//////////////////////////////////////////////////////////////////////////
-// Operators
-
-
-#ifdef _DEBUG
-NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Quaternion& _quat)
-{
-    float *val = (float*)&_quat.m_vec;
-    _os << "(" << val[0] << ", " << val[1] << ", " << val[2] << ", " << val[3] << ")";
-    return _os;
-}
-#endif
-
-// negate operator
-NIX_INLINE Quaternion operator- (const Quaternion& _q)
-{
-    return MathFunctions::Mul(_q.m_vec, kMinusOneVec4);
-}
-
-// operator+
-NIX_INLINE Quaternion operator+ (const Quaternion& _q1, const Quaternion& _q2)
-{
-    return MathFunctions::Add(_q1.m_vec, _q2.m_vec);
-}
-
-//operator*
-NIX_INLINE Quaternion operator* (const Quaternion& _q1, const Quaternion& _q2)
-{
-    const float128 mul0 = MathFunctions::Mul(_q1.m_vec, MathFunctions::Swizzle<W, Z, Y, X>(_q2.m_vec));
-    const float128 mul1 = MathFunctions::Mul(_q1.m_vec, MathFunctions::Swizzle<Z, W, X, Y>(_q2.m_vec));
-    const float128 mul2 = MathFunctions::Mul(_q1.m_vec, MathFunctions::Swizzle<Y, X, W, Z>(_q2.m_vec));
-    const float128 mul3 = MathFunctions::Mul(_q1.m_vec, _q2.m_vec);
+	//////////////////////////////////////////////////////////////////////////
+	// Operators
+	NIX_INLINE Quaternion operator- () const 
+	{ 
+		return MathFunctions::Sub(_mm_setzero_ps(), *this);
+	}
+	NIX_INLINE Quaternion operator+ (const Quaternion& _q) const 
+	{ 
+		return MathFunctions::Add(*this, _q);
+	}
+	NIX_INLINE Quaternion operator* (const Quaternion& _q)  const
+	{
+		const float128 mul0 = MathFunctions::Mul(*this, MathFunctions::Swizzle<W, Z, Y, X>(_q));
+		const float128 mul1 = MathFunctions::Mul(*this, MathFunctions::Swizzle<Z, W, X, Y>(_q));
+		const float128 mul2 = MathFunctions::Mul(*this, MathFunctions::Swizzle<Y, X, W, Z>(_q));
+		const float128 mul3 = MathFunctions::Mul(*this, _q);
 
 #if NIX_ARCH & NIX_ARCH_SSE41_FLAG
-    const float128 add00 = _mm_dp_ps(mul0, MathFunctions::Set(1.0f, 1.0f, -1.0f, 1.0f), 0xff);
-    const float128 add01 = _mm_dp_ps(mul1, MathFunctions::Set(-1.0f, 1.0f, 1.0f, 1.0f), 0xff);
-    const float128 add02 = _mm_dp_ps(mul2, MathFunctions::Set(1.0f, -1.0f, 1.0f, 1.0f), 0xff);
-    const float128 add03 = _mm_dp_ps(mul3, MathFunctions::Set(-1.0f, -1.0f, -1.0f, 1.0f), 0xff);
+		const float128 add00 = _mm_dp_ps(mul0, MathFunctions::Set(1.0f, 1.0f, -1.0f, 1.0f), 0xff);
+		const float128 add01 = _mm_dp_ps(mul1, MathFunctions::Set(-1.0f, 1.0f, 1.0f, 1.0f), 0xff);
+		const float128 add02 = _mm_dp_ps(mul2, MathFunctions::Set(1.0f, -1.0f, 1.0f, 1.0f), 0xff);
+		const float128 add03 = _mm_dp_ps(mul3, MathFunctions::Set(-1.0f, -1.0f, -1.0f, 1.0f), 0xff);
 #   else
-    const float128 mul00 = MathFunctions::Mul(mul0, MathFunctions::Set(1.0f, 1.0f, -1.0f, 1.0f));
-    const float128 mul01 = MathFunctions::Mul(mul1, MathFunctions::Set(-1.0f, 1.0f, 1.0f, 1.0f));
-    const float128 mul02 = MathFunctions::Mul(mul2, MathFunctions::Set(1.0f, -1.0f, 1.0f, 1.0f));
-    const float128 mul03 = MathFunctions::Mul(mul3, MathFunctions::Set(-1.0f, -1.0f, -1.0f, 1.0f));
+		const float128 mul00 = MathFunctions::Mul(mul0, MathFunctions::Set(1.0f, 1.0f, -1.0f, 1.0f));
+		const float128 mul01 = MathFunctions::Mul(mul1, MathFunctions::Set(-1.0f, 1.0f, 1.0f, 1.0f));
+		const float128 mul02 = MathFunctions::Mul(mul2, MathFunctions::Set(1.0f, -1.0f, 1.0f, 1.0f));
+		const float128 mul03 = MathFunctions::Mul(mul3, MathFunctions::Set(-1.0f, -1.0f, -1.0f, 1.0f));
 
-    const float128 add0 = MathFunctions::Add(mul00, _mm_movehl_ps(mul00, mul00));
-    const float128 add1 = MathFunctions::Add(mul01, _mm_movehl_ps(mul01, mul01));
-    const float128 add2 = MathFunctions::Add(mul02, _mm_movehl_ps(mul02, mul02));
-    const float128 add3 = MathFunctions::Add(mul03, _mm_movehl_ps(mul03, mul03));
+		const float128 add0 = MathFunctions::Add(mul00, _mm_movehl_ps(mul00, mul00));
+		const float128 add1 = MathFunctions::Add(mul01, _mm_movehl_ps(mul01, mul01));
+		const float128 add2 = MathFunctions::Add(mul02, _mm_movehl_ps(mul02, mul02));
+		const float128 add3 = MathFunctions::Add(mul03, _mm_movehl_ps(mul03, mul03));
 
-    const float128 add00 = _mm_add_ss(add0, _mm_shuffle_ps(add0, add0, 1));
-    const float128 add01 = _mm_add_ss(add1, _mm_shuffle_ps(add1, add1, 1));
-    const float128 add02 = _mm_add_ss(add2, _mm_shuffle_ps(add2, add2, 1));
-    const float128 add03 = _mm_add_ss(add3, _mm_shuffle_ps(add3, add3, 1));
+		const float128 add00 = _mm_add_ss(add0, _mm_shuffle_ps(add0, add0, 1));
+		const float128 add01 = _mm_add_ss(add1, _mm_shuffle_ps(add1, add1, 1));
+		const float128 add02 = _mm_add_ss(add2, _mm_shuffle_ps(add2, add2, 1));
+		const float128 add03 = _mm_add_ss(add3, _mm_shuffle_ps(add3, add3, 1));
 #endif
 
-    const float128 xxyy = _mm_shuffle_ps(add00, add01, _MM_SHUFFLE(0, 0, 0, 0));
-    const float128 zzww = _mm_shuffle_ps(add02, add03, _MM_SHUFFLE(0, 0, 0, 0));
-    
-    return _mm_shuffle_ps(xxyy, zzww, _MM_SHUFFLE(2, 0, 2, 0));
+		const float128 xxyy = _mm_shuffle_ps(add00, add01, _MM_SHUFFLE(0, 0, 0, 0));
+		const float128 zzww = _mm_shuffle_ps(add02, add03, _MM_SHUFFLE(0, 0, 0, 0));
+
+		return _mm_shuffle_ps(xxyy, zzww, _MM_SHUFFLE(2, 0, 2, 0));
+	}
+	NIX_INLINE Quaternion operator* (const Scalar& _s) const
+	{
+		return MathFunctions::Mul(*this, _s);
+	}
+	NIX_INLINE Quaternion operator/ (const Scalar& _s) const
+	{ 
+		return MathFunctions::Div(*this, _s);
+	}
+	NIX_INLINE Quaternion operator/ (const Quaternion& _q) const
+	{ 
+		return MathFunctions::Div(*this, _q);
+	}
+};
+
+NIX_INLINE Vector4 operator* (const Vector4& _v, const Quaternion& _q)
+{
+	Quaternion inv = _q.Inverse();
+	return inv * _v;
 }
 
 NIX_INLINE Vector4 operator* (const Quaternion& _q, const Vector4& _v)
 {
-    static const float128 two = MathFunctions::Splat(2.0f);
+	static const float128 two = MathFunctions::Splat(2.0f);
 
-    const float128 q_wwww = MathFunctions::Swizzle<W, W, W, W>(_q.m_vec);
-    const float128 q_yzxw = MathFunctions::Swizzle<Y, Z, X, W>(_q.m_vec);
-    const float128 q_zxyw = MathFunctions::Swizzle<Z, X, Y, W>(_q.m_vec);
-    const float128 v_yzxw = MathFunctions::Swizzle<Y, Z, X, W>(_v);
-    const float128 v_wyxz = MathFunctions::Swizzle<Z, X, Y, W>(_v);
+	const float128 q_wwww = MathFunctions::Swizzle<W, W, W, W>(_q);
+	const float128 q_yzxw = MathFunctions::Swizzle<Y, Z, X, W>(_q);
+	const float128 q_zxyw = MathFunctions::Swizzle<Z, X, Y, W>(_q);
+	const float128 v_yzxw = MathFunctions::Swizzle<Y, Z, X, W>(_v);
+	const float128 v_wyxz = MathFunctions::Swizzle<Z, X, Y, W>(_v);
 
-    const float128 qv = MathFunctions::Sub(MathFunctions::Mul(q_yzxw, v_wyxz), MathFunctions::Mul(q_zxyw, v_yzxw));
-    const float128 qv_yzxw = MathFunctions::Swizzle<Y, Z, X, W>(qv);
-    const float128 qv_zxyw = MathFunctions::Swizzle<Z, X, Y, W>(qv);
-    const float128 qqv = MathFunctions::Sub(MathFunctions::Mul(q_yzxw, qv_zxyw), MathFunctions::Mul(q_zxyw, qv_yzxw));
+	const float128 qv = MathFunctions::Sub(MathFunctions::Mul(q_yzxw, v_wyxz), MathFunctions::Mul(q_zxyw, v_yzxw));
+	const float128 qv_yzxw = MathFunctions::Swizzle<Y, Z, X, W>(qv);
+	const float128 qv_zxyw = MathFunctions::Swizzle<Z, X, Y, W>(qv);
+	const float128 qqv = MathFunctions::Sub(MathFunctions::Mul(q_yzxw, qv_zxyw), MathFunctions::Mul(q_zxyw, qv_yzxw));
 
-    const float128 mul0 = MathFunctions::Mul(qv, MathFunctions::Mul(q_wwww, two));
-    const float128 mul1 = MathFunctions::Mul(qqv, two);
+	const float128 mul0 = MathFunctions::Mul(qv, MathFunctions::Mul(q_wwww, two));
+	const float128 mul1 = MathFunctions::Mul(qqv, two);
 
-    return MathFunctions::Add(_v, MathFunctions::Add(mul0, mul1));
+	return MathFunctions::Add(_v, MathFunctions::Add(mul0, mul1));
 }
 
-NIX_INLINE Vector4 operator* (const Vector4& _v, const Quaternion& _q)
+
+#ifdef _DEBUG
+NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Quaternion& _q)
 {
-    Quaternion inv = _q.Inverse();
-    return inv * _v;
+	float *val = (float*)&_q;
+	_os << "(" << val[0] << ", " << val[1] << ", " << val[2] << ", " << val[3] << ")";
+	return _os;
 }
-
-NIX_INLINE Quaternion operator* (const Quaternion& _q, const Scalar& _s)
-{
-    return MathFunctions::Mul(_q.m_vec, MathFunctions::Splat(_s));
-}
-
-NIX_INLINE Quaternion operator* (const Scalar& _s, const Quaternion& _q)
-{
-    return MathFunctions::Mul(MathFunctions::Splat(_s), _q.m_vec);
-}
-
-//operator/
-NIX_INLINE Quaternion operator/ (const Quaternion& _q, const Scalar& _s)
-{
-    return MathFunctions::Div(_q.m_vec, MathFunctions::Splat(_s));
-}
+#endif
 
 NIX_NAMESPACE_END

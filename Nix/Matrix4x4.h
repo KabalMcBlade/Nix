@@ -88,13 +88,6 @@ public:
     }
 
     //////////////////////////////////////////////////////////////////////////
-    // Print function for debug purpose only
-
-#ifdef _DEBUG
-    friend NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix4x4& _mat);
-#endif
-
-    //////////////////////////////////////////////////////////////////////////
     // Accesses
 
     NIX_INLINE Vector4& operator[](uint8 _i)
@@ -521,87 +514,20 @@ public:
         return MathFunctions::Add(mlh, mhl);
     }
 
-private:
-    friend class Vector4;
 
-    // for global operators
-    friend NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _m, const Scalar& _s);
-    friend NIX_INLINE Matrix4x4 operator+(const Scalar& _s, const Matrix4x4& _m);
-    friend NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _a, const Matrix4x4& _b);
-    friend NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _m, const Scalar& _s);
-    friend NIX_INLINE Matrix4x4 operator-(const Scalar& _s, const Matrix4x4& _m);
-    friend NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _a, const Matrix4x4& _b);
-    friend NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _m, const Scalar& _s);
-    friend NIX_INLINE Matrix4x4 operator*(const Scalar& _s, const Matrix4x4& _m);
-    friend NIX_INLINE Vector4 operator*(const Matrix4x4& _m, const Vector4& _v);
-    friend NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix4x4& _m);
-    friend NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _a, const Matrix4x4& _b);
-    friend NIX_INLINE Matrix4x4 operator/(const Matrix4x4& _m, const Scalar& _s);
-    friend NIX_INLINE Matrix4x4 operator/(const Scalar& _s, const Matrix4x4& _m);
+	//////////////////////////////////////////////////////////////
+	// Operators
+	NIX_INLINE Matrix4x4 operator+(const Scalar& _s) const { return Add(_s); }
+    NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _m) const { return Add(_m); }
+    NIX_INLINE Matrix4x4 operator-(const Scalar& _s) const { return Sub(_s); }
+    NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _m) const { return Sub(_m); }
+    NIX_INLINE Matrix4x4 operator*(const Scalar& _s) const { return Mul(_s); }
+    NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _m) const { return Mul(_m); }
+    NIX_INLINE Matrix4x4 operator/(const Scalar& _s) const { return Div(_s); }
 
 private:
     Vector4 m_rows[4];
 };
-
-
-//////////////////////////////////////////////////////////////
-// Operators
-
-#ifdef _DEBUG
-NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix4x4& _mat)
-{
-    float *val0 = (float*)&(_mat[0]);
-    float *val1 = (float*)&(_mat[1]);
-    float *val2 = (float*)&(_mat[2]);
-    float *val3 = (float*)&(_mat[3]);
-
-    _os << "(" << val0[0] << ", " << val0[1] << ", " << val0[2] << ", " << val0[3] << ")" << std::endl
-        << "(" << val1[0] << ", " << val1[1] << ", " << val1[2] << ", " << val1[3] << ")" << std::endl
-        << "(" << val2[0] << ", " << val2[1] << ", " << val2[2] << ", " << val2[3] << ")" << std::endl
-        << "(" << val3[0] << ", " << val3[1] << ", " << val3[2] << ", " << val3[3] << ")";
-    return _os;
-}
-#endif
-
-NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _m, const Scalar& _s)
-{
-    return _m.Add(_s);
-}
-
-NIX_INLINE Matrix4x4 operator+(const Scalar& _s, const Matrix4x4& _m)
-{
-    return _m.Add(_s);
-}
-
-NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _a, const Matrix4x4& _b)
-{
-    return _a.Add(_b);
-}
-
-NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _m, const Scalar& _s)
-{
-    return _m.Sub(_s);
-}
-
-NIX_INLINE Matrix4x4 operator-(const Scalar& _s, const Matrix4x4& _m)
-{
-    return _m.Sub(_s);
-}
-
-NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _a, const Matrix4x4& _b)
-{
-    return _a.Sub(_b);
-}
-
-NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _m, const Scalar& _s)
-{
-    return _m.Mul(_s);
-}
-
-NIX_INLINE Matrix4x4 operator*(const Scalar& _s, const Matrix4x4& _m)
-{
-    return _m.Mul(_s);
-}
 
 NIX_INLINE Vector4 operator*(const Matrix4x4& _m, const Vector4& _v)
 {
@@ -613,20 +539,21 @@ NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix4x4& _m)
     return _m.MulVectorMatrix(_v);
 }
 
-NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _a, const Matrix4x4& _b)
-{
-    return _a.Mul(_b);
-}
 
-NIX_INLINE Matrix4x4 operator/(const Matrix4x4& _m, const Scalar& _s)
+#ifdef _DEBUG
+NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix4x4& _m)
 {
-    return _m.Div(_s);
-}
+	float *val0 = (float*)&(_m[0]);
+	float *val1 = (float*)&(_m[1]);
+	float *val2 = (float*)&(_m[2]);
+	float *val3 = (float*)&(_m[3]);
 
-NIX_INLINE Matrix4x4 operator/(const Scalar& _s, const Matrix4x4& _m)
-{
-    return _m.Div(_s);
+	_os << "(" << val0[0] << ", " << val0[1] << ", " << val0[2] << ", " << val0[3] << ")" << std::endl
+		<< "(" << val1[0] << ", " << val1[1] << ", " << val1[2] << ", " << val1[3] << ")" << std::endl
+		<< "(" << val2[0] << ", " << val2[1] << ", " << val2[2] << ", " << val2[3] << ")" << std::endl
+		<< "(" << val3[0] << ", " << val3[1] << ", " << val3[2] << ", " << val3[3] << ")";
+	return _os;
 }
-
+#endif
 
 NIX_NAMESPACE_END

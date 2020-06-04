@@ -12,7 +12,6 @@
 
 NIX_NAMESPACE_BEGIN
 
-
 class Vector4 : public MathBase<16, Vector4>
 {
 public:
@@ -25,14 +24,6 @@ public:
 	NIX_INLINE Vector4(Vector4&& _copy) noexcept { m_vec = std::move(_copy); }
 	NIX_INLINE Vector4(const float128& _copy) { m_vec = _copy; }
 	NIX_INLINE Vector4(float128&& _copy) noexcept { m_vec = std::move(_copy); }
-
-
-    //////////////////////////////////////////////////////////////////////////
-    // Print function for debug purpose only
-
-#ifdef _DEBUG
-    friend NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Vector4& _v);
-#endif
 
     //////////////////////////////////////////////////////////////////////////
     // Operators
@@ -127,7 +118,6 @@ public:
 
     //////////////////////////////////////////////////////////////////////////
     // Vector4 Version: Means that there are some difference to properly work upon 4 elements
-
 	NIX_INLINE Vector4 Dot(const Vector4& _other) const
 	{
 		return MathFunctions::Dot(m_vec, _other);
@@ -165,183 +155,35 @@ public:
         return MathFunctions::Cross(m_vec, _other);
     }
 
-private:
-    friend class Quaternion;
-    friend class Matrix4x4;
-
-    // for global operators
-    friend NIX_INLINE Vector4 operator+ (const Vector4& _v, const Scalar& _s);
-    friend NIX_INLINE Vector4 operator+ (const Scalar& _s, const Vector4& _v);
-    friend NIX_INLINE Vector4 operator+ (const Vector4& _a, const Vector4& _b);
-    friend NIX_INLINE Vector4 operator- (const Vector4& _v, const Scalar& _s);
-    friend NIX_INLINE Vector4 operator- (const Scalar& _s, const Vector4& _v);
-    friend NIX_INLINE Vector4 operator- (const Vector4& _a, const Vector4& _b);
-    friend NIX_INLINE Vector4 operator* (const Vector4& _v, const Scalar& _s);
-    friend NIX_INLINE Vector4 operator* (const Scalar& _s, const Vector4& _v);
-    friend NIX_INLINE Vector4 operator* (const Vector4& _a, const Vector4& _b);
-    friend NIX_INLINE Vector4 operator* (const Vector4& _a, const float128& _b);
-    friend NIX_INLINE Vector4 operator* (const float128& _a, const Vector4& _b);
-    friend NIX_INLINE Vector4 operator/ (const Vector4& _v, const Scalar& _s);
-    friend NIX_INLINE Vector4 operator/ (const Scalar& _s, const Vector4& _v);
-    friend NIX_INLINE Vector4 operator/ (const Vector4& _a, const Vector4& _b);
-    friend NIX_INLINE Vector4 operator- (const Vector4& _v);
-    friend NIX_INLINE Vector4 operator++ (const Vector4& _v, int32);
-    friend NIX_INLINE Vector4 operator-- (const Vector4& _v, int32);
-    friend NIX_INLINE bool operator==(const Vector4& _lhs, const Vector4& _rhs);
-    friend NIX_INLINE bool operator!=(const Vector4& _lhs, const Vector4& _rhs);
-    friend NIX_INLINE bool operator< (const Vector4& _lhs, const Vector4& _rhs);
-    friend NIX_INLINE bool operator> (const Vector4& _lhs, const Vector4& _rhs);
-    friend NIX_INLINE bool operator<=(const Vector4& _lhs, const Vector4& _rhs);
-    friend NIX_INLINE bool operator>=(const Vector4& _lhs, const Vector4& _rhs);
-
-    // from quaternion
-    friend NIX_INLINE Quaternion operator* (const Quaternion& _q1, const Quaternion& _q2);
-    friend NIX_INLINE Vector4 operator* (const Quaternion& _q, const Vector4& _v);
-
-    // from matrix
-    friend NIX_INLINE Vector4 operator*(const Matrix4x4& _m, const Vector4& _v);
-    friend NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix4x4& _m);
+	//////////////////////////////////////////////////////////////////////////
+	// Operators
+	NIX_INLINE Vector4 operator+ (const Vector4& _v) const { return MathFunctions::Add(*this, _v); }
+	NIX_INLINE Vector4 operator+ (const Scalar& _s) const { return MathFunctions::Add(*this, _s); }
+	NIX_INLINE Vector4 operator- (const Vector4& _v) const { return MathFunctions::Sub(*this, _v); }
+	NIX_INLINE Vector4 operator- (const Scalar& _s) const { return MathFunctions::Sub(*this, _s); }
+	NIX_INLINE Vector4 operator* (const Vector4& _v) const { return MathFunctions::Mul(*this, _v); }
+	NIX_INLINE Vector4 operator* (const Scalar& _s) const { return MathFunctions::Mul(*this, _s); }
+	NIX_INLINE Vector4 operator/ (const Vector4& _v) const { return MathFunctions::Div(*this, _v); }
+	NIX_INLINE Vector4 operator/ (const Scalar& _s) const { return MathFunctions::Div(*this, _s); }
+	NIX_INLINE Vector4 operator- () const { return MathFunctions::Sub(_mm_setzero_ps(), *this); }
+	NIX_INLINE Vector4 operator++ (int32) const { return MathFunctions::Add(*this, kOneVec4); }
+	NIX_INLINE Vector4 operator-- (int32) const { return MathFunctions::Sub(*this, kOneVec4); }
+	NIX_INLINE bool operator==(const Vector4& _rhs) const { return MathBase<16, Vector4>::operator==(_rhs).IsTrue(); }
+	NIX_INLINE bool operator!=(const Vector4& _rhs) const { return MathBase<16, Vector4>::operator!=(_rhs).IsTrue(); }
+	NIX_INLINE bool operator< (const Vector4& _rhs) const { return MathBase<16, Vector4>::operator<(_rhs).IsTrue(); }
+	NIX_INLINE bool operator> (const Vector4& _rhs) const { return MathBase<16, Vector4>::operator>(_rhs).IsTrue(); }
+	NIX_INLINE bool operator<=(const Vector4& _rhs) const { return MathBase<16, Vector4>::operator<=(_rhs).IsTrue(); }
+	NIX_INLINE bool operator>=(const Vector4& _rhs) const { return MathBase<16, Vector4>::operator>=(_rhs).IsTrue(); }
 };
-
-
-//////////////////////////////////////////////////////////////////////////
-// Operators
 
 #ifdef _DEBUG
 NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Vector4& _v)
 {
-    float *val = (float*)&_v;
-    _os << "(" << val[0] << ", " << val[1] << ", " << val[2] << ", " << val[3] << ")";
-    return _os;
+	float *val = (float*)&_v;
+	_os << "(" << val[0] << ", " << val[1] << ", " << val[2] << ", " << val[3] << ")";
+	return _os;
 }
 #endif
-
-// operator+
-NIX_INLINE Vector4 operator+ (const Vector4& _v, const Scalar& _s)
-{
-    return MathFunctions::Add(_v, _s);
-}
-
-NIX_INLINE Vector4 operator+ (const Scalar& _s, const Vector4& _v)
-{
-    return MathFunctions::Add(_s, _v);
-}
-
-NIX_INLINE Vector4 operator+ (const Vector4& _a, const Vector4& _b)
-{
-    return MathFunctions::Add(_a, _b);
-}
-
-//operator-
-NIX_INLINE Vector4 operator- (const Vector4& _v, const Scalar& _s)
-{
-    return MathFunctions::Sub(_v, _s);
-}
-
-NIX_INLINE Vector4 operator- (const Scalar& _s, const Vector4& _v)
-{
-    return MathFunctions::Sub(_s, _v);
-}
-
-NIX_INLINE Vector4 operator- (const Vector4& _a, const Vector4& _b)
-{
-    return MathFunctions::Sub(_a, _b);
-}
-
-//operator*
-NIX_INLINE Vector4 operator* (const Vector4& _v, const Scalar& _s)
-{
-    return MathFunctions::Mul(_v, _s);
-}
-
-NIX_INLINE Vector4 operator* (const Scalar& _s, const Vector4& _v)
-{
-    return MathFunctions::Mul(_s, _v);
-}
-
-NIX_INLINE Vector4 operator* (const Vector4& _a, const Vector4& _b)
-{
-    return MathFunctions::Mul(_a, _b);
-}
-
-NIX_INLINE Vector4 operator* (const Vector4& _a, const float128& _b)
-{
-    return MathFunctions::Mul(_a, _b);
-}
-
-NIX_INLINE Vector4 operator* (const float128& _a, const Vector4& _b)
-{
-    return MathFunctions::Mul(_a, _b);
-}
-
-
-//operator/
-NIX_INLINE Vector4  operator/ (const Vector4& _v, const Scalar& _s)
-{
-    return MathFunctions::Div(_v, _s);
-}
-
-NIX_INLINE Vector4  operator/ (const Scalar& _s, const Vector4& _v)
-{
-    return MathFunctions::Div(_s, _v);
-}
-
-NIX_INLINE Vector4  operator/ (const Vector4& _a, const Vector4& _b)
-{
-    return MathFunctions::Div(_a, _b);
-}
-
-// Unary constant operators
-NIX_INLINE Vector4  operator- (const Vector4& _v)
-{
-    return MathFunctions::Sub(kZero, _v);
-}
-
-NIX_INLINE Vector4  operator++ (const Vector4& _v, int32)
-{
-    return MathFunctions::Add(_v, kOneVec4);
-}
-
-NIX_INLINE Vector4  operator-- (const Vector4& _v, int32)
-{
-    return MathFunctions::Sub(_v, kOneVec4);
-}
-
-NIX_INLINE bool operator==(const Vector4& _lhs, const Vector4& _rhs)
-{
-	Boolean res = (_lhs == _rhs);
-	return res.IsTrue();
-}
-
-NIX_INLINE bool operator!=(const Vector4& _lhs, const Vector4& _rhs)
-{
-	Boolean res = (_lhs != _rhs);
-	return res.IsTrue();
-}
-
-NIX_INLINE bool operator< (const Vector4& _lhs, const Vector4& _rhs)
-{
-	Boolean res = (_lhs < _rhs);
-	return res.IsTrue();
-}
-
-NIX_INLINE bool operator> (const Vector4& _lhs, const Vector4& _rhs)
-{
-	Boolean res = (_lhs > _rhs);
-	return res.IsTrue();
-}
-
-NIX_INLINE bool operator<=(const Vector4& _lhs, const Vector4& _rhs)
-{
-	Boolean res = (_lhs <= _rhs);
-	return res.IsTrue();
-}
-
-NIX_INLINE bool operator>=(const Vector4& _lhs, const Vector4& _rhs)
-{
-	Boolean res = (_lhs >= _rhs);
-	return res.IsTrue();
-}
 
 
 NIX_NAMESPACE_END
