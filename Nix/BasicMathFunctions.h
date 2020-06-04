@@ -25,10 +25,10 @@ NIX_NAMESPACE_BEGIN
 namespace MathFunctions
 {
     NIX_INLINE float128 Set(const float& _x, const float& _y, const float& _z, const float& _w) { return _mm_set_ps(_w, _z, _y, _x); }
-    NIX_INLINE float128 Add(const float128& _a, const float128& _b) { return _mm_add_ps(_a, _b); }
-    NIX_INLINE float128 Sub(const float128& _a, const float128& _b) { return _mm_sub_ps(_a, _b); }
-    NIX_INLINE float128 Mul(const float128& _a, const float128& _b) { return _mm_mul_ps(_a, _b); }
-    NIX_INLINE float128 Div(const float128& _a, const float128& _b) { return _mm_div_ps(_a, _b); }
+    NIX_INLINE float128 Add(const float128 _a, const float128 _b) { return _mm_add_ps(_a, _b); }
+    NIX_INLINE float128 Sub(const float128 _a, const float128 _b) { return _mm_sub_ps(_a, _b); }
+    NIX_INLINE float128 Mul(const float128 _a, const float128 _b) { return _mm_mul_ps(_a, _b); }
+    NIX_INLINE float128 Div(const float128 _a, const float128 _b) { return _mm_div_ps(_a, _b); }
 
 	NIX_INLINE float128 Splat(const float& _v)
 	{
@@ -74,13 +74,13 @@ namespace MathFunctions
 	}
 
 
-    NIX_INLINE float128 Abs(const float128& _v) { return _mm_andnot_ps(kSignBit, _v); }
-    NIX_INLINE float128 Neg(const float128& _v) { return _mm_xor_ps(_v, kSignBit); }
+    NIX_INLINE float128 Abs(const float128 _v) { return _mm_andnot_ps(kSignBit, _v); }
+    NIX_INLINE float128 Neg(const float128 _v) { return _mm_xor_ps(_v, kSignBit); }
 
-    NIX_INLINE float128 Sqrt(const float128& _v) { return _mm_sqrt_ps(_v); }
-    NIX_INLINE float128 ReciprocalSqrt(const float128& _v) { return _mm_rsqrt_ps(_v); }
+    NIX_INLINE float128 Sqrt(const float128 _v) { return _mm_sqrt_ps(_v); }
+    NIX_INLINE float128 ReciprocalSqrt(const float128 _v) { return _mm_rsqrt_ps(_v); }
 
-    NIX_INLINE float128 Round(const float128& _v)
+    NIX_INLINE float128 Round(const float128 _v)
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_round_ps(_v, _MM_FROUND_TO_NEAREST_INT);
@@ -93,7 +93,7 @@ namespace MathFunctions
 #   endif
     }
 
-    NIX_INLINE float128 Floor(const float128& _v)
+    NIX_INLINE float128 Floor(const float128 _v)
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_floor_ps(_v);
@@ -106,7 +106,7 @@ namespace MathFunctions
 #   endif
     }
 
-    NIX_INLINE float128 Ceil(const float128& _v)
+    NIX_INLINE float128 Ceil(const float128 _v)
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_ceil_ps(_v);
@@ -119,12 +119,12 @@ namespace MathFunctions
 #   endif
     }
 
-    NIX_INLINE float128 Min(const float128& _x, const float128& _y) { return _mm_min_ps(_x, _y); }
-    NIX_INLINE float128 Min(const float128& _x, const float& _y) { return _mm_min_ps(_x, MathFunctions::Splat(_y)); }
-    NIX_INLINE float128 Max(const float128& _x, const float128& _y) { return _mm_max_ps(_x, _y); }
-    NIX_INLINE float128 Max(const float128& _x, const float& _y) { return _mm_max_ps(_x, MathFunctions::Splat(_y)); }
+    NIX_INLINE float128 Min(const float128 _x, const float128 _y) { return _mm_min_ps(_x, _y); }
+    NIX_INLINE float128 Min(const float128 _x, const float& _y) { return _mm_min_ps(_x, MathFunctions::Splat(_y)); }
+    NIX_INLINE float128 Max(const float128 _x, const float128 _y) { return _mm_max_ps(_x, _y); }
+    NIX_INLINE float128 Max(const float128 _x, const float& _y) { return _mm_max_ps(_x, MathFunctions::Splat(_y)); }
 
-    NIX_INLINE float128 MulAdd(const float128& _x, const float128& _y, const float128& _v)
+    NIX_INLINE float128 MulAdd(const float128 _x, const float128 _y, const float128 _v)
     {
 #   if NIX_ARCH & NIX_ARCH_AVX2_FLAG
         return _mm_fmadd_ps(_x, _y, _v);
@@ -133,7 +133,7 @@ namespace MathFunctions
 #   endif
     }
 
-	NIX_INLINE float128 NegMulAdd(const float128& _x, const float128& _y, const float128& _v)
+	NIX_INLINE float128 NegMulAdd(const float128 _x, const float128 _y, const float128 _v)
 	{
 #   if NIX_ARCH & NIX_ARCH_AVX2_FLAG
 		return _mm_fnmadd_ps(_x, _y, _v);
@@ -142,7 +142,7 @@ namespace MathFunctions
 #   endif
 	}
 
-    NIX_INLINE float128 Dot(const float128& _a, const float128& _b)
+    NIX_INLINE float128 Dot(const float128 _a, const float128 _b)
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_dp_ps(_a, _b, 0xff); // 1111 1111 -> all values are computed and the result is saved to the whole register
@@ -159,7 +159,7 @@ namespace MathFunctions
 #   endif
     }
 
-    NIX_INLINE float128 Dot3(const float128& _a, const float128& _b)
+    NIX_INLINE float128 Dot3(const float128 _a, const float128 _b)
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_dp_ps(_a, _b, 0x7f); // 0111 1111 -> the w value of arrays are not computed. The result is saved to the whole register
@@ -198,52 +198,59 @@ namespace MathFunctions
 #   endif
     }
 
-    NIX_INLINE float128 SquareLength(const float128& _v)
+    NIX_INLINE float128 SquareLength(const float128 _v)
     {
         return MathFunctions::Dot(_v, _v);
     }
 
-    NIX_INLINE float128 SquareLength3(const float128& _v)
+    NIX_INLINE float128 SquareLength3(const float128 _v)
     {
         return MathFunctions::Dot3(_v, _v);
     }
 
-    NIX_INLINE float128 Length(const float128& _v)
+    NIX_INLINE float128 Length(const float128 _v)
     {
         const float128 sln = MathFunctions::SquareLength(_v);
         const float128 sqt = MathFunctions::Sqrt(sln);
         return sqt;
     }
 
-    NIX_INLINE float128 Length3(const float128& _v)
+    NIX_INLINE float128 Length3(const float128 _v)
     {
         const float128 sln = MathFunctions::SquareLength3(_v);
         const float128 sqt = MathFunctions::Sqrt(sln);
         return sqt;
     }
 
-    NIX_INLINE float128 SquareDistance(const float128& _a, const float128& _b)
+    NIX_INLINE float128 SquareDistance(const float128 _a, const float128 _b)
     {
         const float128 sub = MathFunctions::Sub(_a, _b);
         const float128 sln = MathFunctions::SquareLength(sub);
         return sln;
     }
 
-    NIX_INLINE float128 Distance(const float128& _a, const float128& _b)
+    NIX_INLINE float128 Distance(const float128 _a, const float128 _b)
     {
         const float128 sub = MathFunctions::Sub(_a, _b);
         const float128 len = MathFunctions::Length(sub);
         return len;
     }
 
-    NIX_INLINE float128 Distance3(const float128& _a, const float128& _b)
+	NIX_INLINE float128 SquareDistance3(const float128 _a, const float128 _b)
+	{
+		const float128 sub = MathFunctions::Sub(_a, _b);
+		const float128 sln = MathFunctions::SquareLength3(sub);
+		return sln;
+	}
+
+    NIX_INLINE float128 Distance3(const float128 _a, const float128 _b)
     {
         const float128 sub = MathFunctions::Sub(_a, _b);
         const float128 len = MathFunctions::Length3(sub);
         return len;
     }
 
-    NIX_INLINE float128 Cross(const float128& _a, const float128& _b)
+    NIX_INLINE float128 Cross(const float128 _a, const float128 _b)
     {
         return MathFunctions::Sub(
             MathFunctions::Mul(MathFunctions::Swizzle<Y, Z, X, W>(_a), MathFunctions::Swizzle<Z, X, Y, W>(_b)),
@@ -251,7 +258,7 @@ namespace MathFunctions
         );
     }
 
-    NIX_INLINE float128 Mod(const float128& _a, const float128& _b)
+    NIX_INLINE float128 Mod(const float128 _a, const float128 _b)
     {
         const float128 div = MathFunctions::Div(_a, _b);
         const float128 flr = MathFunctions::Floor(div);
@@ -260,19 +267,19 @@ namespace MathFunctions
         return sub;
     }
 
-    NIX_INLINE float128 Clamp(const float128& _v, const float128& _min, const float128& _max)
+    NIX_INLINE float128 Clamp(const float128 _v, const float128 _min, const float128 _max)
     {
         const float128 min = MathFunctions::Min(_v, _max);
         const float128 max = MathFunctions::Max(min, _min);
         return max;
     }
 
-    NIX_INLINE float128 FastSqrt(const float128& _v)
+    NIX_INLINE float128 FastSqrt(const float128 _v)
     {
         return MathFunctions::Mul(MathFunctions::ReciprocalSqrt(_v), _v);
     }
 
-    NIX_INLINE float128 Normalize(const float128& _v)
+    NIX_INLINE float128 Normalize(const float128 _v)
     {
         const float128 dot = MathFunctions::Dot(_v, _v);
         const float128 rsr = MathFunctions::ReciprocalSqrt(dot);
@@ -280,7 +287,7 @@ namespace MathFunctions
         return mul;
     }
 
-    NIX_INLINE float128 Normalize3(const float128& _v)
+    NIX_INLINE float128 Normalize3(const float128 _v)
     {
         const float128 dot = MathFunctions::Dot3(_v, _v);
         const float128 rsr = MathFunctions::ReciprocalSqrt(dot);
@@ -288,13 +295,13 @@ namespace MathFunctions
         return mul;
     }
 
-    NIX_INLINE float128 Pow(const float128& _x, const float128& _y)
+    NIX_INLINE float128 Pow(const float128 _x, const float128 _y)
     {
         //pow(x, y) == exp(y*log(x))
         return Trigonometry::Exp(MathFunctions::Mul(_y, Trigonometry::Log(_x)));
     }
 
-    NIX_INLINE float128 Lerp(const float128& _from, const float128& _to, const float128& _t)
+    NIX_INLINE float128 Lerp(const float128 _from, const float128 _to, const float128 _t)
     {
         const float128 sub = MathFunctions::Sub(kOneVec4, _t);
         const float128 mul0 = MathFunctions::Mul(sub, _from);
@@ -303,7 +310,7 @@ namespace MathFunctions
         return add;
     }
 
-    NIX_INLINE float128 Step(const float128& _from, const float128& _to, const float128& _t)
+    NIX_INLINE float128 Step(const float128 _from, const float128 _to, const float128 _t)
     {
         const float128 cmp0 = _mm_cmpngt_ps(_t, kOneHalfVec4);
 
@@ -318,7 +325,7 @@ namespace MathFunctions
         }
     }
 
-    NIX_INLINE float128 HermiteCubicSpline(const float128& _p0, const float128& _m0, const float128& _p1, const float128& _m1, const float128& _t)
+    NIX_INLINE float128 HermiteCubicSpline(const float128 _p0, const float128 _m0, const float128 _p1, const float128 _m1, const float128 _t)
     {
         static const float128 one = MathFunctions::Splat(1.0f);
         static const float128 two = MathFunctions::Splat(2.0f);
@@ -345,7 +352,7 @@ namespace MathFunctions
 
 
     // is a bit slow
-    NIX_INLINE float128 InverseLerp(const float128& _v, const float128& _min, const float128& _max)
+    NIX_INLINE float128 InverseLerp(const float128 _v, const float128 _min, const float128 _max)
     {
         const float128 equal = _mm_cmpeq_ps(_min, _max);
         const int16 mask = _mm_movemask_ps(equal);
@@ -366,7 +373,7 @@ namespace MathFunctions
     // Faster helper accessor
     //////////////////////////////////////////////////////////////////////////
 
-//     NIX_INLINE float128 InsertAt(const float128& _v, float _x, uint32 _i)
+//     NIX_INLINE float128 InsertAt(const float128 _v, float _x, uint32 _i)
 //     {
 // #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
 //         //return _mm_insert_ps(_v, _mm_set_ss(_x), _i << 4);
@@ -435,12 +442,12 @@ namespace MathFunctions
 #	endif
 	}
 
-    NIX_INLINE float ExtractX(const float128& _v)
+    NIX_INLINE float ExtractX(const float128 _v)
     {
         return _mm_cvtss_f32(_v);
     }
 
-    NIX_INLINE float ExtractY(const float128& _v)
+    NIX_INLINE float ExtractY(const float128 _v)
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         float r;
@@ -451,7 +458,7 @@ namespace MathFunctions
 #   endif
     }
 
-    NIX_INLINE float ExtractZ(const float128& _v)
+    NIX_INLINE float ExtractZ(const float128 _v)
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         float r;
@@ -462,7 +469,7 @@ namespace MathFunctions
 #   endif
     }
 
-    NIX_INLINE float ExtractW(const float128& _v)
+    NIX_INLINE float ExtractW(const float128 _v)
     {
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         float r;
@@ -572,6 +579,12 @@ namespace MathFunctions
 #   else
 		return _mm_movelh_ps(_vec, _mm_unpackhi_ps(_vec, SplatOne()));
 #   endif
+	}
+
+	// From  [a,b,c,d ] To  [b,c,d,a]
+	NIX_INLINE float128 Rotate(float128 _vec)
+	{
+		return _mm_shuffle_ps(_vec, _vec, 0x39);
 	}
 };
 

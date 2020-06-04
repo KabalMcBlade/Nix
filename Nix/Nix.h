@@ -10,6 +10,9 @@
 #include "Swizzle.h"
 
 #include "BasicMathFunctions.h"
+#include "Boolean.h"
+#include "MathBase.h"
+#include "Scalar.h"
 
 #include "Permute.h"
 

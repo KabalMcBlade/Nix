@@ -25,7 +25,7 @@ public:
         this->m_rows[3] = MathFunctions::Set(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
-    NIX_INLINE Matrix4x4(const float& _s)
+    NIX_INLINE Matrix4x4(const Scalar& _s)
     {
         this->m_rows[0] = MathFunctions::Set(_s, 0.0f, 0.0f, 0.0f);
         this->m_rows[1] = MathFunctions::Set(0.0f, _s, 0.0f, 0.0f);
@@ -34,17 +34,30 @@ public:
 
     }
 
+	// keep float here, having Scalar is more computation for nothing
     NIX_INLINE Matrix4x4(
-        const float& _x0, const float& _y0, const float& _z0, const float& _w0,
-        const float& _x1, const float& _y1, const float& _z1, const float& _w1,
-        const float& _x2, const float& _y2, const float& _z2, const float& _w2,
-        const float& _x3, const float& _y3, const float& _z3, const float& _w3)
+        float _x0, float _y0, float _z0, float _w0,
+        float _x1, float _y1, float _z1, float _w1,
+        float _x2, float _y2, float _z2, float _w2,
+        float _x3, float _y3, float _z3, float _w3)
     {
         this->m_rows[0] = MathFunctions::Set(_x0, _y0, _z0, _w0);
         this->m_rows[1] = MathFunctions::Set(_x1, _y1, _z1, _w1);
         this->m_rows[2] = MathFunctions::Set(_x2, _y2, _z2, _w2);
         this->m_rows[3] = MathFunctions::Set(_x3, _y3, _z3, _w3);
     }
+
+	NIX_INLINE Matrix4x4(
+		const Scalar& _v0,
+		const Scalar& _v1,
+		const Scalar& _v2,
+		const Scalar& _v3)
+	{
+		this->m_rows[0] = _v0;
+		this->m_rows[1] = _v1;
+		this->m_rows[2] = _v2;
+		this->m_rows[3] = _v3;
+	}
 
     NIX_INLINE Matrix4x4(
         const Vector4& _v0,
@@ -84,28 +97,28 @@ public:
     //////////////////////////////////////////////////////////////////////////
     // Accesses
 
-    NIX_INLINE float128& operator[](uint8 _i)
+    NIX_INLINE Vector4& operator[](uint8 _i)
     {
         return this->m_rows[_i];
     }
 
 
-    NIX_INLINE const float128& operator[](uint8 _i) const
+    NIX_INLINE const Vector4& operator[](uint8 _i) const
     {
         return this->m_rows[_i];
     }
 
-    NIX_INLINE const float128& GetOrtX() const
+    NIX_INLINE const Vector4& GetOrtX() const
     {
         return this->m_rows[0];
     }
 
-    NIX_INLINE const float128& GetOrtY() const
+    NIX_INLINE const Vector4& GetOrtY() const
     {
         return this->m_rows[1];
     }
 
-    NIX_INLINE const float128& GetOrtZ() const
+    NIX_INLINE const Vector4& GetOrtZ() const
     {
         return this->m_rows[2];
     }
@@ -146,25 +159,25 @@ public:
         return *this;
     }
 
-    NIX_INLINE Matrix4x4& operator+=(const float& _s)
+    NIX_INLINE Matrix4x4& operator+=(const Scalar& _s)
     {
         *this = Add(_s);
         return *this;
     }
 
-    NIX_INLINE Matrix4x4& operator-=(const float& _s)
+    NIX_INLINE Matrix4x4& operator-=(const Scalar& _s)
     {
         *this = Sub(_s);
         return *this;
     }
 
-    NIX_INLINE Matrix4x4& operator*=(const float& _s)
+    NIX_INLINE Matrix4x4& operator*=(const Scalar& _s)
     {
         *this = Mul(_s);
         return *this;
     }
 
-    NIX_INLINE Matrix4x4& operator/=(const float& _s)
+    NIX_INLINE Matrix4x4& operator/=(const Scalar& _s)
     {
         *this = Div(_s);
         return *this;
@@ -213,81 +226,89 @@ public:
 
     NIX_INLINE Matrix4x4 Transpose() const
     {
-        Matrix4x4 result;
-        const float128 swp0 = _mm_shuffle_ps(m_rows[0], m_rows[1], 0x44);
-        const float128 swp1 = _mm_shuffle_ps(m_rows[2], m_rows[3], 0x44);
-        const float128 swp2 = _mm_shuffle_ps(m_rows[0], m_rows[1], 0xEE);
-        const float128 swp3 = _mm_shuffle_ps(m_rows[2], m_rows[3], 0xEE);
-        result[0] = _mm_shuffle_ps(swp0, swp1, 0x88);
-        result[1] = _mm_shuffle_ps(swp0, swp1, 0xDD);
-        result[2] = _mm_shuffle_ps(swp2, swp3, 0x88);
-        result[3] = _mm_shuffle_ps(swp2, swp3, 0xDD);
-        return result;
+		const float128 tmp0 = MathFunctions::Permute<A_X, B_X, A_Y, B_Y>(m_rows[0], m_rows[2]);
+		const float128 tmp1 = MathFunctions::Permute<A_X, B_X, A_Y, B_Y>(m_rows[1], m_rows[3]);
+		const float128 tmp2 = MathFunctions::Permute<A_Z, B_Z, A_W, B_W>(m_rows[0], m_rows[2]);
+		const float128 tmp3 = MathFunctions::Permute<A_Z, B_Z, A_W, B_W>(m_rows[1], m_rows[3]);
+		const float128 res0 = MathFunctions::Permute<A_X, B_X, A_Y, B_Y>(tmp0, tmp1);
+		const float128 res1 = MathFunctions::Permute<A_Z, B_Z, A_W, B_W>(tmp0, tmp1);
+		const float128 res2 = MathFunctions::Permute<A_X, B_X, A_Y, B_Y>(tmp2, tmp3);
+		const float128 res3 = MathFunctions::Permute<A_Z, B_Z, A_W, B_W>(tmp2, tmp3);
+		return Matrix4x4(
+			Vector4(res0),
+			Vector4(res1),
+			Vector4(res2),
+			Vector4(res3)
+		);
     }
 
     // It works ONLY with transform matrix, not for generic matrix purpose
     // Moreover this not take into consider the scale, so this matrix is treated is of scale 1
+	//https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
     NIX_INLINE Matrix4x4 InverseNoScale() const
     {
-        Matrix4x4 result;
-        // transpose the 3x3 part, so m03 = m13 = m23 = 0
-        const float128 lh = _mm_movelh_ps(m_rows[0], m_rows[1]);
-        const float128 hl = _mm_movehl_ps(m_rows[1], m_rows[0]);
-        result[0] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 0, 2, 0));
-        result[1] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 1, 3, 1));
-        result[2] = _mm_shuffle_ps(hl, m_rows[2], _MM_SHUFFLE(3, 2, 2, 0));
+		const float128 t0 = MathFunctions::Permute<A_X, A_Y, B_X, B_Y>(m_rows[0], m_rows[1]);
+		const float128 t1 = MathFunctions::Permute<A_Z, A_W, B_Z, B_W>(m_rows[0], m_rows[1]);
+		const float128 res0 = MathFunctions::Permute<A_X, A_Z, B_X, B_W>(t0, m_rows[2]);
+		const float128 res1 = MathFunctions::Permute<A_Y, A_W, B_Y, B_W>(t0, m_rows[2]);
+		const float128 res2 = MathFunctions::Permute<A_X, A_Z, B_Z, B_W>(t1, m_rows[2]);
 
-        // the forth line
-        result[3] = MathFunctions::Mul(result[0], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x00));
-        result[3] = MathFunctions::Add(result[3], MathFunctions::Mul(result[1], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x55)));
-        result[3] = MathFunctions::Add(result[3], MathFunctions::Mul(result[2], _mm_shuffle_ps(m_rows[3], m_rows[3], 0xAA)));
-        result[3] = MathFunctions::Sub(MathFunctions::Set(0.f, 0.f, 0.f, 1.f), result[3]);
-        return result;
+		float128 res3 = MathFunctions::Mul(res0, MathFunctions::Swizzle<X, X, X, X>(m_rows[3]));
+		res3 = MathFunctions::Add(res3, MathFunctions::Mul(res1, MathFunctions::Swizzle<Y, Y, Y, Y>(m_rows[3])));
+		res3 = MathFunctions::Add(res3, MathFunctions::Mul(res2, MathFunctions::Swizzle<Z, Z, Z, Z>(m_rows[3])));
+		res3 = MathFunctions::Sub(MathFunctions::Set(0.0f, 0.0f, 0.0f, 1.0f), res3);
+
+		return Matrix4x4(
+			Vector4(res0),
+			Vector4(res1),
+			Vector4(res2),
+			Vector4(res3)
+		);
     }
 
     // It works ONLY with transform matrix, not for generic matrix purpose
+	//https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
     NIX_INLINE Matrix4x4 Inverse() const
     {
-        Matrix4x4 result;
-        // transpose the 3x3 part, so m03 = m13 = m23 = 0
-        const float128 lh = _mm_movelh_ps(m_rows[0], m_rows[1]);
-        const float128 hl = _mm_movehl_ps(m_rows[1], m_rows[0]);
-        result[0] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 0, 2, 0));
-        result[1] = _mm_shuffle_ps(lh, m_rows[2], _MM_SHUFFLE(3, 1, 3, 1));
-        result[2] = _mm_shuffle_ps(hl, m_rows[2], _MM_SHUFFLE(3, 2, 2, 0));
+		const float128 t0 = MathFunctions::Permute<A_X, A_Y, B_X, B_Y>(m_rows[0], m_rows[1]);
+		const float128 t1 = MathFunctions::Permute<A_Z, A_W, B_Z, B_W>(m_rows[0], m_rows[1]);
+		float128 res0 = MathFunctions::Permute<A_X, A_Z, B_X, B_W>(t0, m_rows[2]);
+		float128 res1 = MathFunctions::Permute<A_Y, A_W, B_Y, B_W>(t0, m_rows[2]);
+		float128 res2 = MathFunctions::Permute<A_X, A_Z, B_Z, B_W>(t1, m_rows[2]);
 
-        float128 sqr = MathFunctions::Mul(result[0], result[0]);
-        sqr = MathFunctions::Add(sqr, MathFunctions::Mul(result[1], result[1]));
-        sqr = MathFunctions::Add(sqr, MathFunctions::Mul(result[2], result[2]));
+		float128 sqr = MathFunctions::Mul(res0, res0);
+		sqr = MathFunctions::Add(sqr, MathFunctions::Mul(res1, res1));
+		sqr = MathFunctions::Add(sqr, MathFunctions::Mul(res2, res2));
 
-        const float128 msk = _mm_cmplt_ps(sqr, kSmallNumber);
+		const float128 one = MathFunctions::SplatOne();
 
-#   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
+#if NIX_ARCH & NIX_ARCH_SSE41_FLAG
+		const nixFloat4 rsqr = _mm_blendv_ps(MathFunctions::Div(one, sqr), one, _mm_cmplt_ps(sqr, MathFunctions::Splat(NIX_SMALL_NUMBER)));
+#else
+		float128 dva = MathFunctions::Div(one, sqr);
+		float128 mask = _mm_cmplt_ps(sqr, MathFunctions::Splat(NIX_SMALL_NUMBER));
+		float128 omask = _mm_and_ps(mask, one);
+		dva = _mm_andnot_ps(mask, dva);
 
-        const float128 rsqr = _mm_blendv_ps(MathFunctions::Div(kOneVec4, sqr), kOneVec4, msk);
+		const float128 rsqr = _mm_or_ps(dva, omask);
+#endif
 
-#   else
+		res0 = MathFunctions::Mul(res0, rsqr);
+		res1 = MathFunctions::Mul(res1, rsqr);
+		res2 = MathFunctions::Mul(res2, rsqr);
 
-        float128 one = kOneVec4;
-        float128 dva = MathFunctions::Div(one, sqr);
+		// last line
+		float128 res3 = MathFunctions::Mul(res0, MathFunctions::Swizzle<X, X, X, X>(m_rows[3]));
+		res3 = MathFunctions::Add(res3, MathFunctions::Mul(res1, MathFunctions::Swizzle<Y, Y, Y, Y>(m_rows[3])));
+		res3 = MathFunctions::Add(res3, MathFunctions::Mul(res2, MathFunctions::Swizzle<Z, Z, Z, Z>(m_rows[3])));
+		res3 = MathFunctions::Sub(MathFunctions::Set(0.0f, 0.0f, 0.0f, 1.0f), res3);
 
-        one = _mm_and_ps(msk, one);
-        dva = _mm_andnot_ps(msk, dva);
-
-        const float128 rsqr = _mm_or_ps(dva, one);
-
-#   endif
-
-        result[0] = MathFunctions::Mul(result[0], rsqr);
-        result[1] = MathFunctions::Mul(result[1], rsqr);
-        result[2] = MathFunctions::Mul(result[2], rsqr);
-
-        // the forth line
-        result[3] = MathFunctions::Mul(result[0], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x00));
-        result[3] = MathFunctions::Add(result[3], MathFunctions::Mul(result[1], _mm_shuffle_ps(m_rows[3], m_rows[3], 0x55)));
-        result[3] = MathFunctions::Add(result[3], MathFunctions::Mul(result[2], _mm_shuffle_ps(m_rows[3], m_rows[3], 0xAA)));
-        result[3] = MathFunctions::Sub(MathFunctions::Set(0.f, 0.f, 0.f, 1.f), result[3]);
-        return result;
+		return Matrix4x4(
+			Vector4(res0),
+			Vector4(res1),
+			Vector4(res2),
+			Vector4(res3)
+		);
     }
 
     NIX_INLINE Matrix4x4 Translate(const Vector4& _v) const
@@ -420,43 +441,40 @@ public:
         return result;
     }
 
-    NIX_INLINE Matrix4x4 Add(float _s) const
+    NIX_INLINE Matrix4x4 Add(Scalar _s) const
     {
         Matrix4x4 result;
-        const float128 opv = MathFunctions::Splat(_s);
-        result[0] = MathFunctions::Add(m_rows[0], opv);
-        result[1] = MathFunctions::Add(m_rows[1], opv);
-        result[2] = MathFunctions::Add(m_rows[2], opv);
-        result[3] = MathFunctions::Add(m_rows[3], opv);
+        result[0] = MathFunctions::Add(m_rows[0], _s);
+        result[1] = MathFunctions::Add(m_rows[1], _s);
+        result[2] = MathFunctions::Add(m_rows[2], _s);
+        result[3] = MathFunctions::Add(m_rows[3], _s);
         return result;
     }
 
-    NIX_INLINE Matrix4x4 Sub(float _s) const
+    NIX_INLINE Matrix4x4 Sub(Scalar _s) const
     {
         Matrix4x4 result;
-        const float128 opv = MathFunctions::Splat(_s);
-        result[0] = MathFunctions::Sub(m_rows[0], opv);
-        result[1] = MathFunctions::Sub(m_rows[1], opv);
-        result[2] = MathFunctions::Sub(m_rows[2], opv);
-        result[3] = MathFunctions::Sub(m_rows[3], opv);
+        result[0] = MathFunctions::Sub(m_rows[0], _s);
+        result[1] = MathFunctions::Sub(m_rows[1], _s);
+        result[2] = MathFunctions::Sub(m_rows[2], _s);
+        result[3] = MathFunctions::Sub(m_rows[3], _s);
         return result;
     }
 
-    NIX_INLINE Matrix4x4 Mul(float _s) const
+    NIX_INLINE Matrix4x4 Mul(Scalar _s) const
     {
         Matrix4x4 result;
-        const float128 opv = MathFunctions::Splat(_s);
-        result[0] = MathFunctions::Mul(m_rows[0], opv);
-        result[1] = MathFunctions::Mul(m_rows[1], opv);
-        result[2] = MathFunctions::Mul(m_rows[2], opv);
-        result[3] = MathFunctions::Mul(m_rows[3], opv);
+        result[0] = MathFunctions::Mul(m_rows[0], _s);
+        result[1] = MathFunctions::Mul(m_rows[1], _s);
+        result[2] = MathFunctions::Mul(m_rows[2], _s);
+        result[3] = MathFunctions::Mul(m_rows[3], _s);
         return result;
     }
 
-    NIX_INLINE Matrix4x4 Div(float _s) const
+    NIX_INLINE Matrix4x4 Div(Scalar _s) const
     {
         Matrix4x4 result;
-        const float128 opv = MathFunctions::Div(kOneVec4, MathFunctions::Splat(_s));
+        const float128 opv = MathFunctions::Div(kOneVec4, _s);
         result[0] = MathFunctions::Mul(m_rows[0], opv);
         result[1] = MathFunctions::Mul(m_rows[1], opv);
         result[2] = MathFunctions::Mul(m_rows[2], opv);
@@ -507,22 +525,22 @@ private:
     friend class Vector4;
 
     // for global operators
-    friend NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _m, const float& _s);
-    friend NIX_INLINE Matrix4x4 operator+(const float& _s, const Matrix4x4& _m);
+    friend NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _m, const Scalar& _s);
+    friend NIX_INLINE Matrix4x4 operator+(const Scalar& _s, const Matrix4x4& _m);
     friend NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _a, const Matrix4x4& _b);
-    friend NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _m, const float& _s);
-    friend NIX_INLINE Matrix4x4 operator-(const float& _s, const Matrix4x4& _m);
+    friend NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _m, const Scalar& _s);
+    friend NIX_INLINE Matrix4x4 operator-(const Scalar& _s, const Matrix4x4& _m);
     friend NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _a, const Matrix4x4& _b);
-    friend NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _m, const float& _s);
-    friend NIX_INLINE Matrix4x4 operator*(const float& _s, const Matrix4x4& _m);
+    friend NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _m, const Scalar& _s);
+    friend NIX_INLINE Matrix4x4 operator*(const Scalar& _s, const Matrix4x4& _m);
     friend NIX_INLINE Vector4 operator*(const Matrix4x4& _m, const Vector4& _v);
     friend NIX_INLINE Vector4 operator*(const Vector4& _v, const Matrix4x4& _m);
     friend NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _a, const Matrix4x4& _b);
-    friend NIX_INLINE Matrix4x4 operator/(const Matrix4x4& _m, const float& _s);
-    friend NIX_INLINE Matrix4x4 operator/(const float& _s, const Matrix4x4& _m);
+    friend NIX_INLINE Matrix4x4 operator/(const Matrix4x4& _m, const Scalar& _s);
+    friend NIX_INLINE Matrix4x4 operator/(const Scalar& _s, const Matrix4x4& _m);
 
 private:
-    float128 m_rows[4];
+    Vector4 m_rows[4];
 };
 
 
@@ -545,12 +563,12 @@ NIX_INLINE std::ostream& operator<<(std::ostream& _os, const Matrix4x4& _mat)
 }
 #endif
 
-NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _m, const float& _s)
+NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _m, const Scalar& _s)
 {
     return _m.Add(_s);
 }
 
-NIX_INLINE Matrix4x4 operator+(const float& _s, const Matrix4x4& _m)
+NIX_INLINE Matrix4x4 operator+(const Scalar& _s, const Matrix4x4& _m)
 {
     return _m.Add(_s);
 }
@@ -560,12 +578,12 @@ NIX_INLINE Matrix4x4 operator+(const Matrix4x4& _a, const Matrix4x4& _b)
     return _a.Add(_b);
 }
 
-NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _m, const float& _s)
+NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _m, const Scalar& _s)
 {
     return _m.Sub(_s);
 }
 
-NIX_INLINE Matrix4x4 operator-(const float& _s, const Matrix4x4& _m)
+NIX_INLINE Matrix4x4 operator-(const Scalar& _s, const Matrix4x4& _m)
 {
     return _m.Sub(_s);
 }
@@ -575,12 +593,12 @@ NIX_INLINE Matrix4x4 operator-(const Matrix4x4& _a, const Matrix4x4& _b)
     return _a.Sub(_b);
 }
 
-NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _m, const float& _s)
+NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _m, const Scalar& _s)
 {
     return _m.Mul(_s);
 }
 
-NIX_INLINE Matrix4x4 operator*(const float& _s, const Matrix4x4& _m)
+NIX_INLINE Matrix4x4 operator*(const Scalar& _s, const Matrix4x4& _m)
 {
     return _m.Mul(_s);
 }
@@ -600,12 +618,12 @@ NIX_INLINE Matrix4x4 operator*(const Matrix4x4& _a, const Matrix4x4& _b)
     return _a.Mul(_b);
 }
 
-NIX_INLINE Matrix4x4 operator/(const Matrix4x4& _m, const float& _s)
+NIX_INLINE Matrix4x4 operator/(const Matrix4x4& _m, const Scalar& _s)
 {
     return _m.Div(_s);
 }
 
-NIX_INLINE Matrix4x4 operator/(const float& _s, const Matrix4x4& _m)
+NIX_INLINE Matrix4x4 operator/(const Scalar& _s, const Matrix4x4& _m)
 {
     return _m.Div(_s);
 }
