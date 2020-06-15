@@ -167,7 +167,7 @@ public:
     NIX_INLINE Quaternion Normalize() const
     {
         const Vector4 len = Length();
-		const Vector4 zero = 0.0f;
+		const Vector4 zero = _mm_setzero_ps();
 
         if (len <= zero)
         {
@@ -189,8 +189,9 @@ public:
 
     NIX_INLINE Quaternion Slerp(const Quaternion& _other, const float& _time) const
 	{
-		const Vector4 zero = 0.0f;
-		const Vector4 lerpEpsilon = 1.0f - NIX_EPSILON;
+		static const Vector4 zero = _mm_setzero_ps();
+		static const Vector4 one = MathFunctions::SplatOne();
+		const Vector4 lerpEpsilon = one - NIX_EPSILON;
 
         Quaternion other = _other;
 

@@ -85,10 +85,10 @@ namespace MathFunctions
 #   if NIX_ARCH & NIX_ARCH_SSE41_FLAG
         return _mm_round_ps(_v, _MM_FROUND_TO_NEAREST_INT);
 #   else
-        const float128 and = _mm_and_ps(kSignBit, _v);
-        const float128 or = _mm_or_ps(and, MathFunctions::Splat(8388608.0f));
-        const float128 add = MathFunctions::Add(_v, or );
-        const float128 sub = MathFunctions::Sub(add, or );
+        const float128 andv = _mm_and_ps(kSignBit, _v);
+        const float128 orv = _mm_or_ps(andv, MathFunctions::Splat(8388608.0f));
+        const float128 add = MathFunctions::Add(_v, orv);
+        const float128 sub = MathFunctions::Sub(add, orv);
         return sub;
 #   endif
     }
@@ -100,8 +100,8 @@ namespace MathFunctions
 #   else
         const float128 rnd = MathFunctions::Round(_v);
         const float128 cmp = _mm_cmplt_ps(_v, rnd);
-        const float128 and = _mm_and_ps(cmp, kOneVec4);
-        const float128 sub = MathFunctions::Sub(rnd, and);
+        const float128 andv = _mm_and_ps(cmp, kOneVec4);
+        const float128 sub = MathFunctions::Sub(rnd, andv);
         return sub;
 #   endif
     }
@@ -113,8 +113,8 @@ namespace MathFunctions
 #   else
         const float128 rnd = MathFunctions::Round(_v);
         const float128 cmp = _mm_cmpgt_ps(_v, rnd);
-        const float128 and = _mm_and_ps(cmp, kOneVec4);
-        const float128 add = MathFunctions::Add(rnd, and);
+        const float128 andv = _mm_and_ps(cmp, kOneVec4);
+        const float128 add = MathFunctions::Add(rnd, andv);
         return add;
 #   endif
     }
