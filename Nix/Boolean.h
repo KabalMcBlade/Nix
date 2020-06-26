@@ -18,7 +18,7 @@ public:
 	NIX_INLINE operator float128() const { return m_vec; }
 
 	// It works *ONLY* if all he values are the same! Useful for scalar boolean check ONLY!
-	NIX_INLINE bool IsTrue()
+	NIX_INLINE bool IsTrue() const
 	{
 		// 		uint16 mask = _mm_movemask_ps(m_vec);
 		// 		return (mask == 0x000F);
@@ -27,7 +27,7 @@ public:
 		return (mask > 0);
 	}
 
-	NIX_INLINE bool IsFalse()
+	NIX_INLINE bool IsFalse() const
 	{
 		return !IsTrue();
 	}
