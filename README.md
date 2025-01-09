@@ -19,7 +19,7 @@ Some of the functions used, whenever possible, are using SSE3, SSSE3 and SSE4 fo
 ## LICENSE
 
 - Sources:
-	- **NIX**, the main project, is under Apache-2.0
+	- **NIX**, the main project, is under MIT License
 	- **sse_mathfun.h** is under zlib License
 
 
