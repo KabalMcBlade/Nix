@@ -153,12 +153,10 @@
     <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Nix\Architecture.h" />
     <ClInclude Include="Nix\BasicMathFunctions.h" />
     <ClInclude Include="Nix\Boolean.h" />
     <ClInclude Include="Nix\Constants.h" />
     <ClInclude Include="Nix\Conversion.h" />
-    <ClInclude Include="Nix\CoreDefs.h" />
     <ClInclude Include="Nix\Core\Architecture.h" />
     <ClInclude Include="Nix\Core\Assertions.h" />
     <ClInclude Include="Nix\Core\BasicDefines.h" />
@@ -172,14 +170,12 @@
     <ClInclude Include="Nix\Swizzle.h" />
     <ClInclude Include="Nix\Utilities.h" />
     <ClInclude Include="Nix\Trigonometry.h" />
-    <ClInclude Include="Nix\Matrix.h" />
     <ClInclude Include="Nix\Nix.h" />
-    <ClInclude Include="Nix\Operators.h" />
     <ClInclude Include="Nix\Quaternion.h" />
-    <ClInclude Include="Nix\sse_mathfun.h" />
-    <ClInclude Include="Nix\Vector.h" />
-    <ClInclude Include="Nix\Helper.h" />
     <ClInclude Include="Nix\Vector4.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Nix.licenseheader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
